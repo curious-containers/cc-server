@@ -1,0 +1,41 @@
+@import url("theme.css");
+
+.wy-side-nav-search {
+    background-color: #1E6388;
+}
+
+.wy-side-nav-search input[type=text] {
+    border-color: #1E6388;
+}
+
+a {
+    color: #1E6388;
+}
+
+a:visited {
+    color: #033149;
+}
+
+a:hover {
+    color: #D63D25;
+}
+
+.wy-side-nav-search > a, .wy-side-nav-search .wy-dropdown > a {
+    color: #fcfcfc;
+}
+
+.wy-menu-vertical a {
+    color: #b3b3b3;
+}
+
+.rst-content dl:not(.docutils) dt {
+    background: #f3f6f6;
+    border-top-color: #1E6388;
+    border-bottom: 1px solid #e1e4e5;
+    border-left: 1px solid #e1e4e5;
+    border-right: 1px solid #e1e4e5;
+}
+
+.wy-side-nav-search > div.version {
+    color: rgba(255,255,255,0.6);
+}

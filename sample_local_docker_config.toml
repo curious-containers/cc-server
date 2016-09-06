@@ -1,0 +1,37 @@
+# see documentation for configuration instructions
+# ------------------------------------------------
+
+[server]
+host = 'https://cc.my-domain.tld'
+internal_port = 5000
+
+[mongo]
+username = 'ccdbAdmin'
+password = 'PASSWORD'
+host = 'localhost'
+dbname = 'ccdb'
+
+[docker]
+thread_limit = 8
+base_url = 'unix://var/run/docker.sock'
+
+[defaults.data_container_description]
+image = 'docker.io/curiouscontainers/cc-image-ubuntu'
+entry_point = 'python3 /opt/container_worker'
+container_ram = 512
+
+# Only necessary if data container image is in private registry
+# [defaults.data_container_description.registry_auth]
+# username = 'REGISTRY_USER'
+# password = 'PASSWORD'
+
+[defaults.scheduling_strategies]
+container_allocation = 'spread'
+
+[defaults.error_handling]
+max_task_trials = 3
+
+[defaults.authorization]
+num_login_attempts = 3
+block_for_seconds = 120
+tokens_valid_for_seconds = 172800

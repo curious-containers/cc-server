@@ -1,0 +1,113 @@
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="0 0 699.11943 425.74154">
+ <defs>
+  <marker id="b" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="g" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#d63d25" stroke-width="1pt" fill="#d63d25"/>
+  </marker>
+  <marker id="i" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#d63d25" stroke-width="1pt" fill="#d63d25"/>
+  </marker>
+  <marker id="k" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#1e6388" stroke-width="1pt" fill="#1e6388"/>
+  </marker>
+  <marker id="m" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#1e6388" stroke-width="1pt" fill="#1e6388"/>
+  </marker>
+  <marker id="n" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#1e6388" stroke-width="1pt" fill="#1e6388"/>
+  </marker>
+  <marker id="j" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#1e6388" stroke-width="1pt" fill="#1e6388"/>
+  </marker>
+  <marker id="l" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#1e6388" stroke-width="1pt" fill="#1e6388"/>
+  </marker>
+  <marker id="h" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#d63d25" stroke-width="1pt" fill="#d63d25"/>
+  </marker>
+  <marker id="f" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#d63d25" stroke-width="1pt" fill="#d63d25"/>
+  </marker>
+  <marker id="e" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#d63d25" stroke-width="1pt" fill="#d63d25"/>
+  </marker>
+  <marker id="a" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="d" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="c" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+ </defs>
+ <g transform="translate(-16.666 -367.46)">
+  <g fill="#ffe698">
+   <path d="m471.76 381.66v95.505h0.0834a60.55 12.032 0 0 0 60.478 11.632 60.55 12.032 0 0 0 60.448 -11.632h0.1137v-95.505h-121.12z" stroke="#000"/>
+   <ellipse rx="60.55" ry="12.032" stroke="#000" cy="381.67" cx="532.32"/>
+   <rect height="245.2" width="699.12" y="547.99" x="16.666"/>
+  </g>
+  <g>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="774.16925" x="368.62952" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="15px" y="774.16925" x="368.62952">Compute Cluster</tspan></text>
+   <rect height="26.508" width="307.85" y="718.77" x="47.508" fill="#543f00"/>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="737.36218" x="205" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="15px" y="737.36218" x="205" fill="#ffffff">Server 1</tspan></text>
+   <rect height="50.508" width="88.848" y="590.11" x="49.076" fill="#033149"/>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="15px" y="609.70239" x="93.568481" font-family="sans-serif" line-height="125%" fill="#ffffff"><tspan y="609.70239" x="93.568481">Swarm</tspan><tspan y="628.45239" x="93.568481">Manager</tspan></text>
+   <rect height="26.508" width="307.85" y="719.11" x="382.08" fill="#543f00"/>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="737.70239" x="539.56848" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="15px" y="737.70239" x="539.56848" fill="#ffffff">Server 2</tspan></text>
+   <rect height="26.508" width="307.85" y="678.11" x="48.076" fill="#033149"/>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="696.70239" x="205.5685" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="15px" y="696.70239" x="205.5685" fill="#ffffff">docker-engine</tspan></text>
+   <rect height="26.508" width="307.85" y="679.11" x="382.08" fill="#033149"/>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="697.70239" x="539.56848" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="15px" y="697.70239" x="539.56848" fill="#ffffff">docker-engine</tspan></text>
+   <rect height="50.508" width="88.848" y="590.11" x="158.58" fill="#033149"/>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="15px" y="609.70239" x="203.06847" font-family="sans-serif" line-height="125%" fill="#ffffff"><tspan y="609.70239" x="203.06847">Swarm</tspan><tspan y="628.45239" x="203.06847">Agent</tspan></text>
+   <rect height="50.508" width="88.848" y="589.11" x="383.58" fill="#033149"/>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="15px" y="608.70239" x="428.06845" font-family="sans-serif" line-height="125%" fill="#ffffff"><tspan y="608.70239" x="428.06845">Swarm</tspan><tspan y="627.45239" x="428.06845">Agent</tspan></text>
+   <rect height="50.508" width="88.848" y="590.11" x="265.58" fill="#540b00"/>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="15px" y="609.70239" x="310.06845" font-family="sans-serif" line-height="125%" fill="#ffffff"><tspan y="609.70239" x="310.06845">App</tspan><tspan y="628.45239" x="310.06845">Container</tspan></text>
+   <rect height="50.508" width="88.848" y="589.11" x="493.08" fill="#540b00"/>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="15px" y="608.70239" x="537.56848" font-family="sans-serif" line-height="125%" fill="#ffffff"><tspan y="608.70239" x="537.56848">Data</tspan><tspan y="627.45239" x="537.56848">Container</tspan></text>
+   <rect height="50.508" width="88.848" y="589.11" x="602.08" fill="#540b00"/>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="15px" y="608.70239" x="646.56848" font-family="sans-serif" line-height="125%" fill="#ffffff"><tspan y="608.70239" x="646.56848">App</tspan><tspan y="627.45239" x="646.56848">Container</tspan></text>
+  </g>
+  <g stroke="#1e6388" fill="none">
+   <path marker-end="url(#n)" d="m64.347 645.68v26.971h340.12v-29.678"/>
+   <g stroke-width="1px">
+    <path marker-end="url(#m)" d="m175.36 671.94v-28.263"/>
+    <path marker-end="url(#k)" d="m219.91 646.26v18.021h89.803v-19.314"/>
+    <path marker-end="url(#j)" d="m445.7 645.85v18.021h201.8v-19.314"/>
+    <path marker-end="url(#l)" d="m536.69 664.13v-20.263"/>
+   </g>
+  </g>
+  <rect height="50.508" width="197.74" y="435.77" x="50.328" fill="#540b00"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="15px" y="455.36365" x="148.82077" font-family="sans-serif" line-height="125%" fill="#ffffff"><tspan y="455.36365" x="148.82077">Curious Containers</tspan><tspan y="474.11365" x="148.82077">Server</tspan></text>
+  <g fill="none">
+   <g stroke="#d63d25">
+    <g stroke-width="1px">
+     <path marker-end="url(#i)" d="m649.12 580.72c-57.276-40.305-108.89 0-108.89 0"/>
+     <path marker-end="url(#h)" d="m314.45 580.52c115.97-50.205 212.89 0 212.89 0"/>
+     <path marker-end="url(#g)" d="m533.16 576.48v-78.167"/>
+    </g>
+    <path marker-end="url(#f)" d="m304.76 578.8 204.36-77.46" stroke-dasharray="4, 4"/>
+    <path marker-end="url(#e)" d="m658.66 577.7-103.24-79.58" stroke-dasharray="4, 4"/>
+   </g>
+   <path marker-end="url(#b)" d="m95.459 495.87v83.439" stroke="#000" stroke-width="1px"/>
+   <path marker-end="url(#a)" d="m150.61 398.09v31.113" stroke="#000" stroke-width="1px"/>
+  </g>
+  <g font-size="12.5px" font-family="sans-serif">
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" y="376.95389" x="149.90663" line-height="125%" fill="#000000"><tspan x="149.90663" y="376.95389">POST tasks</tspan><tspan x="149.90663" y="392.57889">via REST</tspan></text>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" y="519.91083" x="91.558167" line-height="125%" fill="#000000"><tspan style="text-anchor:end;text-align:end" y="519.91083" x="91.558167">create</tspan><tspan style="text-anchor:end;text-align:end" y="535.53583" x="91.558167">containers</tspan></text>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" y="653.55396" x="85.13485" line-height="125%" fill="#1e6388"><tspan x="85.13485" style="text-anchor:start;text-align:start" y="653.55396">create</tspan><tspan x="85.13485" style="text-anchor:start;text-align:start" y="669.17896">containers</tspan></text>
+  </g>
+  <path marker-end="url(#d)" d="m294.5 580.53-106.07-84.15" stroke="#000" stroke-dasharray="4, 4" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="15px" y="523.22662" x="282.96896" font-family="sans-serif" line-height="125%" fill="#000000"><tspan style="text-anchor:end;text-align:end" font-size="12.5px" y="523.22662" x="282.96896">callbacks</tspan></text>
+  <path marker-end="url(#c)" d="m520.99 565.89-313.96-70.71" stroke="#000" stroke-dasharray="4, 4" fill="none"/>
+  <g font-size="12.5px" font-family="sans-serif" fill="#000000">
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" y="574.82251" x="420.92953" line-height="125%"><tspan y="574.82251" x="420.92953" fill="#d63d25">download inputs</tspan></text>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" y="523.31763" x="647.53107" line-height="125%"><tspan y="523.31763" x="647.53107" fill="#d63d25">upload results</tspan></text>
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" y="427.04587" x="532.36108" line-height="125%"><tspan x="532.36108" y="427.04587">Remote</tspan><tspan x="532.36108" y="442.67087">Data</tspan><tspan x="532.36108" y="458.29587">Archive</tspan></text>
+  </g>
+ </g>
+</svg>

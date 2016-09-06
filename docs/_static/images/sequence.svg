@@ -1,0 +1,118 @@
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="0 0 719.57984 483.80383">
+ <defs>
+  <marker id="q" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m-5-5v10h10v-10h-10z" fill-rule="evenodd" transform="scale(.8)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="r" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m-5-5v10h10v-10h-10z" fill-rule="evenodd" transform="scale(.8)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="p" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="n" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="v" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="u" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="t" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="s" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="m" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="k" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="g" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="j" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="f" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="b" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="a" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="e" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="o" refY="0" refX="0" orient="auto" overflow="visible">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="d" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="l" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="c" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="i" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+  <marker id="h" refY="0" refX="0" overflow="visible" orient="auto">
+   <path d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill-rule="evenodd" transform="matrix(-.8 0 0 -.8 -10 0)" stroke="#000" stroke-width="1pt"/>
+  </marker>
+ </defs>
+ <g transform="translate(-16.571 -131.03)">
+  <path marker-end="url(#v)" d="m117.3 157.4v454.17" stroke="#000" fill="none"/>
+  <path marker-end="url(#n)" d="m16.571 185.93h92.143" stroke="#000" stroke-width="1px" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="178.3622" x="51.285713" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="178.3622" x="51.285713">POST task</tspan></text>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="142.02223" x="115.26816" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="142.02223" x="115.26816">CC-Server</tspan></text>
+  <path marker-end="url(#u)" d="m301.08 189.33v390.51" marker-start="url(#r)" stroke="#000" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="141.34094" x="307.36945" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="141.34094" x="307.36945">Data Container</tspan></text>
+  <path marker-end="url(#t)" d="m485.66 313.23v238.58" marker-start="url(#q)" stroke="#000" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="140.53149" x="490.10696" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="140.53149" x="490.10696">App Container</tspan></text>
+  <path marker-end="url(#s)" d="m669.63 156.85v456.17" stroke="#000" fill="none"/>
+  <g font-size="17.5px" font-family="sans-serif" fill="#000000">
+   <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" y="140.53149" x="670.38586" line-height="125%"><tspan font-size="12.5px" y="140.53149" x="670.38586">Remote Data Archive</tspan></text>
+   <flowRoot style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" line-height="125%"><flowRegion><rect y="81.648" width="668.57" x="12.143" height="427.86"/></flowRegion><flowPara/></flowRoot>
+   <flowRoot style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" line-height="125%"><flowRegion><rect y="148.08" width="106.43" x="35.714" height="65.714"/></flowRegion><flowPara/></flowRoot>
+  </g>
+  <path marker-end="url(#m)" d="m121.59 201.25h170.84" stroke="#000" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="193.67674" x="206.30426" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="193.67674" x="206.30426">Start Data Container</tspan></text>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="226.05524" x="195.73145" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="226.05524" x="195.73145">Callback: started</tspan></text>
+  <path marker-end="url(#k)" d="m307.07 248.44h355.85" stroke="#000" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="238.86917" x="398.64474" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="238.86917" x="398.64474">Download Input Files</tspan></text>
+  <path marker-end="url(#g)" d="m295.29 265.48h-171.54" stroke="#000" stroke-dasharray="6, 2" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="259.31781" x="216.22215" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="259.31781" x="216.22215">Callback: files retrieved</tspan></text>
+  <path marker-end="url(#p)" d="m307.43 276.65h23v27.143h-22.143" stroke="#000" stroke-width="1px" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="296.1651" x="386.50238" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="296.1651" x="386.50238">Start File Server</tspan></text>
+  <path marker-end="url(#j)" d="m121.07 324.58h356.57" stroke="#000" stroke-width="1.0458" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="317.58347" x="203.64474" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="317.58347" x="203.64474">Start App Container</tspan></text>
+  <path marker-end="url(#f)" d="m479.86 354.34h-355.12" stroke="#000" stroke-dasharray="6, 2" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="348.17496" x="381.50787" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="348.17496" x="381.50787">Callback: started</tspan></text>
+  <flowRoot style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" line-height="125%" font-family="sans-serif" fill="#000000"><flowRegion><rect y="85.219" width="218.57" x="3.5714" height="475.71"/></flowRegion><flowPara/></flowRoot>
+  <path marker-end="url(#b)" d="m296.54 232.22h-171.54" stroke="#000" stroke-dasharray="6, 2" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="377.23755" x="393.44574" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="377.23755" x="393.44574">Download Input Files</tspan></text>
+  <path marker-end="url(#a)" d="m480.25 383.4h-171.54" stroke="#000" fill="none"/>
+  <path marker-end="url(#e)" d="m479.9 414.83h-355.12" stroke="#000" stroke-dasharray="6, 2" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="408.66611" x="401.54343" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="408.66611" x="401.54343">Callback: files retrieved</tspan></text>
+  <path marker-end="url(#o)" d="m490.83 425.82h23v27.143h-22.143" stroke="#000" stroke-width="1px" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="445.33823" x="579.90845" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="445.33823" x="579.90845">Execute Application</tspan></text>
+  <path marker-end="url(#d)" d="m480.61 467.83h-355.12" stroke="#000" stroke-dasharray="6, 2" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="461.66608" x="390.25772" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="461.66608" x="390.25772">Callback: processed</tspan></text>
+  <path marker-end="url(#l)" d="m490.1 484.25h170.84" stroke="#000" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="476.67676" x="576.81531" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="476.67676" x="576.81531">Upload Result Files</tspan></text>
+  <path marker-end="url(#c)" d="m480.61 501.97h-355.12" stroke="#000" stroke-dasharray="6, 2" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="495.80896" x="394.25772" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="495.80896" x="394.25772">Callback: results sent</tspan></text>
+  <path marker-end="url(#i)" d="m122.19 532.99h356.57" stroke="#000" stroke-width="1.0458" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="525.9906" x="210.76569" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="525.9906" x="210.76569">Delete App Container</tspan></text>
+  <path marker-end="url(#h)" d="m123.67 562.68h170.84" stroke="#000" fill="none"/>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" font-size="17.5px" y="555.10535" x="212.38673" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="555.10535" x="212.38673">Delete Data Container</tspan></text>
+  <text style="word-spacing:0px;letter-spacing:0px;text-anchor:middle;text-align:center" xml:space="preserve" transform="rotate(-90)" font-size="17.5px" y="82.638092" x="-386.68024" font-family="sans-serif" line-height="125%" fill="#000000"><tspan font-size="12.5px" y="82.638092" x="-386.68024">time</tspan></text>
+ </g>
+</svg>

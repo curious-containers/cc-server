@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+from pymongo import MongoClient
+
+sys.path.insert(0, os.path.abspath('..'))
+
+from cc_server.configuration import Config
+
+conf_file_path = None
+try:
+    conf_file_path = sys.argv[1]
+except:
+    pass
+
+config = Config(conf_file_path)
+mongo = MongoClient('mongodb://%s:%s@%s/%s' % (
+    config.mongo['username'],
+    config.mongo['password'],
+    config.mongo['host'],
+    config.mongo['dbname']
+))
+
+delete_collections = ['tasks', 'application_containers', 'data_containers', 'block_entries']
+preserve_collections = ['users']
+
+print('You are in the process of DELETING the following database collections:')
+for c in delete_collections:
+    print('*', c)
+print('You are NOT deleting the following database collections:')
+for c in preserve_collections:
+    print('*', c)
+
+input('Hit [ENTER] to proceed...')
+
+for c in delete_collections:
+    mongo.db[c].drop()
+
+print('Done!')

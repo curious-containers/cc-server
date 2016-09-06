@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+from pymongo import MongoClient
+from getpass import getpass
+
+sys.path.insert(0, os.path.abspath('..'))
+
+from cc_server.authorization import Authorize
+from cc_server.configuration import Config
+
+conf_file_path = None
+try:
+    conf_file_path = sys.argv[1]
+except:
+    pass
+
+config = Config(conf_file_path)
+mongo = MongoClient('mongodb://%s:%s@%s/%s' % (
+    config.mongo['username'],
+    config.mongo['password'],
+    config.mongo['host'],
+    config.mongo['dbname']
+))
+
+auth_handler = Authorize(
+    mongo=mongo,
+    config=config
+)
+
+print('You are in the process of creating a user account.')
+print('ATTENTION: an already existing user with the exact same username will be updated with new settings!')
+input('Hit [ENTER] to proceed...')
+username = input('Username: ')
+if not username:
+    print('ABORT: username must not be empty.')
+    exit(1)
+password = getpass('Password: ')
+if not password:
+    print('ABORT: password must not be empty.')
+is_admin = input('Grant admin rights [y/N]: ')
+is_admin = is_admin.lower()
+is_admin = is_admin == 'yes' or is_admin == 'y'
+if is_admin:
+    print('Admin rights GRANTED!')
+else:
+    print('Admin rights NOT granted!')
+
+auth_handler.create_user(username, password, is_admin=is_admin)
+
+print('Done!')
