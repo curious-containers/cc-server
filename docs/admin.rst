@@ -14,12 +14,12 @@ Git Installation
 ----------------
 
 In order to clone the Curious Containers repositories from Github, it is necessary to install Git. Follow the
-instructions in the official [Git documentation](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+instructions in the official `Git documentation <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`__.
 
 Docker Installation
 -------------------
 
-Please follow the official [Docker documenation](https://docs.docker.com/engine/installation/linux/ubuntulinux/) for
+Please follow the official `Docker documenation <https://docs.docker.com/engine/installation/linux/ubuntulinux/>`__ for
 installation instructions. Please always install the **latest version** (currently version 12) and do not use
 outdated packages from your Linux distribution. Docker provides third-party repositories for all major platforms.
 
@@ -28,17 +28,17 @@ Docker Swarm (Optional)
 
 CC-Server supports Docker Swarm for cluster computing. The instructions for setting up Docker Swarm vary depending on 
 the underlying infrastructure. It is advised to read the official
-[Docker Swarm documentation](https://docs.docker.com/swarm/overview/).
+`Docker Swarm documentation <https://docs.docker.com/swarm/overview/>`__.
 
 In addition it is necessary to setup a Docker
 Overlay network on top of Docker Swarm, in order to enable inter-container communication across multiple hosts. 
 Installation instructions can be found in the official
-[Docker Overlay Network documentation](https://docs.docker.com/engine/userguide/networking/get-started-overlay/).
+`Docker Overlay Network documentation <https://docs.docker.com/engine/userguide/networking/get-started-overlay/>`__.
 
 Setting up a small Docker Swarm on a local machine for testing purposes can be achieved with
-[Docker Machine](https://docs.docker.com/machine/install-machine/) and
-[Virtualbox](https://www.virtualbox.org/wiki/Linux_Downloads). After setting up Docker Machine and Virtualbox the bash
-scripts from the [CC-Swarm-Setup repository](https://github.com/curious-containers/cc-swarm-setup) can be used.
+`Docker Machine <https://docs.docker.com/machine/install-machine/>`__ and
+`Virtualbox <https://www.virtualbox.org/wiki/Linux_Downloads>`__. After setting up Docker Machine and Virtualbox the bash
+scripts from the `CC-Swarm-Setup repository <https://github.com/curious-containers/cc-swarm-setup>`__ can be used.
 
 .. code-block:: bash
 
@@ -92,7 +92,7 @@ MongoDB
 ^^^^^^^
 
 Install MongoDB 3.2. Instructions can be found in the official
-[MongoDB documentation](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/).
+`MongoDB documentation <https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/>`__.
 
 In order to setup a database user, change *DB_PASSWORD* to something secure and run the following bash script:
 
@@ -122,7 +122,7 @@ Configuration
 
 *The following commands assume being inside the cc-server directory.*
 
-Create a config.toml file. Visit the [TOML specification](https://github.com/toml-lang/toml) for further information
+Create a config.toml file. Visit the `TOML specification <https://github.com/toml-lang/toml>`__ for further information
 about the file format. Use one of the included sample configuriation as a starting point. If you are connecting
 CC-Server to a local docker-engine:
 
@@ -141,7 +141,7 @@ Else, if you are connecting CC-Server to a Swarm Manager:
 server
 """"""
 
-CC-Server uses [flask](http://flask.pocoo.org/) to run a light-weight web server providing a REST interface.
+CC-Server uses `flask <http://flask.pocoo.org/>`__ to run a light-weight web server providing a REST interface.
 When starting the server it connects to an **internal_port** with port 5000 as default value. The server is then
 reachable at localhost:5000 and requests can be sent to the API. This **internal_port** should never be exposed to
 internet (configure a firewall to ensure this), because flask does not provide TLS encryption for the HTTP communication.
@@ -197,7 +197,7 @@ Swarm Manager. A Docker Overlay Network must be created beforehand and the name 
 The API of a Docker Manager is usually protected by a TLS encryption. When using Docker Machine for the Swarm setup, the
 certificate files can be found in the system users home directory at *~/.docker/machine/machines*. CC-Server is using
 the docker-py Python package. Take a look at the official
-[docker-py documentation](http://docker-py.readthedocs.io/en/stable/tls/) for more information about TLS options. Delete
+`docker-py documentation <http://docker-py.readthedocs.io/en/stable/tls/>`__ for more information about TLS options. Delete
 the **docker.tls** section from the configuration file if not required.
 
 .. code-block:: toml
@@ -353,8 +353,8 @@ A TLS proxy should always be used to protect the CC-Server API. Make sure that t
 firewall. The following sample configuration shows how this can be achieved with Apache 2.
 
 **IMPORTANT NOTE:** This is not the most secure configuration possible, but only a simplified example. For more
-information take a look at the official [Apache 2 documentation](https://httpd.apache.org/docs/current/ssl/) and the
-[Mozilla Wiki](https://wiki.mozilla.org/Security/Server_Side_TLS).
+information take a look at the official `Apache 2 documentation <https://httpd.apache.org/docs/current/ssl/>`__ and the
+`Mozilla Wiki <https://wiki.mozilla.org/Security/Server_Side_TLS>`__.
 
 .. code-block:: apache
 
@@ -380,6 +380,6 @@ Docker Registry (Optional)
 --------------------------
 
 Container images created by users have to be deployed to a Docker registry. The official
-[Docker Hub registry](https://hub.docker.com/) with free public repositories or a paid plan for private repositories can
+`Docker Hub registry <https://hub.docker.com/>`__ with free public repositories or a paid plan for private repositories can
 be used. Consider deploying a private Docker repository in order to provide free private repositories to your users.
-Instructions can be found in the official [Docker Registry documentation](https://docs.docker.com/registry/deploying/).
+Instructions can be found in the official `Docker Registry documentation <https://docs.docker.com/registry/deploying/>`__.
