@@ -152,7 +152,7 @@ with a CC-Container-Worker. Since the worker sends callback requests to this **h
 reachable by the container. The easiest way to achieve this, is to expose the **host** adress to the internet. More
 advanced routing configurations may be possible, but are not discussed here. Take a look at the
 [Apache 2 TLS Proxy documentation](#apache-2-tls-proxy) for a sample configuration. An optional debug log for
-the flask webserver can be enabled by specifiying a logging directory as **log_dir**.
+the flask webserver can be enabled by specifying a logging directory as **log_dir**.
 
 .. code-block:: toml
 
