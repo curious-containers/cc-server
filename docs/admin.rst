@@ -232,7 +232,7 @@ at */opt/container_worker*. The appropriate command to start the worker is given
 .. code-block:: toml
 
    [defaults.data_container_description]
-   image = 'docker.io/curiouscontainers/cc-image-ubuntu'
+   image = 'docker.io/curiouscontainers/cc-image-ubuntu:0.1'
    entry_point = 'python3 /opt/container_worker'
    container_ram = 512
 
