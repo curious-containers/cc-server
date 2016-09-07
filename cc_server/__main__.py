@@ -1,20 +1,4 @@
-import sys
 from flask import Flask, request, jsonify
-from pymongo import MongoClient
-from pprint import pprint
-from threading import Thread
-
-from cc_server.configuration import Config
-from cc_server.worker import Worker
-from cc_server.request_handler import RequestHandler
-from cc_server.scheduling import Scheduler
-from cc_server.scheduling_strategies.container_allocation import spread, binpack
-from cc_server.scheduling_strategies.caching import OneCachePerTaskNoDuplicates
-from cc_server.scheduling_strategies.task_selection import FIFO
-from cc_server.cluster import Cluster
-from cc_server.cluster_provider import DockerProvider
-from cc_server.authorization import Authorize
-from cc_server.states import StateHandler, state_to_index
 
 app = Flask('cc_server')
 
@@ -416,10 +400,7 @@ def post_application_container_callback():
 
         {"state": 3}
     """
-    result = request_handler.post_application_container_callback(request.get_json())
-    if result['state'] != state_to_index('success'):
-        pprint(result)
-    return jsonify(result)
+    return jsonify(request_handler.post_application_container_callback(request.get_json()))
 
 
 @app.route('/data-containers/callback', methods=['POST'])
@@ -465,12 +446,29 @@ def post_data_container_callback():
 
         {"state": 3}
     """
-    result = request_handler.post_data_container_callback(request.get_json())
-    if result['state'] != state_to_index('success'):
-        pprint(result)
-    return jsonify(result)
+    return jsonify(request_handler.post_data_container_callback(request.get_json()))
 
 if __name__ == '__main__':
+    import sys
+    import logging
+    from logging.handlers import RotatingFileHandler
+    from os import makedirs
+    from os.path import expanduser, join, exists
+    from pymongo import MongoClient
+    from pprint import pprint
+    from threading import Thread
+    from cc_server.configuration import Config
+    from cc_server.worker import Worker
+    from cc_server.request_handler import RequestHandler
+    from cc_server.scheduling import Scheduler
+    from cc_server.scheduling_strategies.container_allocation import spread, binpack
+    from cc_server.scheduling_strategies.caching import OneCachePerTaskNoDuplicates
+    from cc_server.scheduling_strategies.task_selection import FIFO
+    from cc_server.cluster import Cluster
+    from cc_server.cluster_provider import DockerProvider
+    from cc_server.authorization import Authorize
+    from cc_server.states import StateHandler
+
     # ---------- initialize singletons ----------
     conf_file_path = None
     try:
@@ -479,6 +477,15 @@ if __name__ == '__main__':
         pass
 
     config = Config(conf_file_path)
+
+    if config.server.get('log_dir'):
+        log_dir = expanduser(config.server['log_dir'])
+        if not exists(log_dir):
+            makedirs(log_dir)
+
+        debug_log = RotatingFileHandler(join(log_dir, 'debug.log'), maxBytes=1024*1024*100, backupCount=20)
+        debug_log.setLevel(logging.DEBUG)
+        logging.getLogger('werkzeug').addHandler(debug_log)
 
     mongo = MongoClient('mongodb://%s:%s@%s/%s' % (
         config.mongo['username'],

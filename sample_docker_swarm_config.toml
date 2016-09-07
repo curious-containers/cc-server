@@ -4,6 +4,7 @@
 [server]
 host = 'https://cc.my-domain.tld'
 internal_port = 5000
+log_dir = '~/.cc_server/'
 
 [mongo]
 username = 'ccdbAdmin'

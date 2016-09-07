@@ -14,7 +14,7 @@ first.
 Install additional Python3 packages:
 
 ```bash
-pip3 install --user --upgrade sphinx sphinx-autobuild recommonmark sphinxcontrib-httpdomain sphinx_rtd_theme bibtex-pygments-lexer
+pip3 install --user --upgrade flask sphinx sphinx-autobuild recommonmark sphinxcontrib-httpdomain sphinx_rtd_theme bibtex-pygments-lexer
 ```
 
 Run *make* inside the docs-src directory:
