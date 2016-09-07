@@ -50,7 +50,7 @@ scripts from the `CC-Swarm-Setup repository <https://github.com/curious-containe
    # IP and PORT of the Swarm Manager will be printed by the script after the installation is done.
    bash setup.sh
 
-   # Source the variables of connect.sh to connect the your docker-engine to the Swarm Manager
+   # Source the variables of connect.sh to connect the Docker client to the Swarm Manager
    source connect.sh
 
    # Take a look at the Swarm installation
