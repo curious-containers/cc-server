@@ -28,6 +28,18 @@ a:hover {
     color: #b3b3b3;
 }
 
+.wy-nav-top {
+    background-color: #1E6388;
+}
+
+.wy-nav-top a {
+    color: white;
+}
+
+.wy-nav-top a:hover{
+    color: white;
+}
+
 .rst-content dl:not(.docutils) dt {
     background: #f3f6f6;
     border-top-color: #1E6388;
