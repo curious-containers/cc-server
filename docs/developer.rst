@@ -25,6 +25,6 @@ Run *make* inside the docs-src directory:
 
 .. code-block:: bash
 
-   cd docs-src
+   cd docs
    make html
 
