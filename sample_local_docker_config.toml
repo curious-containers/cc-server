@@ -2,7 +2,7 @@
 # ------------------------------------------------
 
 [server]
-host = 'https://cc.my-domain.tld'
+host = 'http://172.17.0.1:5000'
 internal_port = 5000
 log_dir = '~/.cc_server/'
 

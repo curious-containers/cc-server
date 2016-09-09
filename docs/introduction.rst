@@ -12,6 +12,11 @@ standardized methods for packaging applications and executing them in a compute 
 to be packaged inside Docker container images (Linux only), including all necessary scripts, binaries, dependencies and
 configurations.
 
+Questions?
+----------
+
+Feel free to post questions in the `issues area of CC-Server on Github <https://github.com/curious-containers/cc-server/issues>`__.
+
 Software Components
 -------------------
 
