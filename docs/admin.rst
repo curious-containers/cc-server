@@ -149,10 +149,8 @@ Another web server (e.g. Apache 2) can be used as a TLS proxy by forwarding requ
 Therefore the external adress of CC-Server (e.g. https://cc.my-domain.tld) differs from the internal adress (e.g. 
 http://localhost:5000) and the external adress must be specified as **host**. CC-Server runs Docker containers
 with a CC-Container-Worker. Since the worker sends callback requests to this **host** adress, this adress must be
-reachable by the container. The easiest way to achieve this, is to expose the **host** adress to the internet. More
-advanced routing configurations may be possible, but are not discussed here. Take a look at the
-[Apache 2 TLS Proxy documentation](#apache-2-tls-proxy) for a sample configuration. An optional debug log for
-the flask webserver can be enabled by specifying a logging directory as **log_dir**.
+reachable by the container. The easiest way to achieve this, is to expose the **host** adress to the internet. Take a
+look at the `Apache 2 TLS Proxy documentation <#apache-2-tls-proxy>`__ for a sample configuration.
 
 .. code-block:: toml
 
@@ -160,6 +158,22 @@ the flask webserver can be enabled by specifying a logging directory as **log_di
    host = 'https://cc.my-domain.tld'
    internal_port = 5000
    log_dir = '~/.cc_server/'
+
+
+In the case a local docker-engine used, the hosts IP adress for the Docker Bridge interface is reachable by the
+containers. Run *ifconfig* in a shell and look for the appropriate network interface and IP (e.g. 172.17.0.1).
+With this configuration it is not necessary to expose the host to the internet.
+More advanced routing configurations may be possible, but are not discussed here.
+
+.. code-block:: toml
+
+   [server]
+   host = 'http://172.17.0.1:5000'
+   internal_port = 5000
+   log_dir = '~/.cc_server/'
+
+
+An optional debug log for the flask webserver can be enabled by specifying a logging directory as **log_dir**.
 
 mongo
 """""
