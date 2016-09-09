@@ -1,5 +1,5 @@
 .idea
 __pycache__
 *.pyc
-config.toml
+/config.toml
 docs/_build

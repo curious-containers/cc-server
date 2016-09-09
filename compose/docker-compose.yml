@@ -1,0 +1,30 @@
+version: "2"
+services:
+  cc-server:
+    build: ./cc-server
+    command: "python3 /root/.config/curious-containers/cc-server/init.py"
+    environment:
+      - USERNAME="admin"
+      - PASSWORD="PASSWORD"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../cc_server:/opt/cc_server
+      - .:/root/.config/curious-containers
+    links:
+      - mongo
+      - dind
+  mongo:
+    image: mongo
+  mongo-seed:
+    build: ./mongo-seed
+    volumes:
+      - .:/root/.config/curious-containers
+    command: "python3 /root/.config/curious-containers/mongo-seed/init.py"
+    links:
+      - mongo
+  dind:
+    image: docker:dind
+    privileged: true
+    command: "docker daemon -H tcp://0.0.0.0:2375"
+

@@ -85,7 +85,7 @@ class RequestHandler:
             })
         else:
             task = self.mongo.db['tasks'].find_one({
-                '_id': json_input['_ip'],
+                '_id': json_input['_id'],
                 'state': {'$nin': [state_to_index('success'), state_to_index('failed')]}
             }, {
                 '_id': 1

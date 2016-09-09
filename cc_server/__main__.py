@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 
+request_handler = None
 app = Flask('cc_server')
 
 
@@ -448,7 +449,8 @@ def post_data_container_callback():
     """
     return jsonify(request_handler.post_data_container_callback(request.get_json()))
 
-if __name__ == '__main__':
+
+def main():
     import sys
     import logging
     from logging.handlers import RotatingFileHandler
@@ -535,6 +537,7 @@ if __name__ == '__main__':
         mongo=mongo,
         config=config
     )
+    global request_handler
     request_handler = RequestHandler(
         mongo=mongo,
         cluster=cluster,
@@ -557,3 +560,6 @@ if __name__ == '__main__':
     Thread(target=worker.post_task).start()
 
     app.run(host='0.0.0.0', port=config.server['internal_port'])
+
+if __name__ == '__main__':
+    main()

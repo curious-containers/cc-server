@@ -98,7 +98,11 @@ to fully understand the build process and Docker registries.
 Schedule a Task
 ^^^^^^^^^^^^^^^
 
-This part of the documentation describes how to schedule a task with CC-Server. A task is a JSON object, which is send
+*The following instructions assume, that CC-Server has been setup beforehand. If not, either follow the*
+`manual installation steps <admin.html>`__ *in the administrator documentation or*
+`setup CC-Server via Docker Compose <developer.html#docker-compose>`__ *as described in the developer documentation.*
+
+This part of the documentation explains how to schedule a task with CC-Server. A task is a JSON object, which is send
 to the CC-Server API, containing information about how to run a compatible Docker image (e.g. CC-Sample-App). The script
 below shows how to send such a request with Python. More detailed information about the JSON fields can be found in the
 accompanied `API documentation <api.html#post--tasks>`__.

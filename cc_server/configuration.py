@@ -13,7 +13,7 @@ class Config:
 
         try:
             possible_conf_file_paths.append(
-                join(expanduser("~"), '.config', 'curious-containers', 'config.toml')
+                expanduser('~/.config/curious-containers/config.toml')
             )
         except:
             pass
