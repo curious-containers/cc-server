@@ -43,15 +43,21 @@ Clone the latest CC-Server code and change into the compose directory.
    cd cc-server/compose
 
 In order to start CC-Server run the following command. This will create Containers for MongoDB, Docker-In-Docker and
-CC-Server. CC-Server will be available as *localhost:5000*.
+CC-Server. CC-Server will be available as *localhost:5000*. During the setup MongoDB user credentials are read from the
+**config.toml** file and the CC-Server user credentials are read from **cc-server/Dockerfile**. These credentials can be
+changed before running *docker-compose*.
 
 .. code-block:: bash
 
    docker-compose up cc-server
 
-During the setup MongoDB user credentials are read from the **config.toml** file and the CC-Server user credentials
-are read from the **docker-compose.yml** file. These credentials can be changed before running *docker-compose*.
 
 The Docker container for CC-Server will incorporate the CC-Server source code from the cloned git directory.
 If you make changes to CC-Server, just stop the server and execute the *docker-compose* command again to run the latest
-code. Please note, that this will always create a fresh MongoDB without any leftover data.
+code. Please note, that this will not create a fresh MongoDB for each restart. In order to delete the database use
+the following command.
+
+.. code-block:: bash
+
+   docker-compose kill mongo && docker-compose rm -f mongo
+

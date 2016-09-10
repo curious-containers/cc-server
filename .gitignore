@@ -3,3 +3,4 @@ __pycache__
 *.pyc
 /config.toml
 docs/_build
+compose/logs

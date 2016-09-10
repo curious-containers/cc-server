@@ -3,17 +3,17 @@ services:
   cc-server:
     build: ./cc-server
     command: "python3 /root/.config/curious-containers/cc-server/init.py"
-    environment:
-      - USERNAME="admin"
-      - PASSWORD="PASSWORD"
     ports:
       - "5000:5000"
     volumes:
       - ../cc_server:/opt/cc_server
       - .:/root/.config/curious-containers
+      #- ./logs:/root/.cc_server
     links:
       - mongo
       - dind
+    depends_on:
+      - mongo-seed
   mongo:
     image: mongo
   mongo-seed:

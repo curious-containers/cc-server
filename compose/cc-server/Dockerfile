@@ -5,3 +5,6 @@ RUN apt-get update \
 && pip3 install --no-input --upgrade flask pymongo docker-py psutil cryptography toml jsonschema requests streql
 
 ENV PYTHONPATH $PYTHONPATH:/opt
+
+ENV USERNAME admin
+ENV PASSWORD PASSWORD
