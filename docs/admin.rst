@@ -57,7 +57,7 @@ scripts from the `CC-Swarm-Setup repository <https://github.com/curious-containe
    docker info
 
 
-The following figure shows a possible setup of Curious Containers with Swarm Swarm.
+The following figure shows a possible setup of Curious Containers with Docker Swarm.
 
 |
 
@@ -160,7 +160,7 @@ look at the `Apache 2 TLS Proxy documentation <#apache-2-tls-proxy>`__ for a sam
    log_dir = '~/.cc_server/'
 
 
-In the case a local docker-engine used, the hosts IP adress for the Docker Bridge interface is reachable by the
+In the case a local docker-engine is used, the host's IP adress for the Docker Bridge interface is reachable by the
 containers. Run *ifconfig* in a shell and look for the appropriate network interface and IP (e.g. 172.17.0.1).
 With this configuration it is not necessary to expose the host to the internet.
 More advanced routing configurations may be possible, but are not discussed here.
