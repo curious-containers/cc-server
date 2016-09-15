@@ -4,6 +4,7 @@ import sys
 import os
 from pymongo import MongoClient
 
+sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
 
 from cc_server.configuration import Config
