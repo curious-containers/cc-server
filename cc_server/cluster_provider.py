@@ -2,7 +2,6 @@ import docker
 import json
 from threading import Semaphore, Thread
 from psutil import virtual_memory
-from pprint import pprint
 from queue import Queue
 from uuid import uuid4
 
