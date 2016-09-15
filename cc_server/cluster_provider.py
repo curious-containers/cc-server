@@ -1,7 +1,10 @@
 import docker
-from json import dumps
-from threading import Semaphore
+import json
+from threading import Semaphore, Thread
 from psutil import virtual_memory
+from pprint import pprint
+from queue import Queue
+from uuid import uuid4
 
 
 class DockerProvider:
@@ -43,6 +46,14 @@ class DockerProvider:
         except:
             pass
 
+    def wait_for_container(self, _id):
+        with self.thread_limit:
+            self.client.wait(str(_id))
+
+    def logs_from_container(self, _id):
+        with self.thread_limit:
+            return self.client.logs(str(_id))
+
     def start_container(self, _id):
         with self.thread_limit:
             self.client.start(str(_id))
@@ -53,6 +64,26 @@ class DockerProvider:
         container = self.client.inspect_container(str(_id))
         return container['NetworkSettings']['Networks']['bridge']['IPAddress']
 
+    def create_inspection_container(self, name, node):
+        settings = {
+            'container_type': 'inspection'
+        }
+
+        entry_point = self.config.defaults['container_description']['entry_point']
+
+        command = '{} \'{}\''.format(
+            entry_point,
+            json.dumps(settings)
+        )
+
+        with self.thread_limit:
+            self.client.create_container(
+                name=name,
+                image=self.config.defaults['container_description']['image'],
+                command=command,
+                environment=['constraint:node=={}'.format(node)]
+            )
+
     def create_application_container(self, application_container_id):
         application_container = self.mongo.db['application_containers'].find_one({'_id': application_container_id})
         task_id = application_container['task_id']
@@ -60,7 +91,7 @@ class DockerProvider:
 
         settings = {
             'container_id': str(application_container_id),
-            'is_data_container': False,
+            'container_type': 'application',
             'callback_key': application_container['callback_key'],
             'callback_url': '{}/application-containers/callback'.format(self.config.server['host'].rstrip('/')),
             'result_files': task['result_files'],
@@ -69,13 +100,13 @@ class DockerProvider:
             'parameters': task['application_container_description'].get('parameters')
         }
 
-        entry_point = 'python3 /opt/container_worker'
+        entry_point = self.config.defaults['container_description']['entry_point']
         if task['application_container_description'].get('entry_point'):
             entry_point = task['application_container_description']['entry_point']
 
         command = '{} \'{}\''.format(
             entry_point,
-            dumps(settings)
+            json.dumps(settings)
         )
 
         #print('application_container', command)
@@ -113,18 +144,18 @@ class DockerProvider:
 
         settings = {
             'container_id': str(data_container_id),
-            'is_data_container': True,
+            'container_type': 'data',
             'callback_key': data_container['callback_key'],
             'callback_url': '{}/data-containers/callback'.format(self.config.server['host'].rstrip('/')),
             'input_files': data_container['input_files'],
             'mtu': self.config.defaults.get('mtu')
         }
 
-        entry_point = self.config.defaults['data_container_description']['entry_point']
+        entry_point = self.config.defaults['container_description']['entry_point']
 
         command = '{} \'{}\''.format(
             entry_point,
-            dumps(settings)
+            json.dumps(settings)
         )
 
         #print('data_container', command)
@@ -157,64 +188,100 @@ class DockerProvider:
                     net_id=self.config.docker['net']
                 )
 
+    def _run_inspection_container(self, node, q):
+        _id = uuid4()
+        try:
+            self.create_inspection_container(_id, node)
+            self.start_container(_id)
+            self.wait_for_container(_id)
+            logs = self.logs_from_container(_id)
+            result = json.loads(logs.decode("utf-8"))
+            result['name'] = node
+        except:
+            result = {
+                'name': node,
+                'total_ram': 0,
+                'reserved_ram': 0,
+                'total_cpus': 0,
+                'reserved_cpus': 0
+            }
+        Thread(target=self.remove_container, args=(_id,)).start()
+        q.put(result)
+
     def nodes(self):
         return self._info()
 
     def _info(self):
+        result = None
+
+        # try receiving swarm mode style info
+        with self.thread_limit:
+            try:
+                result = self.client.nodes()
+            except:
+                pass
+        if result:
+            print('info style: swarm mode.')
+            q = Queue()
+            threads = []
+            for node in result:
+                t = Thread(target=self._run_inspection_container, args=(node['ID'], q))
+                threads.append(t)
+                t.start()
+            for t in threads:
+                t.join()
+            nodes = list(q.queue)
+            return nodes
+
+        # recieve swarm classic style info
         with self.thread_limit:
             result = self.client.info()
+        if result.get('SystemStatus'):
+            print('info style: swarm classic.')
+            nodes = []
+            anchor = '└'
+            last_line = None
+            is_node_data = False
+            for l in result['SystemStatus']:
+                key = l[0]
+                val = l[1]
+                if anchor in key:
+                    if not is_node_data:
+                        is_node_data = True
+                        nodes.append({
+                            'name': last_line[0].strip()
+                        })
+                    key = key.strip().lstrip(anchor).strip()
+                    if key == 'Reserved CPUs':
+                        reserved_cpus, total_cpus = [v.strip() for v in val.split('/')]
+                        nodes[-1]['reserved_cpus'] = int(reserved_cpus)
+                        nodes[-1]['total_cpus'] = int(total_cpus)
+                    elif key == 'Reserved Memory':
+                        vals = val.split()
+                        nodes[-1]['reserved_ram'] = _to_mib(float(vals[0]), vals[1])
+                        nodes[-1]['total_ram'] = _to_mib(float(vals[3]), vals[4])
+                else:
+                    is_node_data = False
+                    last_line = l
+            return nodes
 
-        # fallback for local docker-engine instead Swarm
-        if not result.get('SystemStatus'):
-            print('Docker info does not return Docker Swarm format: try local docker-engine settings.')
-            ram = virtual_memory()
-            return [{
-                'name': 'local',
-                'url': None,
-                'total_ram': result['MemTotal'],
-                'reserved_ram': ram.total - ram.available,
-                'total_cpus': result['NCPU'],
-                'reserved_cpus': None
-            }]
-
-        nodes = []
-        anchor = '└'
-        last_line = None
-        is_node_data = False
-
-        for l in result['SystemStatus']:
-            key = l[0]
-            val = l[1]
-
-            if anchor in key:
-                if not is_node_data:
-                    is_node_data = True
-                    nodes.append({
-                        'name': last_line[0].strip(),
-                        'url': last_line[1].strip()
-                    })
-
-                key = key.strip().lstrip(anchor).strip()
-                if key == 'Reserved CPUs':
-                    reserved_cpus, total_cpus = [v.strip() for v in val.split('/')]
-                    nodes[-1]['reserved_cpus'] = int(reserved_cpus)
-                    nodes[-1]['total_cpus'] = int(total_cpus)
-                elif key == 'Reserved Memory':
-                    vals = val.split()
-                    nodes[-1]['reserved_ram'] = _to_mib(float(vals[0]), vals[1])
-                    nodes[-1]['total_ram'] = _to_mib(float(vals[3]), vals[4])
-            else:
-                is_node_data = False
-                last_line = l
-
-        return nodes
+        # fallback to local docker-engine instead swarm
+        print('info style: local docker-engine.')
+        ram = virtual_memory()
+        return [{
+            'name': 'local',
+            'total_ram': ram.total // (1024 * 1024),
+            'reserved_ram': (ram.total - ram.available) // (1024 * 1024),
+            'total_cpus': result['NCPU'],
+            'reserved_cpus': None
+        }]
 
 
 def _to_mib(val, unit):
     if unit == 'B':
-        return val / 1000 ** 2
+        return val // (1024 * 1024)
     if unit == 'KiB':
-        return val / 1000
+        return val // 1024
     if unit == 'GiB':
-        return val * 1000
+        return val * 1024
     return val

@@ -28,7 +28,7 @@ class Scheduler:
         self.caching = caching
 
     def schedule(self):
-        dc_ram = self.config.defaults['data_container_description']['container_ram']
+        dc_ram = self.config.defaults['container_description']['container_ram']
 
         nodes = {node['name']: node for node in self.cluster.nodes()}
         for name, node in nodes.items():

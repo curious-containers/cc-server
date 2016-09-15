@@ -247,7 +247,8 @@ callback_schema = {
                         'result_file_sizes': {
                             'type': 'array',
                             'items': {'type': 'number'}
-                        }
+                        },
+                        'wall_time': {'type': 'number'}
                     },
                     'additionalProperties': False
                 }

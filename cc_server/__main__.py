@@ -554,13 +554,13 @@ def main():
     )
     # -------------------------------------------
 
-    # --------------- docker info ---------------
-    pprint(cluster_provider.nodes())
-    # -------------------------------------------
-
     # -------- load data container image --------
     print('Pulling data container image...')
-    cluster.update_data_container_image(config.defaults['data_container_description']['image'])
+    cluster.update_data_container_image(config.defaults['container_description']['image'])
+    # -------------------------------------------
+
+    # --------------- docker info ---------------
+    pprint(cluster_provider.nodes())
     # -------------------------------------------
 
     Thread(target=worker.post_task).start()

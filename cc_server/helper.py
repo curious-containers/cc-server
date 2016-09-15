@@ -47,7 +47,7 @@ def prepare_response(data):
         result = {}
         for key, val in data.items():
             if key in UNSAFE_KEYS:
-                continue
+                val = 10*'*'
             else:
                 val = prepare_response(val)
             result[key] = val

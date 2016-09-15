@@ -25,7 +25,7 @@ client_cert = [
 ]
 assert_hostname = false
 
-[defaults.data_container_description]
+[defaults.container_description]
 image = 'docker.io/curiouscontainers/cc-image-ubuntu'
 entry_point = 'python3 /opt/container_worker'
 container_ram = 512

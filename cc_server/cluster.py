@@ -21,7 +21,7 @@ class Cluster:
         return self.cluster_provider.nodes()
 
     def update_data_container_image(self, image):
-        registry_auth = self.config.defaults['data_container_description'].get('registry_auth')
+        registry_auth = self.config.defaults['container_description'].get('registry_auth')
         self.cluster_provider.update_image(image, registry_auth)
 
     def update_application_container_image(self, image, registry_auth):
