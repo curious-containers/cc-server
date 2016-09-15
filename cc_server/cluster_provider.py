@@ -164,7 +164,7 @@ class DockerProvider:
         if self.config.defaults.get('mtu'):
             privileged = True
 
-        mem_limit = '{}MB'.format(self.config.defaults['data_container_description']['container_ram'])
+        mem_limit = '{}MB'.format(self.config.defaults['container_description']['container_ram'])
 
         host_config = self.client.create_host_config(
             mem_limit=mem_limit,
@@ -175,7 +175,7 @@ class DockerProvider:
         with self.thread_limit:
             self.client.create_container(
                 name=str(data_container_id),
-                image=self.config.defaults['data_container_description']['image'],
+                image=self.config.defaults['container_description']['image'],
                 host_config=host_config,
                 command=command,
                 environment=['constraint:node=={}'.format(data_container['cluster_node'])]
