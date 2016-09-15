@@ -1,4 +1,8 @@
+import os
+import sys
 from flask import Flask, request, jsonify
+
+sys.path.insert(0, os.path.abspath('.'))
 
 request_handler = None
 app = Flask('cc_server')
