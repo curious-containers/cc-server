@@ -394,8 +394,8 @@ information take a look at the official `Apache 2 documentation <https://httpd.a
    </VirtualHost>
 
 
-Docker Registry (Optional)
---------------------------
+Docker Registry
+---------------
 
 Container images created by users have to be deployed to a Docker registry. The official
 `Docker Hub registry <https://hub.docker.com/>`__ with free public repositories or a paid plan for private repositories can
