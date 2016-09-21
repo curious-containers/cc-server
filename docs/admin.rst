@@ -26,6 +26,9 @@ outdated packages from your Linux distribution. Docker provides third-party repo
 Docker Swarm (Optional)
 ^^^^^^^^^^^^^^^^^^^^^^^
 
+*Please note, that the following information is only valid for the standalone Docker Swarm software.
+The new* `swarm mode <https://docs.docker.com/engine/swarm/>`__ *of the docker-engine is NOT supported.*
+
 CC-Server supports Docker Swarm for cluster computing. The instructions for setting up Docker Swarm vary depending on 
 the underlying infrastructure. It is advised to read the official
 `Docker Swarm documentation <https://docs.docker.com/swarm/overview/>`__.

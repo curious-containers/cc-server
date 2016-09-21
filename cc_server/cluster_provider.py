@@ -207,41 +207,46 @@ class DockerProvider:
         Thread(target=self.remove_container, args=(_id,)).start()
         q.put(result)
 
+    def _run_inspection_containers(self, info):
+        q = Queue()
+        threads = []
+        for node in info:
+            t = Thread(target=self._run_inspection_container, args=(node['ID'], q))
+            threads.append(t)
+            t.start()
+        for t in threads:
+            t.join()
+        nodes = list(q.queue)
+        return nodes
+
     def nodes(self):
         return self._info()
 
     def _info(self):
-        result = None
+        info = None
 
         # try receiving swarm mode style info
         with self.thread_limit:
             try:
-                result = self.client.nodes()
+                info = self.client.nodes()
             except:
                 pass
-        if result:
+        if info:
             print('info style: swarm mode.')
-            q = Queue()
-            threads = []
-            for node in result:
-                t = Thread(target=self._run_inspection_container, args=(node['ID'], q))
-                threads.append(t)
-                t.start()
-            for t in threads:
-                t.join()
-            nodes = list(q.queue)
-            return nodes
+            raise Exception('The built-in swarm mode of docker-engine is NOT supported by Curious Containers.\n\
+            Use the standalone version of Docker Swarm instead.\n\
+            See the documentation for more information.')
 
         # recieve swarm classic style info
         with self.thread_limit:
-            result = self.client.info()
-        if result.get('SystemStatus'):
+            info = self.client.info()
+        if info.get('SystemStatus'):
             print('info style: swarm classic.')
             nodes = []
             anchor = '└'
             last_line = None
             is_node_data = False
-            for l in result['SystemStatus']:
+            for l in info['SystemStatus']:
                 key = l[0]
                 val = l[1]
                 if anchor in key:
@@ -271,7 +276,7 @@ class DockerProvider:
             'name': 'local',
             'total_ram': ram.total // (1024 * 1024),
             'reserved_ram': (ram.total - ram.available) // (1024 * 1024),
-            'total_cpus': result['NCPU'],
+            'total_cpus': info['NCPU'],
             'reserved_cpus': None
         }]
 
