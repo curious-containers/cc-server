@@ -64,6 +64,7 @@ class DockerProvider:
         return container['NetworkSettings']['Networks']['bridge']['IPAddress']
 
     def create_inspection_container(self, name, node):
+        # UNUSED CODE
         settings = {
             'container_type': 'inspection'
         }
@@ -188,6 +189,7 @@ class DockerProvider:
                 )
 
     def _run_inspection_container(self, node, q):
+        # UNUSED CODE
         _id = uuid4()
         try:
             self.create_inspection_container(_id, node)
@@ -208,6 +210,7 @@ class DockerProvider:
         q.put(result)
 
     def _run_inspection_containers(self, info):
+        # UNUSED CODE
         q = Queue()
         threads = []
         for node in info:
