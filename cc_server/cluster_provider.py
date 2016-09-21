@@ -1,3 +1,4 @@
+import sys
 import docker
 import json
 from threading import Semaphore, Thread
@@ -236,9 +237,10 @@ class DockerProvider:
                 pass
         if info:
             print('info style: swarm mode.')
-            raise Exception('The built-in swarm mode of docker-engine is NOT supported by Curious Containers.\n\
-            Use the standalone version of Docker Swarm instead.\n\
-            See the documentation for more information.')
+            print('The built-in swarm mode of docker-engine is NOT supported by Curious Containers.', file=sys.stderr)
+            print('Use the standalone version of Docker Swarm instead.', file=sys.stderr)
+            print('See the documentation for more information.', file=sys.stderr)
+            exit(1)
 
         # recieve swarm classic style info
         with self.thread_limit:
