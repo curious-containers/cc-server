@@ -16,9 +16,16 @@ Docker Compatibility
 CC-Server    Docker
 ===========  =========
 0.1          12
+0.2          12
 ===========  =========
 
 Change Log
 ----------
 
-Nothing here yet...
+Version 0.2
+^^^^^^^^^^^
+
+*The CC-Container-Worker API has changed, upgrade your Container Images to be compatible.*
+
+- CC-Server is not compatible with the built-in swarm mode of docker-engine. CC-Server does now show an error message, if swarm mode is detected. See admin docs for more information.
+- **parameters_as_json** has been removed from the *config.toml* of CC-Container-Worker. Parameters can now be defined as JSON object or JSON array to trigger the specific behavior. See user docs for more information.

@@ -111,7 +111,12 @@ _task_schema = {
                     'additionalProperties': False
                 },
                 'container_ram': {'type': 'number'},
-                'parameters': {'type': 'object'}
+                'parameters': {
+                    'anyOf': [
+                        {'type': 'object'},
+                        {'type': 'array'}
+                    ]
+                }
             },
             'required': ['image', 'container_ram'],
             'additionalProperties': False

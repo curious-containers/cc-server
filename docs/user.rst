@@ -43,9 +43,7 @@ input file and the result files by creating a *config.toml* file as shown below.
 that the script will be executed with the bash interprated and that it is located in the system users home directory.
 The **local_input_files** and **local_result_files** fields each contain a list with dictionaries describing the file
 locations. It is not necessary that the given directories already exist, because they will be created by the
-CC-Container-Worker. In addition, the **parameters_as_json** field is set to *false*, indicating that parameters are
-assumed to be distinct CLI arguments. Otherwise all parameters would be given as a single CLI argument encoded as a JSON
-string.
+CC-Container-Worker.
 
 .. code-block:: toml
 
@@ -58,7 +56,6 @@ string.
        {'dir' = '/home/ubuntu/result_files', 'name' = 'data.txt'},
        {'dir' = '/home/ubuntu/result_files', 'name' = 'parameters.txt'}
    ]
-   parameters_as_json = false
 
 
 In order to create the CC-Sample-App it is necessary to build a Docker image, containing *algorithm.sh* and *config.toml*.
@@ -131,10 +128,7 @@ Modify and run the following Python 3 code:
        "application_container_description": {
            "image": "docker.io/curiouscontainers/cc-sample-app",
            "container_ram": 1024,
-           "parameters": {
-               "--arg1": "value1",
-               "--arg2": "value2"
-           }
+           "parameters": ["--arg1", "value1", "--arg2", "value2"]
        },
        "input_files": [{
            "ssh_host": "my-domain.tld",
@@ -161,7 +155,7 @@ Modify and run the following Python 3 code:
    requests.post('https://cc.my-domain.tld/tasks', json=task, auth=(username, password))
 
 
-In the *config.toml*  file of the CC-Sample-App one input file and two result files have been defined. The purpose of Curious
+In the *config.toml* file of the CC-Sample-App one input file and two result files have been defined. The purpose of Curious
 Containers is, to run applications with arbitrary inputs and outputs. Therefore the task JSON object must contain
 information about input file sources and result file destinations. The input file downloads and result file uploads are
 executed by the CC-Container-Worker in a running container.
@@ -273,6 +267,7 @@ to the destination server alongside the actual file must be specified in the **h
        }
    }
 
+
 JSON via HTTP
 """""""""""""
 
@@ -298,12 +293,14 @@ resulting JSON data will be send to an HTTP server specified in the mandatory **
        }
    }
 
+
 CLI Parameters
 ^^^^^^^^^^^^^^
 
 Running an application in a container with certain parameters can be achieved by setting a JSON object with key-value
-pairs in the **parameters** field of **application_container_description** in a task. There are no constrains that limit
-the content of this field, as shown in the example below.
+pairs or a JSON array in the **parameters** field of **application_container_description** in a task.
+
+The following example shows a JSON object, which contains strings, numbers, objects and arrays.
 
 .. code-block:: json
 
@@ -322,25 +319,18 @@ the content of this field, as shown in the example below.
        }
    }
 
-In the TOML configuration file of CC-Sample-App, the field **parameters_as_json** is set to *false*. The parameters will
-be appended to the value of **application_command**. This results in the following call of the *algorithm.sh* script.
-The order of arguments may vary.
 
-.. code-block:: bash
-
-  bash algorithm.sh --arg3 {'number': 42, 'bool': False} arg4 [2.71, 'e'] --arg1 value1 arg2 3.14
-
-
-Parsing CLI arguments with nested objects can become tedious. Therefore setting **parameters_as_json** to *true* provides
-a better alternative. The parameters will be transformed to a single JSON encoded string which is provided as the the
-first CLI argument. This is useful for programs written in a language that provides a JSON parser (e.g. Python).
+Since the parameters have been defined as a JSON object, the CC-Container-Worker will convert it to a JSON encoded string.
+This string is then appended to the **application_command** as the first CLI argument and results in the following call
+of a *algorithm.py* script.
 
 .. code-block:: bash
 
    python3 algorithm.py '{"arg4": [2.71, "e"], "arg2": 3.14, "--arg3": {"number": 42, "bool": false}, "--arg1": "value1"}'
 
 
-In the *algorithm.py* script this could be parsed as shown in the following Python code.
+This is useful for programs written in a language that provides a JSON parser (e.g. Python). In the *algorithm.py*
+script this could be parsed as shown in the following Python code.
 
 .. code-block:: python
 
@@ -348,6 +338,24 @@ In the *algorithm.py* script this could be parsed as shown in the following Pyth
    import json
 
    parameters = json.loads(sys.argv[1])
+
+
+If parsing a JSON encoded string is not a viable option, a JSON array can be passed to the parameters field instead.
+
+.. code-block:: json
+
+   {
+       "parameters": ["--arg1", "value1", "--arg2", 3.14]
+   }
+
+As a result, the program call contains distinct CLI arguments.
+
+.. code-block:: bash
+
+  bash algorithm.sh --arg1 value1 --arg2 3.14
+
+
+This is useful for shell scripts like *algorithm.sh*, which do not provide a JSON parser.
 
 
 Building an App Container
@@ -362,7 +370,7 @@ The following steps guide you through the customizing process:
 2. If the application should be based on a CC-Image other than CC-Image-Ubuntu, the appropriate URL must be given in *build.sh* and in the *Dockerfile*.
 3. Instead of copying *algorithm.sh* to the container, modify the Dockerfile to include all necessary scripts, binaries and dependencies of your own application.
 4. Modify the *config.toml* file to include only input files required by the application and only result files that will be uploaded to a remote data archive as soon as the application terminates. Temporary or intermediate result files must not be included in this list.
-5. Modify the **application_command** in *config.toml* to point at the application that will be invoked by CC-Container-Worker. Set **parameters_as_json** to *true* if necessary.
+5. Modify the **application_command** in *config.toml* to point at the application that will be invoked by CC-Container-Worker.
 6. Make sure that the *config.toml* will be copied to the */opt* directory in the *Dockerfile*.
 
 The **application_command** syntax might not be sufficient for all use cases. For example the application might

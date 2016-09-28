@@ -101,7 +101,7 @@ def post_tasks():
     * **application_container_description.container_ram** (required): Amount of RAM assigned to the app container in Megabytes.
     * **application_container_description.registry_auth** (optional, default = None): If the specified image is not publicly accessible, a dict with username and password keys must be defined.
     * **application_container_description.entry_point** (optional, default = "python3 /opt/container_worker"): Program invoked by CC-Server when starting the app container. Only required if the location of the CC-Container-Worker in the container image is customized.
-    * **application_container_description.parameters** (optional): Parameters are given to the app, when executed by CC-Container-Worker. Depending on the configuration of the container image, parameters are either given as distinct CLI parameters or as a single parameter in JSON format.
+    * **application_container_description.parameters** (optional): Parameters are given to the app, when executed by CC-Container-Worker. Depending on the configuration of the container image. Parameters can be a JSON object or array.
     * **input_files** (required): List of input files in remote data repositories. This list maps to the list of local_input_files specified in the container image configuration. The list might be empty.
     * **result_files** (required): List of destinations of result files in remote data repositories. This list maps to the list of local_result_files specified in the container image configuration.
     * **notifications** (optional): List of HTTP servers that will receive a notification as soon as the task succeeded, failed or got cancelled.
@@ -124,10 +124,7 @@ def post_tasks():
                     "password": "PASSWORD
                 },
                 "entry_point": "python3 /opt/container_worker",
-                "parameters": {
-                    "--arg1": "value1",
-                    "--arg2": "value2"
-                }
+                "parameters": ["--arg1", "value1", "--arg2", "value2"]
             },
             "input_files": [{
                 "ssh_host": "my-domain.tld",
