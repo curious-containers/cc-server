@@ -21,7 +21,11 @@ class RequestHandler:
     def get_root(self):
         if not self.authorize.verify_user(require_admin=False, require_credentials=False):
             return {'state': state_to_index('failed'), 'description': 'User not authorized.'}
-        return {'status': state_to_index('success'), 'description': 'Curious Containers Server is running.'}
+        return {
+            'status': state_to_index('success'),
+            'description': 'Curious Containers Server is running.',
+            'version': 0.2
+        }
 
     def get_token(self):
         if not self.authorize.verify_user(require_admin=False):

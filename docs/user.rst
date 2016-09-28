@@ -67,7 +67,7 @@ via **application_command**.
 
 .. code-block:: docker
 
-   FROM docker.io/curiouscontainers/cc-image-ubuntu:0.1
+   FROM docker.io/curiouscontainers/cc-image-ubuntu:0.2
    COPY config.toml /opt/config.toml
 
    COPY algorithm.sh /home/ubuntu/algorithm.sh

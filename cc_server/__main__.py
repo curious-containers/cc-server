@@ -30,7 +30,8 @@ def get_root():
 
         {
             "state": 3,
-            "description": "Curious Containers Server is running."
+            "description": "Curious Containers Server is running.",
+            "version": 0.2
         }
     """
     return jsonify(request_handler.get_root())
