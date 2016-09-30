@@ -145,27 +145,6 @@ class DockerProvider:
         container = self.client.inspect_container(str(_id))
         return container['NetworkSettings']['Networks']['bridge']['IPAddress']
 
-    def create_inspection_container(self, name, node):
-        # UNUSED CODE
-        settings = {
-            'container_type': 'inspection'
-        }
-
-        entry_point = self.config.defaults['container_description']['entry_point']
-
-        command = '{} \'{}\''.format(
-            entry_point,
-            json.dumps(settings)
-        )
-
-        with self.thread_limit:
-            self.client.create_container(
-                name=name,
-                image=self.config.defaults['container_description']['image'],
-                command=command,
-                environment=['constraint:node=={}'.format(node)]
-            )
-
     def create_application_container(self, application_container_id):
         application_container = self.mongo.db['application_containers'].find_one({'_id': application_container_id})
         task_id = application_container['task_id']
