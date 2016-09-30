@@ -1,6 +1,8 @@
 from time import time
+from pprint import pprint
 
 from cc_server.notification import notify
+from cc_server.helper import remove_secrets
 
 STATES = [
     'created',
@@ -53,9 +55,7 @@ class StateHandler:
         self.config = config
 
     def transition(self, collection, _id, state, description, exception=None):
-        if collection == 'requests':
-            self._request_transition(_id, state, description, exception, None)
-        elif collection == 'tasks':
+        if collection == 'tasks':
             self._task_transition(_id, state, description, exception, None)
         elif collection == 'application_containers':
             self._application_container_transition(_id, state, description, exception, None)
@@ -104,6 +104,11 @@ class StateHandler:
             '$push': {'transitions': t},
             '$set': {'state': t['state']}
         })
+        if t['state'] in end_states():
+            data = self.mongo.db[collection].find_one({'_id': _id})
+            del data['_id']
+            data = remove_secrets(data)
+            self.mongo.db[collection].update_one({'_id': _id}, {'$set': data})
 
     def _task_transition(self, task_id, state, description, exception, caused_by):
         task = self.mongo.db['tasks'].find_one(
@@ -144,10 +149,6 @@ class StateHandler:
 
         if (state == 'failed' or state == 'success' or state == 'cancelled') and task.get('notifications'):
             notify(task['notifications'])
-
-    def _request_transition(self, request_id, state, description, exception, caused_by):
-        t = _transition(state, description, exception, caused_by)
-        self._append_transition('requests', request_id, t)
 
     def _data_container_transition(self, data_container_id, state, description, exception, caused_by):
         data_container = self.mongo.db['data_containers'].find_one(
