@@ -407,4 +407,3 @@ The sequence diagram below shows the caching behaviour controlled by the CC-Serv
 |
 
 .. image:: _static/images/sequence.*
-

@@ -8,14 +8,9 @@ In this context applications are atomic entities taking files and parameters as 
 They are short-lived in a sense that they calculate something and terminate as soon as all results have been produced.
 
 Curious Containers supports scientific use cases like **biomedical analysis** and **reproducible research** by providing
-standardized methods for packaging applications and executing them in a compute environment. Therefore applications need
-to be packaged inside Docker container images (Linux only), including all necessary scripts, binaries, dependencies and
+standardized methods for packaging applications and executing them in a compute environment. Therefore application
+dependencies are added to a compatible Docker container image, including all necessary scripts, binaries and
 configurations.
-
-Questions?
-----------
-
-Feel free to post questions in the `issues area of CC-Server on Github <https://github.com/curious-containers/cc-server/issues>`__.
 
 Software Components
 -------------------
@@ -104,3 +99,8 @@ Containers as a backend.
 It is not an orchestration software managing long-lived applications (e.g. web services). Therefore this software
 is not directly comparable to projects like `Docker Compose <https://docs.docker.com/compose/>`__,
 `Kubernetes <http://kubernetes.io/>`__ or `Apache Mesos <https://mesos.apache.org/>`__.
+
+Questions?
+----------
+
+Feel free to post questions in the `issues area of CC-Server on Github <https://github.com/curious-containers/cc-server/issues>`__.
