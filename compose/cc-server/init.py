@@ -1,14 +1,16 @@
 import os
+import toml
 from pymongo import MongoClient
 
 from cc_server.configuration import Config
 from cc_server.authorization import Authorize
 from cc_server.__main__ import main
 
-CONFIG = '/root/.config/curious-containers/config.toml'
+with open(os.path.expanduser('~/.config/curious-containers/credentials.toml')) as f:
+    credentials = toml.load(f)
 
-username = os.environ['USERNAME']
-password = os.environ['PASSWORD']
+username = credentials['credentials']['username']
+password = credentials['credentials']['password']
 
 config = Config(None)
 

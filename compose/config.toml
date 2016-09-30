@@ -13,7 +13,7 @@ dbname = 'ccdb'
 thread_limit = 8
 base_url = 'dind:2375'
 
-[defaults.data_container_description]
+[defaults.container_description]
 image = 'docker.io/curiouscontainers/cc-image-fedora'
 entry_point = 'python3 /opt/container_worker'
 container_ram = 512
