@@ -1,10 +1,9 @@
 import sys
 import docker
 import json
-from threading import Semaphore, Thread
-from psutil import virtual_memory
-from queue import Queue
-from uuid import uuid4
+from threading import Semaphore
+
+from cc_server.states import end_states
 
 
 class DockerProvider:
@@ -22,6 +21,88 @@ class DockerProvider:
         )
 
         self.thread_limit = Semaphore(self.config.docker['thread_limit'])
+        self._info_style = self.detect_info_style()
+
+    def detect_info_style(self):
+        info = None
+        # try receiving swarm mode style info
+        with self.thread_limit:
+            try:
+                info = self.client.nodes()
+            except:
+                pass
+        if info:
+            print('info style: swarm mode.')
+            print('The built-in swarm mode of docker-engine is NOT supported by Curious Containers.', file=sys.stderr)
+            print('Use the standalone version of Docker Swarm instead.', file=sys.stderr)
+            print('See the documentation for more information.', file=sys.stderr)
+            exit(1)
+        # recieve swarm classic style info
+        with self.thread_limit:
+            info = self.client.info()
+        if info.get('SystemStatus'):
+            print('info style: swarm classic.')
+            return self._swarm_classic_info_style
+        # fallback to local docker-engine instead swarm
+        print('info style: local docker-engine.')
+        return self._local_docker_engine_info_style
+
+    def _swarm_classic_info_style(self):
+        with self.thread_limit:
+            info = self.client.info()
+        nodes = []
+        anchor = '└'
+        last_line = None
+        is_node_data = False
+        for l in info['SystemStatus']:
+            key = l[0]
+            val = l[1]
+            if anchor in key:
+                if not is_node_data:
+                    is_node_data = True
+                    nodes.append({
+                        'name': last_line[0].strip()
+                    })
+                key = key.strip().lstrip(anchor).strip()
+                if key == 'Reserved CPUs':
+                    reserved_cpus, total_cpus = [v.strip() for v in val.split('/')]
+                    nodes[-1]['reserved_cpus'] = int(reserved_cpus)
+                    nodes[-1]['total_cpus'] = int(total_cpus)
+                elif key == 'Reserved Memory':
+                    vals = val.split()
+                    nodes[-1]['reserved_ram'] = _to_mib(float(vals[0]), vals[1])
+                    nodes[-1]['total_ram'] = _to_mib(float(vals[3]), vals[4])
+            else:
+                is_node_data = False
+                last_line = l
+        return nodes
+
+    def _local_docker_engine_info_style(self):
+        with self.thread_limit:
+            info = self.client.info()
+
+        application_containers = self.mongo.db['application_containers'].find({
+            'state': {'$nin': end_states()},
+        }, {'task_id': 1})
+
+        data_containers = self.mongo.db['data_containers'].find({
+            'state': {'$nin': end_states()},
+        }, {'_id': 1})
+
+        tasks = self.mongo.db['tasks'].find({
+            '_id': {'$in': [application_container['task_id'] for application_container in application_containers]}
+        }, {'application_container_description': 1})
+
+        reserved_ram = sum([task['application_container_description']['container_ram'] for task in tasks])
+        reserved_ram += len(list(data_containers)) * self.config.defaults['container_description']['container_ram']
+
+        return [{
+            'name': 'local',
+            'total_ram': info['MemTotal'] // (1024 * 1024),
+            'reserved_ram': reserved_ram,
+            'total_cpus': info['NCPU'],
+            'reserved_cpus': None
+        }]
 
     def update_image(self, image, registry_auth):
         with self.thread_limit:
@@ -189,101 +270,8 @@ class DockerProvider:
                     net_id=self.config.docker['net']
                 )
 
-    def _run_inspection_container(self, node, q):
-        # UNUSED CODE
-        _id = uuid4()
-        try:
-            self.create_inspection_container(_id, node)
-            self.start_container(_id)
-            self.wait_for_container(_id)
-            logs = self.logs_from_container(_id)
-            result = json.loads(logs.decode("utf-8"))
-            result['name'] = node
-        except:
-            result = {
-                'name': node,
-                'total_ram': 0,
-                'reserved_ram': 0,
-                'total_cpus': 0,
-                'reserved_cpus': 0
-            }
-        Thread(target=self.remove_container, args=(_id,)).start()
-        q.put(result)
-
-    def _run_inspection_containers(self, info):
-        # UNUSED CODE
-        q = Queue()
-        threads = []
-        for node in info:
-            t = Thread(target=self._run_inspection_container, args=(node['ID'], q))
-            threads.append(t)
-            t.start()
-        for t in threads:
-            t.join()
-        nodes = list(q.queue)
-        return nodes
-
     def nodes(self):
-        return self._info()
-
-    def _info(self):
-        info = None
-
-        # try receiving swarm mode style info
-        with self.thread_limit:
-            try:
-                info = self.client.nodes()
-            except:
-                pass
-        if info:
-            print('info style: swarm mode.')
-            print('The built-in swarm mode of docker-engine is NOT supported by Curious Containers.', file=sys.stderr)
-            print('Use the standalone version of Docker Swarm instead.', file=sys.stderr)
-            print('See the documentation for more information.', file=sys.stderr)
-            exit(1)
-
-        # recieve swarm classic style info
-        with self.thread_limit:
-            info = self.client.info()
-        if info.get('SystemStatus'):
-            print('info style: swarm classic.')
-            nodes = []
-            anchor = '└'
-            last_line = None
-            is_node_data = False
-            for l in info['SystemStatus']:
-                key = l[0]
-                val = l[1]
-                if anchor in key:
-                    if not is_node_data:
-                        is_node_data = True
-                        nodes.append({
-                            'name': last_line[0].strip()
-                        })
-                    key = key.strip().lstrip(anchor).strip()
-                    if key == 'Reserved CPUs':
-                        reserved_cpus, total_cpus = [v.strip() for v in val.split('/')]
-                        nodes[-1]['reserved_cpus'] = int(reserved_cpus)
-                        nodes[-1]['total_cpus'] = int(total_cpus)
-                    elif key == 'Reserved Memory':
-                        vals = val.split()
-                        nodes[-1]['reserved_ram'] = _to_mib(float(vals[0]), vals[1])
-                        nodes[-1]['total_ram'] = _to_mib(float(vals[3]), vals[4])
-                else:
-                    is_node_data = False
-                    last_line = l
-            return nodes
-
-        # fallback to local docker-engine instead swarm
-        print('info style: local docker-engine.')
-        ram = virtual_memory()
-        return [{
-            'name': 'local',
-            'total_ram': ram.total // (1024 * 1024),
-            'reserved_ram': (ram.total - ram.available) // (1024 * 1024),
-            'total_cpus': info['NCPU'],
-            'reserved_cpus': None
-        }]
+        return self._info_style()
 
 
 def _to_mib(val, unit):

@@ -29,3 +29,4 @@ Version 0.2
 
 - CC-Server is not compatible with the built-in swarm mode of docker-engine. CC-Server does now show an error message, if swarm mode is detected. See admin docs for more information.
 - **parameters_as_json** has been removed from the *config.toml* of CC-Container-Worker. Parameters can now be defined as JSON object or JSON array to trigger the specific behavior. See user docs for more information.
+- improved ram info for local docker-engine by calculating ram usage from containers in database instead of using psutil (which is no dependency any more).

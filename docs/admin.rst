@@ -2,9 +2,9 @@ Administrator Documentation
 ===========================
 
 The administrator documentation describes the installation and required dependencies of the CC-Server software, as well
-as the configuration options. This software has been tested with Ubuntu 14.04 and 16.04, but may also work with other
+as the configuration options. This software has been tested with Ubuntu 16.04, but may also work with other
 Linux distributions. Adapt the following installation instructions to your own need. Python 3 is required. The software
-is tested with Python 3.4, but newer versions are likely to work as well.
+is tested with Python 3.5, but other versions are likely to work as well.
 
 CC-Server is able to connect to a local docker-engine, which is useful for testing the software with a minimal
 configuration effort or to deploy the software to a single production server. If this is the first time you are
@@ -88,7 +88,7 @@ It is recommended to install the Python packages globally for a certain system u
 
 .. code-block:: bash
 
-   pip3 install --user --upgrade flask pymongo docker-py psutil cryptography toml jsonschema requests streql
+   pip3 install --user --upgrade flask pymongo docker-py cryptography toml jsonschema requests streql
 
 
 MongoDB
