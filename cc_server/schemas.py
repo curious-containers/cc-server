@@ -217,10 +217,11 @@ cancel_schema = {
 query_schema = {
     'type': 'object',
     'properties': {
-        'query': {'type': 'object'},
-        'projection': {'type': 'object'}
+        'match': {'type': 'object'},
+        'sort': {'type': 'object'},
+        'project': {'type': 'object'}
     },
-    'required': ['query'],
+    'required': ['match'],
     'additionalProperties': False
 }
 

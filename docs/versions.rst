@@ -17,10 +17,16 @@ CC-Server    Docker
 ===========  =========
 0.1          12
 0.2          12
+0.3          12
 ===========  =========
 
 Change Log
 ----------
+
+Version 0.3
+^^^^^^^^^^^
+
+- Improved GET tasks, application_containers and data_containers, by adding the ability to sort results. The API for these endpoints has changed.
 
 Version 0.2
 ^^^^^^^^^^^

@@ -46,12 +46,14 @@ def get_tasks():
 
     **JSON fields**
 
-    * **query** (required): Retrieve tasks matching the given criteria.
-    * **projection** (optional): Filter JSON fields of previously retrieved tasks.
+    * **match** (required): Retrieve objects matching the given criteria.
+    * **sort** (optional): Sort by JSON fields of matched objects.
+    * **project** (optional): Filter JSON fields of matched objects.
 
-    The query and projection objects are given to a MongoDB find method.
-    Take a look at the `MongoDB documentation <https://docs.mongodb.com/manual/reference/method/db.collection.find/>`__
-    for further instructions.
+    The match, sort and project objects are, in this order, given to MongoDB as aggregation pipeline.
+    Take a look at the
+    `MongoDB documentation <https://docs.mongodb.com/manual/reference/method/db.collection.aggregate/>`__ for further
+    instructions.
 
 
     **Example request**
@@ -62,8 +64,9 @@ def get_tasks():
         Accept: application/json
 
         {
-            "query": {"_id": "57c3f73ae004232bd8b9b005"},
-            "projection": {"state": 1}
+            "match": {"_id": {"$in": ["57f63f73e004231a26ed187e", "57f63f73e004231a26ed187f"]}},
+            "sort": {"_id": -1},
+            "project": {"state": 1}
         }
 
     **Example response**
@@ -78,10 +81,8 @@ def get_tasks():
             "state": 3,
             "description": "Query executed as admin user.",
             "tasks": [
-                {
-                    "_id": "57c3f73ae004232bd8b9b005",
-                    "state": 2
-                }
+                {"_id": "57f63f73e004231a26ed187f", "state": 2},
+                {"_id": "57f63f73e004231a26ed187e", "state": 2}
             ]
         }
     """

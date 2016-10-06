@@ -1,5 +1,4 @@
 from time import time
-from pprint import pprint
 
 from cc_server.notification import notify
 from cc_server.helper import remove_secrets

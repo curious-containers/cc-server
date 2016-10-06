@@ -6,6 +6,7 @@ def data_container_prototype():
     return {
         'state': 0,
         'transitions': [],
+        'username': None,
         'task_id': None,
         'input_files': [],
         'input_file_keys': [],
@@ -29,7 +30,7 @@ class OneCachePerTaskNoDuplicates:
         )
         task = self.mongo.db['tasks'].find_one(
             {'_id': application_container['task_id']},
-            {'input_files': 1}
+            {'input_files': 1, 'username': 1}
         )
 
         data_container_ids = application_container['data_container_ids']
@@ -51,6 +52,7 @@ class OneCachePerTaskNoDuplicates:
 
         if unassigned_input_files:
             data_container = data_container_prototype()
+            data_container['username'] = task['username']
             data_container['input_files'] = unassigned_input_files
             data_container_id = self.mongo.db['data_containers'].insert_one(data_container).inserted_id
             data_container_ids = [val if val else data_container_id for val in data_container_ids]
