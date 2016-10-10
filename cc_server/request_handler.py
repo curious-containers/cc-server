@@ -186,9 +186,9 @@ class RequestHandler:
         self.state_handler.transition('task_groups', task_group_id, 'created', 'Task group created.')
         if json_input.get('tasks'):
             result = self._post_tasks(json_input, task_group_id)
+            result['task_group_id'] = task_group_id
         else:
             result = self._post_task(json_input, task_group_id)
-        result['task_group_id'] = task_group_id
         self.state_handler.transition('task_groups', task_group_id, 'waiting', 'Task group waiting.')
 
         return prepare_response(result)

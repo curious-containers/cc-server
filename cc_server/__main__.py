@@ -163,7 +163,7 @@ def post_tasks():
 
         {
             "state": 3,
-            "_id": "57c3f73ae004232bd8b9b005"
+            "_id": "57fbf45df62690000101afa5"
         }
 
     **Example request 2: multiple tasks**
@@ -216,12 +216,13 @@ def post_tasks():
         Content-Type: application/json
 
         {
+            "task_group_id": "57fbf45df62690000101afa4",
             "tasks": [{
                 "state": 3,
-                "_id": "57c3f73ae004232bd8b9b005"
+                "_id": "57fbf45df62690000101afa5"
             }, {
                 "state": 3,
-                "_id": "57c3f73ae004232bd8b9b006"
+                "_id": "57fbf45df62690000101afa6"
             }]
         }
     """
