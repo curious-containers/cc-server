@@ -9,6 +9,15 @@ from cc_server.states import is_state, state_to_index, end_states
 from cc_server.schemas import query_schema, tasks_schema, callback_schema, cancel_schema
 
 
+def task_group_prototype():
+    return {
+        'state': 0,
+        'transitions': [],
+        'username': None,
+        'task_ids': []
+    }
+
+
 class RequestHandler:
     def __init__(self, mongo, cluster, worker, authorize, config, state_handler):
         self.cluster = cluster
@@ -134,21 +143,27 @@ class RequestHandler:
         json_input['transitions'] = []
         task_id = self.mongo.db['tasks'].insert_one(json_input).inserted_id
 
-        self.state_handler.transition('tasks', task_id, 'created', "Task created.")
-        self.state_handler.transition('tasks', task_id, 'waiting', "Task waiting.")
+        self.state_handler.transition('tasks', task_id, 'created', 'Task created.')
+        self.state_handler.transition('tasks', task_id, 'waiting', 'Task waiting.')
+
+        self.mongo.db['task_groups'].update({'_id': json_input['task_group_id']}, {
+            '$push': {'task_ids': task_id},
+        })
 
         return {'state': state_to_index('success'), '_id': task_id}
 
-    def _post_task(self, json_input):
+    def _post_task(self, json_input, task_group_id):
         json_input['username'] = request.authorization.username
+        json_input['task_group_id'] = task_group_id
         response = self._register_task(json_input)
         Thread(target=self.worker.post_task).start()
         return response
 
-    def _post_tasks(self, json_input):
+    def _post_tasks(self, json_input, task_group_id):
         responses = []
         for json_task in json_input['tasks']:
             json_task['username'] = request.authorization.username
+            json_task['task_group_id'] = task_group_id
             responses.append(self._register_task(json_task))
         Thread(target=self.worker.post_task).start()
         return prepare_response({'tasks': responses})
@@ -165,10 +180,17 @@ class RequestHandler:
                 'exception': format_exc()
             }
 
+        task_group = task_group_prototype()
+        task_group['username'] = request.authorization.username
+        task_group_id = self.mongo.db['task_groups'].insert_one(task_group).inserted_id
+        self.state_handler.transition('task_groups', task_group_id, 'created', 'Task group created.')
         if json_input.get('tasks'):
-            result = self._post_tasks(json_input)
+            result = self._post_tasks(json_input, task_group_id)
         else:
-            result = self._post_task(json_input)
+            result = self._post_task(json_input, task_group_id)
+        result['task_group_id'] = task_group_id
+        self.state_handler.transition('task_groups', task_group_id, 'waiting', 'Task group waiting.')
+
         return prepare_response(result)
 
     def _aggregate(self, json_input, collection):
@@ -216,6 +238,9 @@ class RequestHandler:
 
     def get_tasks(self, json_input):
         return self._aggregate(json_input, 'tasks')
+
+    def get_tasks_groups(self, json_input):
+        return self._aggregate(json_input, 'task_groups')
 
     def post_application_container_callback(self, json_input):
         try:

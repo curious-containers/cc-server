@@ -41,7 +41,7 @@ def get_root():
 def get_tasks():
     """
     .. :quickref: User API; Query tasks
-    Send JSON object with a query and an optional projection, in order to retrieve a list of tasks.
+    Send JSON object with a query, in order to retrieve a list of tasks.
     Admin users can retrieve tasks from every other user, while standard users can only retrieve their own tasks.
 
     **JSON fields**
@@ -237,8 +237,6 @@ def delete_tasks():
 
     **JSON fields**
 
-    * **username** (required)
-    * **password** (required)
     * **_id** (required)
 
     **Example request 1: single task**
@@ -249,8 +247,6 @@ def delete_tasks():
         Accept: application/json
 
         {
-            "username": admin,
-            "password": PASSWORD,
             "_id": "57c3f73ae004232bd8b9b005"
         }
 
@@ -275,8 +271,6 @@ def delete_tasks():
         Accept: application/json
 
         {
-            "username": admin,
-            "password": PASSWORD,
             "tasks": [{
                 "_id": "57c3f73ae004232bd8b9b005"
             },{
@@ -341,13 +335,28 @@ def get_token():
     return jsonify(request_handler.get_token())
 
 
+@app.route('/tasks/groups', methods=['GET'])
+def get_tasks_groups():
+    """
+    .. :quickref: User API; Query task groups
+
+    Send JSON object with a query, in order to retrieve a list of task groups.
+    Admin users can retrieve task groups from every other user, while standard users can only retrieve their own task
+    groups.
+
+    Works exactly like the `GET tasks endpoint <#get--tasks>`__.
+    """
+    return jsonify(request_handler.get_tasks_groups(request.get_json()))
+
+
 @app.route('/application-containers', methods=['GET'])
 def get_application_containers():
     """
     .. :quickref: User API; Query app containers
 
-    Send JSON object with a query and an optional projection, in order to retrieve a list of app containers.
-    Regular users can only retrieve information about containers associated with a task created by the same user.
+    Send JSON object with a query, in order to retrieve a list of app containers.
+    Admin users can retrieve app containers from every other user, while standard users can only retrieve their own app
+    containers.
 
     Works exactly like the `GET tasks endpoint <#get--tasks>`__.
     """
@@ -359,8 +368,9 @@ def get_data_containers():
     """
     .. :quickref: User API; Query data containers
 
-    Send JSON object with a query and an optional projection, in order to retrieve a list of data containers.
-    Regular users can only retrieve information about containers associated with a task created by the same user.
+    Send JSON object with a query, in order to retrieve a list of data containers.
+    Admin users can retrieve data containers from every other user, while standard users can only retrieve their own
+    data containers.
 
     Works exactly like the `GET tasks endpoint <#get--tasks>`__.
     """
