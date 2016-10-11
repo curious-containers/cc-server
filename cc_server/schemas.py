@@ -109,21 +109,21 @@ _syscall_filter_condition_one_parameter_schema = {
     'type': 'object',
     'properties': {
         'argument': {'type': 'integer'},
-        'operation': {'enum': ['==', '!=', '<=', '<', '>=', '>']},
+        'operator': {'enum': ['==', '!=', '<=', '<', '>=', '>']},
         'datum_a': {'type': 'integer'}
     },
-    'required': ['argument', 'operation', 'datum_a']
+    'required': ['argument', 'operator', 'datum_a']
 }
 
 _syscall_filter_condition_two_parameter_schema = {
     'type': 'object',
     'properties': {
         'argument': {'type': 'integer', 'minimum': 0, 'maximum': 6},
-        'operation': {'enum': ['&=']},
+        'operator': {'enum': ['&=']},
         'datum_a': {'type': 'integer'},
         'datum_b': {'type': 'integer'}
     },
-    'required': ['argument', 'operation', 'datum_a', 'datum_b']
+    'required': ['argument', 'operator', 'datum_a', 'datum_b']
 }
 
 _syscall_filter_schema = {
