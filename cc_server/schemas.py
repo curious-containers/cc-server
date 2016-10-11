@@ -108,7 +108,7 @@ _tracing_schema = {
 _syscall_filter_condition_one_parameter_schema = {
     'type': 'object',
     'properties': {
-        'argument': {'type': 'integer'},
+        'argument': {'type': 'integer', 'minimum': 0, 'maximum': 6},
         'operator': {'enum': ['==', '!=', '<=', '<', '>=', '>']},
         'datum_a': {'type': 'integer'}
     },
@@ -126,7 +126,7 @@ _syscall_filter_condition_two_parameter_schema = {
     'required': ['argument', 'operator', 'datum_a', 'datum_b']
 }
 
-_syscall_filter_schema = {
+_syscall_seccomp_filter_schema = {
     'type': 'object',
     'properties': {
         'syscall': {'type': ['string', 'integer']},
@@ -147,7 +147,21 @@ _syscall_filter_schema = {
     'additionalProperties': False
 }
 
-_sandbox_schema = {
+_sandbox_limits_schema = {
+    'type': 'object',
+    'properties': {
+        'cpu_usage': {'type': 'number', 'minimum': 0, 'maximum': 1},
+        'create_file_size': {'type': 'integer', 'minimum': 0},
+        'num_open_files': {'type': 'integer', 'minimum': 0},
+        'heap_size': {'type': 'integer', 'minimum': 0},
+        'stack_size': {'type': 'integer', 'minimum': 0},
+        'rss_size': {'type': 'integer', 'minimum': 0},
+        'child_processes': {'type': 'integer', 'minimum': 0}
+    },
+    'additionalProperties': False
+}
+
+_sandbox_seccomp_schema = {
     'type': 'object',
     'properties': {
         'mode': {
@@ -158,12 +172,31 @@ _sandbox_schema = {
             'items': {
                 'type': 'object',
                 'anyOf': [
-                    _syscall_filter_schema
+                    _syscall_seccomp_filter_schema
                 ]
             }
         }
     },
     'required': ['mode'],
+    'additionalProperties': False
+}
+
+_sandbox_schema = {
+    'type': 'object',
+    'properties': {
+        'limits': {
+            'type': 'object',
+            'anyOf': [
+                _sandbox_limits_schema
+            ]
+        },
+        'seccomp': {
+            'type': 'object',
+            'anyOf': [
+                _sandbox_seccomp_schema
+            ]
+        }
+    },
     'additionalProperties': False
 }
 
