@@ -18,7 +18,7 @@ The source code of the images can be found on Github. All images have been uploa
 contains the corresponding web links and how to refer to the image when using docker-engine or a Dockerfile.
 
 ======================  =========================================================================  ===================================================================================  ==================================================
-Image            Code                                                                              Registry                                                                             Docker URL
+Image                   Code                                                                       Registry                                                                             Docker URL
 ======================  =========================================================================  ===================================================================================  ==================================================
 CC-Sample-App           `Github <https://github.com/curious-containers/cc-sample-app>`__           `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-sample-app/>`__           docker.io/curiouscontainers/cc-sample-app
 CC-Image-Ubuntu         `Github <https://github.com/curious-containers/cc-image-ubuntu>`__         `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-ubuntu/>`__         docker.io/curiouscontainers/cc-image-ubuntu
