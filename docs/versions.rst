@@ -26,13 +26,16 @@ Change Log
 Version 0.3
 ^^^^^^^^^^^
 
+*CC-Container-Worker has changed, upgrade your Container Images to be compatible and contain the latest features.*
+
 - Improved GET tasks, application_containers and data_containers, by adding the ability to sort results. The API for these endpoints has changed.
 - Added task groups: tasks, which have been sent via the same request, are in one group. Added a new API endpoint for this functionality.
+- Added support for optional result files.
 
 Version 0.2
 ^^^^^^^^^^^
 
-*The CC-Container-Worker API has changed, upgrade your Container Images to be compatible.*
+*CC-Container-Worker has changed, upgrade your Container Images to be compatible and contain the latest features.*
 
 - CC-Server is not compatible with the built-in swarm mode of docker-engine. CC-Server does now show an error message, if swarm mode is detected. See admin docs for more information.
 - **parameters_as_json** has been removed from the *config.toml* of CC-Container-Worker. Parameters can now be defined as JSON object or JSON array to trigger the specific behavior. See user docs for more information.

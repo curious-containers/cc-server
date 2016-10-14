@@ -44,19 +44,25 @@ input file and the result files by creating a *config.toml* file as shown below.
 that the script will be executed with the bash interprated and that it is located in the system users home directory.
 The **local_input_files** and **local_result_files** fields each contain a list with dictionaries describing the file
 locations. It is not necessary that the given directories already exist, because they will be created by the
-CC-Container-Worker.
+CC-Container-Worker. The worker software will throw an error, if a specified result file is not created by the application.
+Result files can be marked as **optional**, in order to avoid this behaviour.
 
 .. code-block:: toml
 
    [main]
    application_command = 'bash /home/ubuntu/algorithm.sh'
-   local_input_files = [
-       {'dir' = '/home/ubuntu/input_files', 'name' = 'data.txt'}
-   ]
-   local_result_files = [
-       {'dir' = '/home/ubuntu/result_files', 'name' = 'data.txt'},
-       {'dir' = '/home/ubuntu/result_files', 'name' = 'parameters.txt'}
-   ]
+   local_input_files = [{
+       'dir' = '/home/ubuntu/input_files',
+       'name' = 'data.txt'
+   }]
+   local_result_files = [{
+       'dir' = '/home/ubuntu/result_files',
+       'name' = 'data.txt'
+   }, {
+       'dir' = '/home/ubuntu/result_files',
+       'name' = 'parameters.txt',
+       'optional' = true
+   }]
 
 
 In order to create the CC-Sample-App it is necessary to build a Docker image, containing *algorithm.sh* and *config.toml*.
