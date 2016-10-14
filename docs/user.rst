@@ -17,14 +17,15 @@ They contain the Python code of CC-Container-Worker.
 The source code of the images can be found on Github. All images have been uploaded to Docker Hub. The follwoing table
 contains the corresponding web links and how to refer to the image when using docker-engine or a Dockerfile.
 
-===============  ==================================================================  ============================================================================  ===========================================
-Image            Code                                                                Registry                                                                      Docker URL
-===============  ==================================================================  ============================================================================  ===========================================
-CC-Sample-App    `Github <https://github.com/curious-containers/cc-sample-app>`__    `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-sample-app/>`__    docker.io/curiouscontainers/cc-sample-app
-CC-Image-Ubuntu  `Github <https://github.com/curious-containers/cc-image-ubuntu>`__  `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-ubuntu/>`__  docker.io/curiouscontainers/cc-image-ubuntu
-CC-Image-Fedora  `Github <https://github.com/curious-containers/cc-image-fedora>`__  `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-fedora/>`__  docker.io/curiouscontainers/cc-image-fedora
-CC-Image-Debian  `Github <https://github.com/curious-containers/cc-image-debian>`__  `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-debian/>`__  docker.io/curiouscontainers/cc-image-debian
-===============  ==================================================================  ============================================================================  ===========================================
+======================  =========================================================================  ===================================================================================  ==================================================
+Image            Code                                                                              Registry                                                                             Docker URL
+======================  =========================================================================  ===================================================================================  ==================================================
+CC-Sample-App           `Github <https://github.com/curious-containers/cc-sample-app>`__           `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-sample-app/>`__           docker.io/curiouscontainers/cc-sample-app
+CC-Image-Ubuntu         `Github <https://github.com/curious-containers/cc-image-ubuntu>`__         `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-ubuntu/>`__         docker.io/curiouscontainers/cc-image-ubuntu
+CC-Image-Fedora         `Github <https://github.com/curious-containers/cc-image-fedora>`__         `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-fedora/>`__         docker.io/curiouscontainers/cc-image-fedora
+CC-Image-Debian         `Github <https://github.com/curious-containers/cc-image-debian>`__         `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-debian/>`__         docker.io/curiouscontainers/cc-image-debian
+CC-Image-Debian-Matlab  `Github <https://github.com/curious-containers/cc-image-debian-matlab>`__  `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-debian-matlab/>`__  docker.io/curiouscontainers/cc-image-debian-matlab
+======================  =========================================================================  ===================================================================================  ==================================================
 
 The CC-Sample-App contains the bash script *algorithm.sh* which is a minimal program that can be executed by
 CC-Container-Worker. As can be seen in the source code of *algorithm.sh* below, the script does two different things.
