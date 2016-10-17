@@ -45,7 +45,7 @@ The algorithm assumes to find one input file at a specific location in the local
 In addition both result files are written to the file system at specific locations. Since the *algorithm.sh* script will
 be executed by CC-Container-Worker it is necessary to inform the worker about the locations of the
 input file and the result files by creating a *config.toml* file as shown below. The field **application_command** defines
-that the script will be executed with the bash interprated and that it is located in the system users home directory.
+that the script will be executed with *bash* and that it is located in the system users home directory.
 The **local_input_files** and **local_result_files** fields each contain a list with dictionaries describing the file
 locations. It is not necessary that the given directories already exist, because they will be created by the
 CC-Container-Worker. The worker software will throw an error, if a specified result file is not created by the
