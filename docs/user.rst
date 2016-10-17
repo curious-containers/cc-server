@@ -29,12 +29,14 @@ CC-Image-Debian-Matlab  `Github <https://github.com/curious-containers/cc-image-
 
 The CC-Sample-App contains the bash script *algorithm.sh* which is a minimal program that can be executed by
 CC-Container-Worker. As can be seen in the source code of *algorithm.sh* below, the script does two different things.
-It first copies the file *data.txt* from the *input_files* directory to the *result_files* directory. The second
-command takes the CLI arguments *${@}* and writes them to the *parameters.txt* file.
+It first copies the file *data.txt* from the *input_files* directory to the *result_files* directory with a chance of
+50%. The second command takes the CLI arguments *${@}* and writes them to the *parameters.txt* file.
 
 .. code-block:: bash
 
-   cp /home/ubuntu/input_files/data.txt /home/ubuntu/result_files/data.txt
+   if [[ $(($RANDOM % 2)) == 0 ]]; then
+       cp /home/ubuntu/input_files/data.txt /home/ubuntu/result_files/data.txt
+   fi
    echo ${@} > /home/ubuntu/result_files/parameters.txt
 
 
@@ -46,7 +48,8 @@ that the script will be executed with the bash interprated and that it is locate
 The **local_input_files** and **local_result_files** fields each contain a list with dictionaries describing the file
 locations. It is not necessary that the given directories already exist, because they will be created by the
 CC-Container-Worker. The worker software will throw an error, if a specified result file is not created by the application.
-Result files can be marked as **optional**, in order to avoid this behaviour.
+Result files can be marked as **optional**, in order to avoid this behaviour. Since the *data.txt* result file will be
+created with a chance of 50%, the **optional** flag is required in this case.
 
 .. code-block:: toml
 
@@ -58,11 +61,11 @@ Result files can be marked as **optional**, in order to avoid this behaviour.
    }]
    local_result_files = [{
        'dir' = '/home/ubuntu/result_files',
-       'name' = 'data.txt'
+       'name' = 'data.txt',
+       'optional' = true
    }, {
        'dir' = '/home/ubuntu/result_files',
-       'name' = 'parameters.txt',
-       'optional' = true
+       'name' = 'parameters.txt'
    }]
 
 
@@ -75,7 +78,7 @@ via **application_command**.
 
 .. code-block:: docker
 
-   FROM docker.io/curiouscontainers/cc-image-ubuntu:0.2
+   FROM docker.io/curiouscontainers/cc-image-ubuntu:0.3
    COPY config.toml /opt/config.toml
 
    COPY algorithm.sh /home/ubuntu/algorithm.sh
