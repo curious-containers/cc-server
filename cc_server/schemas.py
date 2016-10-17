@@ -248,11 +248,11 @@ callback_schema = {
                         'max_rss_memory': {'type': 'number'},
                         'input_file_sizes': {
                             'type': 'array',
-                            'items': {'type': 'number'}
+                            'items': {'type': ['number', 'null']}
                         },
                         'result_file_sizes': {
                             'type': 'array',
-                            'items': {'type': 'number'}
+                            'items': {'type': ['number', 'null']}
                         },
                         'wall_time': {'type': 'number'}
                     },

@@ -31,6 +31,7 @@ Version 0.3
 
 - Improved GET tasks, application_containers and data_containers, by adding the ability to sort results. The API for these endpoints has changed.
 - Added task groups: tasks, which have been sent via the same request, are in one group. Added a new API endpoint for this functionality.
+- Added support for optional result files.
 
 Version 0.2
 ^^^^^^^^^^^
