@@ -44,7 +44,7 @@ class RequestHandler:
         return {
             'state': state_to_index('success'),
             'token': token,
-            'valid_for_seconds': self.config.main['authorization'].get('tokens_valid_for_seconds'),
+            'valid_for_seconds': self.config.defaults['authorization'].get('tokens_valid_for_seconds'),
             'description': 'Token issued successfully.'
         }
 
