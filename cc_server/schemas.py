@@ -228,7 +228,7 @@ _tracing_telemetry_file_access_full_schema = {
         'pid': {'type': 'integer'},
         'syscall_result': {'type': 'integer'}
     },
-    'required': ['pid', 'filename', 'is_directory', 'exists', 'syscall', 'access_time', 'pid', 'syscall_result'],
+    'required': ['filename', 'is_directory', 'exists', 'syscall', 'access_time', 'pid', 'syscall_result'],
     'additionalProperties': False
 }
 
