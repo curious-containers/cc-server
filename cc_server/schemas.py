@@ -205,7 +205,7 @@ _tracing_telemetry_process_schema = {
     'properties': {
         'pid': {'type': 'integer'},
         'start': {'type': 'number'},
-        'end': {'type': 'number'},
+        'end': {'type': ['number', 'null']},
         'exit_code': {'type': 'integer'},
         'signal': {'type': ['integer', 'null']}
     },
@@ -214,14 +214,7 @@ _tracing_telemetry_process_schema = {
 }
 
 _tracing_telemetry_file_access_short_schema = {
-    'type': 'object',
-    'properties': {
-        'filename': {'type': 'string'},
-        'is_directory': {'type': 'boolean'},
-        'exists': {'type': 'boolean'},
-    },
-    'required': ['filename', 'is_directory', 'exists'],
-    'additionalProperties': False
+    'type': 'string'
 }
 
 _tracing_telemetry_file_access_full_schema = {
@@ -235,7 +228,7 @@ _tracing_telemetry_file_access_full_schema = {
         'pid': {'type': 'integer'},
         'syscall_result': {'type': 'integer'}
     },
-    'required': ['filename', 'is_directory', 'exists', 'syscall', 'access_time', 'pid', 'syscall_result'],
+    'required': ['pid', 'filename', 'is_directory', 'exists', 'syscall', 'access_time', 'pid', 'syscall_result'],
     'additionalProperties': False
 }
 
