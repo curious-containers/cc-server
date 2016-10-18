@@ -257,7 +257,7 @@ _tracing_telemetry_syscall_short_schema = {
     'additionalProperties': False
 }
 
-_tracing_telemetry_syscall_full_schema =  {
+_tracing_telemetry_syscall_full_schema = {
     'type': 'object',
     'properties': {
         'name': {'type': 'string'},
