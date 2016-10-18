@@ -1,6 +1,6 @@
 import os
 import sys
-from flask import Flask, request, jsonify
+from flask import Flask, request
 
 sys.path.insert(0, os.path.abspath('.'))
 
@@ -34,7 +34,7 @@ def get_root():
             "version": 0.3
         }
     """
-    return jsonify(request_handler.get_root())
+    return request_handler.get_root()
 
 
 @app.route('/tasks', methods=['GET'])
@@ -86,7 +86,7 @@ def get_tasks():
             ]
         }
     """
-    return jsonify(request_handler.get_tasks(request.get_json()))
+    return request_handler.get_tasks(request.get_json())
 
 
 @app.route('/tasks', methods=['POST'])
@@ -226,7 +226,7 @@ def post_tasks():
             }]
         }
     """
-    return jsonify(request_handler.post_tasks(request.get_json()))
+    return request_handler.post_tasks(request.get_json())
 
 
 @app.route('/tasks', methods=['DELETE'])
@@ -299,7 +299,7 @@ def delete_tasks():
             }]
         }
     """
-    return jsonify(request_handler.delete_tasks(request.get_json()))
+    return request_handler.delete_tasks(request.get_json())
 
 
 @app.route('/token', methods=['GET'])
@@ -333,7 +333,7 @@ def get_token():
             "valid_for_seconds": 172800
         }
     """
-    return jsonify(request_handler.get_token())
+    return request_handler.get_token()
 
 
 @app.route('/tasks/groups', methods=['GET'])
@@ -347,7 +347,7 @@ def get_tasks_groups():
 
     Works exactly like the `GET tasks endpoint <#get--tasks>`__.
     """
-    return jsonify(request_handler.get_tasks_groups(request.get_json()))
+    return request_handler.get_tasks_groups(request.get_json())
 
 
 @app.route('/application-containers', methods=['GET'])
@@ -361,7 +361,7 @@ def get_application_containers():
 
     Works exactly like the `GET tasks endpoint <#get--tasks>`__.
     """
-    return jsonify(request_handler.get_application_containers(request.get_json()))
+    return request_handler.get_application_containers(request.get_json())
 
 
 @app.route('/data-containers', methods=['GET'])
@@ -375,7 +375,7 @@ def get_data_containers():
 
     Works exactly like the `GET tasks endpoint <#get--tasks>`__.
     """
-    return jsonify(request_handler.get_data_containers(request.get_json()))
+    return request_handler.get_data_containers(request.get_json())
 
 
 @app.route('/application-containers/callback', methods=['POST'])
@@ -421,7 +421,7 @@ def post_application_container_callback():
 
         {"state": 3}
     """
-    return jsonify(request_handler.post_application_container_callback(request.get_json()))
+    return request_handler.post_application_container_callback(request.get_json())
 
 
 @app.route('/data-containers/callback', methods=['POST'])
@@ -467,7 +467,7 @@ def post_data_container_callback():
 
         {"state": 3}
     """
-    return jsonify(request_handler.post_data_container_callback(request.get_json()))
+    return request_handler.post_data_container_callback(request.get_json())
 
 
 def main():

@@ -2,7 +2,7 @@ from jsonschema import validate
 from threading import Thread
 from traceback import format_exc
 from pprint import pprint
-from flask import request
+from flask import request, Response, jsonify
 
 from cc_server.helper import prepare_response, prepare_input
 from cc_server.states import is_state, state_to_index, end_states
@@ -18,6 +18,34 @@ def task_group_prototype():
     }
 
 
+def auth(require_auth=True, require_admin=True, require_credentials=True):
+    def dec(func):
+        def wrapper(self, *args, **kwargs):
+            if require_auth:
+                if not self.authorize.verify_user(require_admin=require_admin, require_credentials=require_credentials):
+                    return Response('User not authorized.', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+            return jsonify(func(self, *args, **kwargs))
+        return wrapper
+    return dec
+
+
+def validation(schema):
+    def dec(func):
+        def wrapper(self, json_input, *args, **kwargs):
+            try:
+                validate(json_input, schema)
+                json_input = prepare_input(json_input)
+            except:
+                return {
+                    'state': state_to_index('failed'),
+                    'description': 'JSON input for task is not valid.',
+                    'exception': format_exc()
+                }
+            return func(self, json_input, *args, **kwargs)
+        return wrapper
+    return dec
+
+
 class RequestHandler:
     def __init__(self, mongo, cluster, worker, authorize, config, state_handler):
         self.cluster = cluster
@@ -27,19 +55,16 @@ class RequestHandler:
         self.config = config
         self.state_handler = state_handler
 
+    @auth(require_admin=False, require_credentials=False)
     def get_root(self):
-        if not self.authorize.verify_user(require_admin=False, require_credentials=False):
-            return {'state': state_to_index('failed'), 'description': 'User not authorized.'}
         return {
             'status': state_to_index('success'),
             'description': 'Curious Containers Server is running.',
             'version': 0.3
         }
 
+    @auth(require_admin=False)
     def get_token(self):
-        if not self.authorize.verify_user(require_admin=False):
-            return {'state': state_to_index('failed'), 'description': 'User not authorized.'}
-
         token = self.authorize.issue_token()
         return {
             'state': state_to_index('success'),
@@ -117,19 +142,9 @@ class RequestHandler:
             'description': 'Task cancelled.'
         }
 
+    @auth(require_admin=False, require_credentials=False)
+    @validation(cancel_schema)
     def delete_tasks(self, json_input):
-        if not self.authorize.verify_user(require_admin=False, require_credentials=False):
-            return {'state': state_to_index('failed'), 'description': 'User not authorized.'}
-        try:
-            validate(json_input, cancel_schema)
-            json_input = prepare_input(json_input)
-        except:
-            return {
-                'state': state_to_index('failed'),
-                'description': 'JSON input for task is not valid.',
-                'exception': format_exc()
-            }
-
         if not self.authorize.verify_user(require_credentials=False):
             json_input['username'] = request.authorization.username
 
@@ -168,18 +183,9 @@ class RequestHandler:
         Thread(target=self.worker.post_task).start()
         return prepare_response({'tasks': responses})
 
+    @auth(require_admin=False, require_credentials=False)
+    @validation(tasks_schema)
     def post_tasks(self, json_input):
-        if not self.authorize.verify_user(require_admin=False, require_credentials=False):
-            return {'state': state_to_index('failed'), 'description': 'User not authorized.'}
-        try:
-            validate(json_input, tasks_schema)
-        except:
-            return {
-                'state': state_to_index('failed'),
-                'description': 'JSON input for tasks is not valid.',
-                'exception': format_exc()
-            }
-
         task_group = task_group_prototype()
         task_group['username'] = request.authorization.username
         task_group_id = self.mongo.db['task_groups'].insert_one(task_group).inserted_id
@@ -193,19 +199,9 @@ class RequestHandler:
 
         return prepare_response(result)
 
+    @auth(require_admin=False, require_credentials=False)
+    @validation(query_schema)
     def _aggregate(self, json_input, collection):
-        if not self.authorize.verify_user(require_admin=False, require_credentials=False):
-            return {'state': state_to_index('failed'), 'description': 'User not authorized.'}
-        try:
-            validate(json_input, query_schema)
-            json_input = prepare_input(json_input)
-        except:
-            return {
-                'state': state_to_index('failed'),
-                'description': 'JSON input is not valid.',
-                'exception': format_exc()
-            }
-
         pipeline = [{'$match': json_input['match']}]
         if self.authorize.verify_user(require_credentials=False):
             description = 'Query executed as admin user.'
@@ -242,17 +238,9 @@ class RequestHandler:
     def get_tasks_groups(self, json_input):
         return self._aggregate(json_input, 'task_groups')
 
+    @auth(require_auth=False)
+    @validation(callback_schema)
     def post_application_container_callback(self, json_input):
-        try:
-            validate(json_input, callback_schema)
-            json_input = prepare_input(json_input)
-        except:
-            return {
-                'state': state_to_index('failed'),
-                'description': 'JSON input for callback is not valid.',
-                'exception': format_exc()
-            }
-
         if not self.authorize.verify_callback(json_input, 'application_containers'):
             return {'state': state_to_index('failed'), 'description': 'Callback not authorized.'}
 
@@ -313,17 +301,9 @@ class RequestHandler:
 
         return {'state': state_to_index('success')}
 
+    @auth(require_auth=False)
+    @validation(callback_schema)
     def post_data_container_callback(self, json_input):
-        try:
-            validate(json_input, callback_schema)
-            json_input = prepare_input(json_input)
-        except:
-            return {
-                'state': state_to_index('failed'),
-                'description': 'JSON input for callback is not valid.',
-                'exception': format_exc()
-            }
-
         if not self.authorize.verify_callback(json_input, 'data_containers'):
             return {'state': state_to_index('failed'), 'description': 'Callback not authorized.'}
 
