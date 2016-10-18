@@ -158,7 +158,9 @@ class DockerProvider:
             'result_files': task['result_files'],
             'mtu': self.config.defaults.get('mtu'),
             'no_cache': task.get('no_cache'),
-            'parameters': task['application_container_description'].get('parameters')
+            'parameters': task['application_container_description'].get('parameters'),
+            'sandbox': task['application_container_description'].get('sandbox'),
+            'tracing': task['application_container_description'].get('tracing')
         }
 
         entry_point = self.config.defaults['container_description']['entry_point']
