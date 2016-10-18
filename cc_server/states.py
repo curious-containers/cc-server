@@ -1,5 +1,4 @@
 from time import time
-from pprint import pprint
 
 from cc_server.notification import notify
 from cc_server.helper import remove_secrets
@@ -61,8 +60,22 @@ class StateHandler:
             self._application_container_transition(_id, state, description, exception, None)
         elif collection == 'data_containers':
             self._data_container_transition(_id, state, description, exception, None)
+        elif collection == 'task_groups':
+            self._task_group_transition(_id, state, description, exception, None)
         else:
             raise Exception('Invalid collection: %s' % collection)
+
+    def _task_group_transition(self, task_group_id, state, description, exception, caused_by):
+        task_group = self.mongo.db['task_groups'].find_one(
+            {'_id': task_group_id},
+            {'state': 1}
+        )
+
+        if task_group['state'] in end_states() or state_to_index(state) == task_group['state']:
+            return
+
+        t = _transition(state, description, exception, caused_by)
+        self._append_transition('task_groups', task_group_id, t)
 
     def _application_container_transition(self, application_container_id, state, description, exception, caused_by):
         application_container = self.mongo.db['application_containers'].find_one(
@@ -113,7 +126,7 @@ class StateHandler:
     def _task_transition(self, task_id, state, description, exception, caused_by):
         task = self.mongo.db['tasks'].find_one(
             {'_id': task_id},
-            {'trials': 1, 'notifications': 1, 'state': 1}
+            {'trials': 1, 'notifications': 1, 'state': 1, 'task_group_id': 1}
         )
 
         if task['state'] in end_states():
@@ -147,8 +160,49 @@ class StateHandler:
         t = _transition(state, description, exception, caused_by)
         self._append_transition('tasks', task_id, t)
 
-        if (state == 'failed' or state == 'success' or state == 'cancelled') and task.get('notifications'):
-            notify(task['notifications'])
+        if state == 'processing':
+            task_group = self.mongo.db['task_groups'].find_one(
+                {'_id': task['task_group_id'], 'state': state_to_index('processing')},
+                {'_id': 1}
+            )
+            if not task_group:
+                description = 'All tasks in group failed or have been cancelled.'
+                self._task_group_transition(task['task_group_id'], 'processing', description, None, None)
+
+        if state_to_index(state) in end_states():
+            self._check_task_group(task['task_group_id'])
+            if task.get('notifications'):
+                notify(task['notifications'])
+
+    def _check_task_group(self, task_group_id):
+        task_group = self.mongo.db['task_groups'].find_one(
+            {'_id': task_group_id},
+            {'task_ids': 1}
+        )
+        tasks = self.mongo.db['tasks'].find(
+            {
+                '_id': {'$in': task_group['task_ids']},
+                'state': {'$in': end_states()}
+            },
+            {'_id': 1}
+        )
+        num_tasks = len(task_group['task_ids'])
+        num_tasks_in_endstate = len(list(tasks))
+        if num_tasks != num_tasks_in_endstate:
+            return
+        task = self.mongo.db['tasks'].find_one(
+            {
+                '_id': {'$in': task_group['task_ids']},
+                'state': state_to_index('success')
+            },
+            {'_id': 1}
+        )
+        if task:
+            description = 'All tasks in group finished.'
+            self._task_group_transition(task_group_id, 'success', description, None, None)
+            return
+        description = 'All tasks in group failed or have been cancelled.'
+        self._task_group_transition(task_group_id, 'failed', description, None, None)
 
     def _data_container_transition(self, data_container_id, state, description, exception, caused_by):
         data_container = self.mongo.db['data_containers'].find_one(

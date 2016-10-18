@@ -31,7 +31,7 @@ def get_root():
         {
             "state": 3,
             "description": "Curious Containers Server is running.",
-            "version": 0.2
+            "version": 0.3
         }
     """
     return jsonify(request_handler.get_root())
@@ -41,17 +41,19 @@ def get_root():
 def get_tasks():
     """
     .. :quickref: User API; Query tasks
-    Send JSON object with a query and an optional projection, in order to retrieve a list of tasks.
+    Send JSON object with a query, in order to retrieve a list of tasks.
     Admin users can retrieve tasks from every other user, while standard users can only retrieve their own tasks.
 
     **JSON fields**
 
-    * **query** (required): Retrieve tasks matching the given criteria.
-    * **projection** (optional): Filter JSON fields of previously retrieved tasks.
+    * **match** (required): Retrieve objects matching the given criteria.
+    * **sort** (optional): Sort by JSON fields of matched objects.
+    * **project** (optional): Filter JSON fields of matched objects.
 
-    The query and projection objects are given to a MongoDB find method.
-    Take a look at the `MongoDB documentation <https://docs.mongodb.com/manual/reference/method/db.collection.find/>`__
-    for further instructions.
+    The match, sort and project objects are, in this order, given to MongoDB as aggregation pipeline.
+    Take a look at the
+    `MongoDB documentation <https://docs.mongodb.com/manual/reference/method/db.collection.aggregate/>`__ for further
+    instructions.
 
 
     **Example request**
@@ -62,8 +64,9 @@ def get_tasks():
         Accept: application/json
 
         {
-            "query": {"_id": "57c3f73ae004232bd8b9b005"},
-            "projection": {"state": 1}
+            "match": {"_id": {"$in": ["57f63f73e004231a26ed187e", "57f63f73e004231a26ed187f"]}},
+            "sort": {"_id": -1},
+            "project": {"state": 1}
         }
 
     **Example response**
@@ -78,10 +81,8 @@ def get_tasks():
             "state": 3,
             "description": "Query executed as admin user.",
             "tasks": [
-                {
-                    "_id": "57c3f73ae004232bd8b9b005",
-                    "state": 2
-                }
+                {"_id": "57f63f73e004231a26ed187f", "state": 2},
+                {"_id": "57f63f73e004231a26ed187e", "state": 2}
             ]
         }
     """
@@ -162,7 +163,7 @@ def post_tasks():
 
         {
             "state": 3,
-            "_id": "57c3f73ae004232bd8b9b005"
+            "_id": "57fbf45df62690000101afa5"
         }
 
     **Example request 2: multiple tasks**
@@ -215,12 +216,13 @@ def post_tasks():
         Content-Type: application/json
 
         {
+            "task_group_id": "57fbf45df62690000101afa4",
             "tasks": [{
                 "state": 3,
-                "_id": "57c3f73ae004232bd8b9b005"
+                "_id": "57fbf45df62690000101afa5"
             }, {
                 "state": 3,
-                "_id": "57c3f73ae004232bd8b9b006"
+                "_id": "57fbf45df62690000101afa6"
             }]
         }
     """
@@ -236,8 +238,6 @@ def delete_tasks():
 
     **JSON fields**
 
-    * **username** (required)
-    * **password** (required)
     * **_id** (required)
 
     **Example request 1: single task**
@@ -248,8 +248,6 @@ def delete_tasks():
         Accept: application/json
 
         {
-            "username": admin,
-            "password": PASSWORD,
             "_id": "57c3f73ae004232bd8b9b005"
         }
 
@@ -274,8 +272,6 @@ def delete_tasks():
         Accept: application/json
 
         {
-            "username": admin,
-            "password": PASSWORD,
             "tasks": [{
                 "_id": "57c3f73ae004232bd8b9b005"
             },{
@@ -340,13 +336,28 @@ def get_token():
     return jsonify(request_handler.get_token())
 
 
+@app.route('/tasks/groups', methods=['GET'])
+def get_tasks_groups():
+    """
+    .. :quickref: User API; Query task groups
+
+    Send JSON object with a query, in order to retrieve a list of task groups.
+    Admin users can retrieve task groups from every other user, while standard users can only retrieve their own task
+    groups.
+
+    Works exactly like the `GET tasks endpoint <#get--tasks>`__.
+    """
+    return jsonify(request_handler.get_tasks_groups(request.get_json()))
+
+
 @app.route('/application-containers', methods=['GET'])
 def get_application_containers():
     """
     .. :quickref: User API; Query app containers
 
-    Send JSON object with a query and an optional projection, in order to retrieve a list of app containers.
-    Regular users can only retrieve information about containers associated with a task created by the same user.
+    Send JSON object with a query, in order to retrieve a list of app containers.
+    Admin users can retrieve app containers from every other user, while standard users can only retrieve their own app
+    containers.
 
     Works exactly like the `GET tasks endpoint <#get--tasks>`__.
     """
@@ -358,8 +369,9 @@ def get_data_containers():
     """
     .. :quickref: User API; Query data containers
 
-    Send JSON object with a query and an optional projection, in order to retrieve a list of data containers.
-    Regular users can only retrieve information about containers associated with a task created by the same user.
+    Send JSON object with a query, in order to retrieve a list of data containers.
+    Admin users can retrieve data containers from every other user, while standard users can only retrieve their own
+    data containers.
 
     Works exactly like the `GET tasks endpoint <#get--tasks>`__.
     """

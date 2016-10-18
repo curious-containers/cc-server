@@ -5,8 +5,17 @@ from pprint import pprint
 from flask import request
 
 from cc_server.helper import prepare_response, prepare_input
-from cc_server.states import is_state, state_to_index
+from cc_server.states import is_state, state_to_index, end_states
 from cc_server.schemas import query_schema, tasks_schema, callback_schema, cancel_schema
+
+
+def task_group_prototype():
+    return {
+        'state': 0,
+        'transitions': [],
+        'username': None,
+        'task_ids': []
+    }
 
 
 class RequestHandler:
@@ -24,7 +33,7 @@ class RequestHandler:
         return {
             'status': state_to_index('success'),
             'description': 'Curious Containers Server is running.',
-            'version': 0.2
+            'version': 0.3
         }
 
     def get_token(self):
@@ -35,7 +44,7 @@ class RequestHandler:
         return {
             'state': state_to_index('success'),
             'token': token,
-            'valid_for_seconds': self.config.main['authorization'].get('tokens_valid_for_seconds'),
+            'valid_for_seconds': self.config.defaults['authorization'].get('tokens_valid_for_seconds'),
             'description': 'Token issued successfully.'
         }
 
@@ -45,14 +54,14 @@ class RequestHandler:
             tasks = self.mongo.db['tasks'].find({
                 'username': json_input.get('username'),
                 '_id': {'$in': task_ids},
-                'state': {'$nin': [state_to_index('success'), state_to_index('failed')]}
+                'state': {'$nin': end_states()}
             }, {
                 '_id': 1
             })
         else:
             tasks = self.mongo.db['tasks'].find({
                 '_id': {'$in': task_ids},
-                'state': {'$nin': [state_to_index('success'), state_to_index('failed')]}
+                'state': {'$nin': end_states()}
             }, {
                 '_id': 1
             })
@@ -83,14 +92,14 @@ class RequestHandler:
             task = self.mongo.db['tasks'].find_one({
                 'username': json_input.get('username'),
                 '_id': json_input['_id'],
-                'state': {'$nin': [state_to_index('success'), state_to_index('failed')]}
+                'state': {'$nin': end_states()}
             }, {
                 '_id': 1
             })
         else:
             task = self.mongo.db['tasks'].find_one({
                 '_id': json_input['_id'],
-                'state': {'$nin': [state_to_index('success'), state_to_index('failed')]}
+                'state': {'$nin': end_states()}
             }, {
                 '_id': 1
             })
@@ -134,21 +143,27 @@ class RequestHandler:
         json_input['transitions'] = []
         task_id = self.mongo.db['tasks'].insert_one(json_input).inserted_id
 
-        self.state_handler.transition('tasks', task_id, 'created', "Task created.")
-        self.state_handler.transition('tasks', task_id, 'waiting', "Task waiting.")
+        self.state_handler.transition('tasks', task_id, 'created', 'Task created.')
+        self.state_handler.transition('tasks', task_id, 'waiting', 'Task waiting.')
+
+        self.mongo.db['task_groups'].update({'_id': json_input['task_group_id']}, {
+            '$push': {'task_ids': task_id},
+        })
 
         return {'state': state_to_index('success'), '_id': task_id}
 
-    def _post_task(self, json_input):
+    def _post_task(self, json_input, task_group_id):
         json_input['username'] = request.authorization.username
+        json_input['task_group_id'] = task_group_id
         response = self._register_task(json_input)
         Thread(target=self.worker.post_task).start()
         return response
 
-    def _post_tasks(self, json_input):
+    def _post_tasks(self, json_input, task_group_id):
         responses = []
         for json_task in json_input['tasks']:
             json_task['username'] = request.authorization.username
+            json_task['task_group_id'] = task_group_id
             responses.append(self._register_task(json_task))
         Thread(target=self.worker.post_task).start()
         return prepare_response({'tasks': responses})
@@ -165,13 +180,20 @@ class RequestHandler:
                 'exception': format_exc()
             }
 
+        task_group = task_group_prototype()
+        task_group['username'] = request.authorization.username
+        task_group_id = self.mongo.db['task_groups'].insert_one(task_group).inserted_id
+        self.state_handler.transition('task_groups', task_group_id, 'created', 'Task group created.')
         if json_input.get('tasks'):
-            result = self._post_tasks(json_input)
+            result = self._post_tasks(json_input, task_group_id)
+            result['task_group_id'] = task_group_id
         else:
-            result = self._post_task(json_input)
+            result = self._post_task(json_input, task_group_id)
+        self.state_handler.transition('task_groups', task_group_id, 'waiting', 'Task group waiting.')
+
         return prepare_response(result)
 
-    def get_tasks(self, json_input):
+    def _aggregate(self, json_input, collection):
         if not self.authorize.verify_user(require_admin=False, require_credentials=False):
             return {'state': state_to_index('failed'), 'description': 'User not authorized.'}
         try:
@@ -184,59 +206,41 @@ class RequestHandler:
                 'exception': format_exc()
             }
 
-        description = 'Query executed as admin user.'
-        if not self.authorize.verify_user(require_credentials=False):
-            description = 'Query executed.'
-            json_input['query']['username'] = request.authorization.username
-
-        tasks = self.mongo.db['tasks'].find(json_input['query'], json_input.get('projection'))
-        return prepare_response({'state': state_to_index('success'), 'tasks': list(tasks), 'description': description})
-
-    def _get_containers(self, json_input, collection):
-        if not self.authorize.verify_user(require_admin=False, require_credentials=False):
-            return {'state': state_to_index('failed'), 'description': 'User not authorized.'}
-        try:
-            validate(json_input, query_schema)
-            json_input = prepare_input(json_input)
-        except:
-            return {
-                'state': state_to_index('failed'),
-                'description': 'JSON input is not valid.',
-                'exception': format_exc()
-            }
-
+        pipeline = [{'$match': json_input['match']}]
         if self.authorize.verify_user(require_credentials=False):
             description = 'Query executed as admin user.'
-            containers = self.mongo.db[collection].find(
-                json_input['query'],
-                json_input.get('projection')
-            )
         else:
             description = 'Query executed.'
-            tasks = self.mongo.db['tasks'].find(
-                {'username': request.authorization.username},
-                {'_id': 1}
-            )
-            additional_query = {'task_id': {'$in': [task['_id'] for task in tasks]}}
-            pipeline = [
-                {'$match': json_input['query']},
-                {'$match': additional_query}
-            ]
-            if json_input.get('projection'):
-                pipeline.append({'$project': json_input['projection']})
+            pipeline.append({'$match': {'username': request.authorization.username}})
+        if json_input.get('sort'):
+            pipeline.append({'$sort': json_input['sort']})
+        if json_input.get('project'):
+            pipeline.append({'$project': json_input['project']})
+        try:
             containers = self.mongo.db[collection].aggregate(pipeline)
-
+        except:
+            return {
+                'state': state_to_index('failed'),
+                'description': 'Could not execute aggregation pipeline with MongoDB.',
+                'exception': format_exc()
+            }
         return prepare_response({
             'state': state_to_index('success'),
-            'containers': list(containers),
+            collection: list(containers),
             'description': description
         })
 
     def get_application_containers(self, json_input):
-        return self._get_containers(json_input, 'application_containers')
+        return self._aggregate(json_input, 'application_containers')
 
     def get_data_containers(self, json_input):
-        return self._get_containers(json_input, 'data_containers')
+        return self._aggregate(json_input, 'data_containers')
+
+    def get_tasks(self, json_input):
+        return self._aggregate(json_input, 'tasks')
+
+    def get_tasks_groups(self, json_input):
+        return self._aggregate(json_input, 'task_groups')
 
     def post_application_container_callback(self, json_input):
         try:

@@ -17,23 +17,27 @@ They contain the Python code of CC-Container-Worker.
 The source code of the images can be found on Github. All images have been uploaded to Docker Hub. The follwoing table
 contains the corresponding web links and how to refer to the image when using docker-engine or a Dockerfile.
 
-===============  ==================================================================  ============================================================================  ===========================================
-Image            Code                                                                Registry                                                                      Docker URL
-===============  ==================================================================  ============================================================================  ===========================================
-CC-Sample-App    `Github <https://github.com/curious-containers/cc-sample-app>`__    `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-sample-app/>`__    docker.io/curiouscontainers/cc-sample-app
-CC-Image-Ubuntu  `Github <https://github.com/curious-containers/cc-image-ubuntu>`__  `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-ubuntu/>`__  docker.io/curiouscontainers/cc-image-ubuntu
-CC-Image-Fedora  `Github <https://github.com/curious-containers/cc-image-fedora>`__  `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-fedora/>`__  docker.io/curiouscontainers/cc-image-fedora
-CC-Image-Debian  `Github <https://github.com/curious-containers/cc-image-debian>`__  `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-debian/>`__  docker.io/curiouscontainers/cc-image-debian
-===============  ==================================================================  ============================================================================  ===========================================
+======================  =========================================================================  ===================================================================================  ==================================================
+Image                   Code                                                                       Registry                                                                             Docker URL
+======================  =========================================================================  ===================================================================================  ==================================================
+CC-Sample-App           `Github <https://github.com/curious-containers/cc-sample-app>`__           `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-sample-app/>`__           docker.io/curiouscontainers/cc-sample-app
+CC-Image-Ubuntu         `Github <https://github.com/curious-containers/cc-image-ubuntu>`__         `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-ubuntu/>`__         docker.io/curiouscontainers/cc-image-ubuntu
+CC-Image-Fedora         `Github <https://github.com/curious-containers/cc-image-fedora>`__         `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-fedora/>`__         docker.io/curiouscontainers/cc-image-fedora
+CC-Image-Debian         `Github <https://github.com/curious-containers/cc-image-debian>`__         `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-debian/>`__         docker.io/curiouscontainers/cc-image-debian
+CC-Image-Debian-Matlab  `Github <https://github.com/curious-containers/cc-image-debian-matlab>`__  `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-debian-matlab/>`__  docker.io/curiouscontainers/cc-image-debian-matlab
+======================  =========================================================================  ===================================================================================  ==================================================
 
 The CC-Sample-App contains the bash script *algorithm.sh* which is a minimal program that can be executed by
 CC-Container-Worker. As can be seen in the source code of *algorithm.sh* below, the script does two different things.
-It first copies the file *data.txt* from the *input_files* directory to the *result_files* directory. The second
-command takes the CLI arguments *${@}* and writes them to the *parameters.txt* file.
+It first copies the file *data.txt* from the *input_files* directory to the *result_files* directory.
+The second command takes the CLI arguments *${@}* and writes them to the *parameters.txt* file. Please note that the
+*data.txt* file will only be copied with a chance of 50%, making it an **optional** result file.
 
 .. code-block:: bash
 
-   cp /home/ubuntu/input_files/data.txt /home/ubuntu/result_files/data.txt
+   if [[ $(($RANDOM % 2)) == 0 ]]; then
+       cp /home/ubuntu/input_files/data.txt /home/ubuntu/result_files/data.txt
+   fi
    echo ${@} > /home/ubuntu/result_files/parameters.txt
 
 
@@ -41,22 +45,28 @@ The algorithm assumes to find one input file at a specific location in the local
 In addition both result files are written to the file system at specific locations. Since the *algorithm.sh* script will
 be executed by CC-Container-Worker it is necessary to inform the worker about the locations of the
 input file and the result files by creating a *config.toml* file as shown below. The field **application_command** defines
-that the script will be executed with the bash interprated and that it is located in the system users home directory.
+that the script will be executed with *bash* and that it is located in the system users home directory.
 The **local_input_files** and **local_result_files** fields each contain a list with dictionaries describing the file
 locations. It is not necessary that the given directories already exist, because they will be created by the
-CC-Container-Worker.
+CC-Container-Worker. The worker software will throw an error, if a specified result file is not created by the
+application. Result files can be marked as **optional**, in order to avoid this behaviour.
 
 .. code-block:: toml
 
    [main]
    application_command = 'bash /home/ubuntu/algorithm.sh'
-   local_input_files = [
-       {'dir' = '/home/ubuntu/input_files', 'name' = 'data.txt'}
-   ]
-   local_result_files = [
-       {'dir' = '/home/ubuntu/result_files', 'name' = 'data.txt'},
-       {'dir' = '/home/ubuntu/result_files', 'name' = 'parameters.txt'}
-   ]
+   local_input_files = [{
+       'dir' = '/home/ubuntu/input_files',
+       'name' = 'data.txt'
+   }]
+   local_result_files = [{
+       'dir' = '/home/ubuntu/result_files',
+       'name' = 'data.txt',
+       'optional' = true
+   }, {
+       'dir' = '/home/ubuntu/result_files',
+       'name' = 'parameters.txt'
+   }]
 
 
 In order to create the CC-Sample-App it is necessary to build a Docker image, containing *algorithm.sh* and *config.toml*.
@@ -68,7 +78,7 @@ via **application_command**.
 
 .. code-block:: docker
 
-   FROM docker.io/curiouscontainers/cc-image-ubuntu:0.2
+   FROM docker.io/curiouscontainers/cc-image-ubuntu:0.3
    COPY config.toml /opt/config.toml
 
    COPY algorithm.sh /home/ubuntu/algorithm.sh

@@ -6,6 +6,7 @@ def application_container_prototype():
     return {
         'state': 0,
         'transitions': [],
+        'username': None,
         'task_id': None,
         'data_container_ids': [],
         'callbacks': [],
@@ -43,6 +44,7 @@ class Scheduler:
 
             application_container = application_container_prototype()
             application_container['task_id'] = task['_id']
+            application_container['username'] = task['username']
             application_container_id = self.mongo.db['application_containers'].insert_one(application_container).inserted_id
 
             if not task.get('no_cache'):
