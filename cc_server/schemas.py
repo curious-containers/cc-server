@@ -45,7 +45,8 @@ _input_xnat_schema = {
         'xnat_password': {'type': 'string'},
         'xnat_project': {'type': 'string'},
         'xnat_subject': {'type': 'string'},
-        'xnat_session': {'type': 'string'}
+        'xnat_session': {'type': 'string'},
+        'xnat_folder': {'type': 'string'}
     },
     'required': [
         'xnat_host',
@@ -53,7 +54,8 @@ _input_xnat_schema = {
         'xnat_password',
         'xnat_project',
         'xnat_subject',
-        'xnat_session'
+        'xnat_session',
+        'xnat_folder'
     ],
     'additionalProperties': False
 }
@@ -67,6 +69,7 @@ _result_xnat_schema = {
         'xnat_project': {'type': 'string'},
         'xnat_subject': {'type': 'string'},
         'xnat_session': {'type': 'string'},
+        'xnat_folder': {'type': 'string'},
         'xnat_xsi_type': {'type': 'string'},
         'xnat_file_name': {'type': 'string'}
     },
@@ -77,6 +80,7 @@ _result_xnat_schema = {
         'xnat_project',
         'xnat_subject',
         'xnat_session',
+        'xnat_folder',
         'xnat_xsi_type'
     ],
     'additionalProperties': False
