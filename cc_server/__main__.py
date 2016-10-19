@@ -86,7 +86,7 @@ def post_tasks_query():
             ]
         }
     """
-    return request_handler.get_tasks(request.get_json())
+    return request_handler.post_tasks_query(request.get_json())
 
 
 @app.route('/tasks', methods=['POST'])
