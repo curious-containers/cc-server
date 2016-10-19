@@ -228,7 +228,7 @@ _tracing_telemetry_file_access_full_schema = {
         'pid': {'type': 'integer'},
         'syscall_result': {'type': 'integer'}
     },
-    'required': ['pid', 'filename', 'is_directory', 'exists', 'syscall', 'access_time', 'pid', 'syscall_result'],
+    'required': ['pid', 'filename', 'is_directory', 'exists', 'syscall', 'access_time', 'syscall_result'],
     'additionalProperties': False
 }
 
@@ -257,7 +257,7 @@ _tracing_telemetry_syscall_short_schema = {
     'additionalProperties': False
 }
 
-_tracing_telemetry_syscall_full_schema =  {
+_tracing_telemetry_syscall_full_schema = {
     'type': 'object',
     'properties': {
         'name': {'type': 'string'},
@@ -475,7 +475,7 @@ callback_schema = {
                                 'file_access': {
                                     'type': 'array',
                                     'items': {
-                                        'type': 'object',
+                                        'type': ['string', 'object'],
                                         'anyOf': [
                                             _tracing_telemetry_file_access_short_schema,
                                             _tracing_telemetry_file_access_full_schema
