@@ -73,7 +73,7 @@ class RequestHandler:
             'description': 'Token issued successfully.'
         }
 
-    def _delete_tasks(self, json_input):
+    def _cancel_tasks(self, json_input):
         task_ids = [task['_id'] for task in json_input['tasks']]
         if json_input.get('username'):
             tasks = self.mongo.db['tasks'].find({
@@ -112,7 +112,7 @@ class RequestHandler:
             'description': 'Tasks cancelled.'
         })
 
-    def _delete_task(self, json_input):
+    def _cancel_task(self, json_input):
         if json_input.get('username'):
             task = self.mongo.db['tasks'].find_one({
                 'username': json_input.get('username'),
@@ -144,13 +144,13 @@ class RequestHandler:
 
     @auth(require_admin=False, require_credentials=False)
     @validation(cancel_schema)
-    def delete_tasks(self, json_input):
+    def post_tasks_cancel(self, json_input):
         if not self.authorize.verify_user(require_credentials=False):
             json_input['username'] = request.authorization.username
 
         if json_input.get('tasks'):
-            return self._delete_tasks(json_input)
-        return self._delete_task(json_input)
+            return self._cancel_tasks(json_input)
+        return self._cancel_task(json_input)
 
     def _register_task(self, json_input):
         json_input['state'] = 0
@@ -167,14 +167,14 @@ class RequestHandler:
 
         return {'state': state_to_index('success'), '_id': task_id}
 
-    def _post_task(self, json_input, task_group_id):
+    def _create_task(self, json_input, task_group_id):
         json_input['username'] = request.authorization.username
         json_input['task_group_id'] = task_group_id
         response = self._register_task(json_input)
         Thread(target=self.worker.post_task).start()
         return response
 
-    def _post_tasks(self, json_input, task_group_id):
+    def _create_tasks(self, json_input, task_group_id):
         responses = []
         for json_task in json_input['tasks']:
             json_task['username'] = request.authorization.username
@@ -191,10 +191,10 @@ class RequestHandler:
         task_group_id = self.mongo.db['task_groups'].insert_one(task_group).inserted_id
         self.state_handler.transition('task_groups', task_group_id, 'created', 'Task group created.')
         if json_input.get('tasks'):
-            result = self._post_tasks(json_input, task_group_id)
+            result = self._create_tasks(json_input, task_group_id)
             result['task_group_id'] = task_group_id
         else:
-            result = self._post_task(json_input, task_group_id)
+            result = self._create_task(json_input, task_group_id)
         self.state_handler.transition('task_groups', task_group_id, 'waiting', 'Task group waiting.')
 
         return prepare_response(result)
@@ -226,16 +226,16 @@ class RequestHandler:
             'description': description
         })
 
-    def get_application_containers(self, json_input):
+    def post_application_containers_query(self, json_input):
         return self._aggregate(json_input, 'application_containers')
 
-    def get_data_containers(self, json_input):
+    def post_data_containers_query(self, json_input):
         return self._aggregate(json_input, 'data_containers')
 
-    def get_tasks(self, json_input):
+    def post_tasks_query(self, json_input):
         return self._aggregate(json_input, 'tasks')
 
-    def get_tasks_groups(self, json_input):
+    def post_task_groups_query(self, json_input):
         return self._aggregate(json_input, 'task_groups')
 
     @auth(require_auth=False)
