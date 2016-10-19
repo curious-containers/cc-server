@@ -185,6 +185,7 @@ class RequestHandler:
     def post_tasks(self, json_input):
         task_group = task_group_prototype()
         task_group['username'] = request.authorization.username
+        task_group['tasks_count'] = len(json_input.get('tasks', [0]))
         task_group_id = self.mongo.db['task_groups'].insert_one(task_group).inserted_id
         self.state_handler.transition('task_groups', task_group_id, 'created', 'Task group created.')
         if json_input.get('tasks'):
