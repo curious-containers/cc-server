@@ -46,7 +46,8 @@ _input_xnat_schema = {
         'xnat_project': {'type': 'string'},
         'xnat_subject': {'type': 'string'},
         'xnat_session': {'type': 'string'},
-        'xnat_folder': {'type': 'string'}
+        'xnat_folder': {'type': 'string'},
+        'xnat_file_name': {'type': 'string'}
     },
     'required': [
         'xnat_host',
@@ -55,7 +56,8 @@ _input_xnat_schema = {
         'xnat_project',
         'xnat_subject',
         'xnat_session',
-        'xnat_folder'
+        'xnat_folder',
+        'xnat_file_name'
     ],
     'additionalProperties': False
 }
