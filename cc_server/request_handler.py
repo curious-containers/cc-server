@@ -2,7 +2,8 @@ from jsonschema import validate
 from threading import Thread
 from traceback import format_exc
 from pprint import pprint
-from flask import request, Response, jsonify
+from flask import request, jsonify
+from werkzeug.exceptions import BadRequest, Unauthorized
 
 from cc_server.helper import prepare_response, prepare_input
 from cc_server.states import is_state, state_to_index, end_states
@@ -23,7 +24,7 @@ def auth(require_auth=True, require_admin=True, require_credentials=True):
         def wrapper(self, *args, **kwargs):
             if require_auth:
                 if not self.authorize.verify_user(require_admin=require_admin, require_credentials=require_credentials):
-                    return Response('User not authorized.', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+                    raise Unauthorized()
             return jsonify(func(self, *args, **kwargs))
         return wrapper
     return dec
@@ -36,11 +37,7 @@ def validation(schema):
                 validate(json_input, schema)
                 json_input = prepare_input(json_input)
             except:
-                return {
-                    'state': state_to_index('failed'),
-                    'description': 'JSON input for task is not valid.',
-                    'exception': format_exc()
-                }
+                raise BadRequest('JSON input not valid: {}'.format(format_exc()))
             return func(self, json_input, *args, **kwargs)
         return wrapper
     return dec
@@ -215,11 +212,7 @@ class RequestHandler:
         try:
             containers = self.mongo.db[collection].aggregate(pipeline)
         except:
-            return {
-                'state': state_to_index('failed'),
-                'description': 'Could not execute aggregation pipeline with MongoDB.',
-                'exception': format_exc()
-            }
+            raise BadRequest('Could not execute aggregation pipeline with MongoDB: {}'.format(format_exc()))
         return prepare_response({
             'state': state_to_index('success'),
             collection: list(containers),
@@ -242,7 +235,7 @@ class RequestHandler:
     @validation(callback_schema)
     def post_application_container_callback(self, json_input):
         if not self.authorize.verify_callback(json_input, 'application_containers'):
-            return {'state': state_to_index('failed'), 'description': 'Callback not authorized.'}
+            raise Unauthorized()
 
         self._validate_callback(json_input, 'application_containers')
 
@@ -253,7 +246,7 @@ class RequestHandler:
 
         if is_state(c['state'], 'failed'):
             Thread(target=self.worker.post_container_callback).start()
-            return {'state': state_to_index('failed'), 'description': 'Container is in state failed.'}
+            raise BadRequest('Container is in state failed.')
 
         if json_input['callback_type'] == 0:
             # collect input file information and send with response
@@ -288,12 +281,6 @@ class RequestHandler:
             response['state'] = state_to_index('success')
             return response
 
-        elif json_input['callback_type'] == 2:
-            self.mongo.db['data_containers'].update_one(
-                {'_id': c['_id']},
-                {'$set': {'telemetry': json_input['content'].get('telemetry')}}
-            )
-
         elif json_input['callback_type'] == 3:
             description = 'Callback with callback_type 3 and has been sent.'
             self.state_handler.transition('application_containers', c['_id'], 'success', description)
@@ -305,7 +292,7 @@ class RequestHandler:
     @validation(callback_schema)
     def post_data_container_callback(self, json_input):
         if not self.authorize.verify_callback(json_input, 'data_containers'):
-            return {'state': state_to_index('failed'), 'description': 'Callback not authorized.'}
+            raise Unauthorized()
 
         self._validate_callback(json_input, 'data_containers')
 
@@ -316,7 +303,7 @@ class RequestHandler:
 
         if is_state(c['state'], 'failed'):
             Thread(target=self.worker.post_container_callback).start()
-            return {'state': state_to_index('failed'), 'description': 'Container is in state failed.'}
+            raise BadRequest('Container is in state failed.')
 
         if json_input['callback_type'] == 1:
             if not json_input['content'].get('input_file_keys') \
