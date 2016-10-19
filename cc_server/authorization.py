@@ -55,14 +55,14 @@ class Authorize:
         if not user:
             return False
 
-        if self._is_blocked_temporarily(username):
-            return False
-
         result = False
 
         ip = _get_ip()
         if not require_credentials:
             result = self._verify_user_by_token(user, password, ip)
+
+        if not result and self._is_blocked_temporarily(username):
+            return False
 
         if not result:
             result = _verify_user_by_credentials(user, password)
