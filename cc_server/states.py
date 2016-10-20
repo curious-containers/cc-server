@@ -162,15 +162,15 @@ class StateHandler:
 
         if state == 'processing':
             task_group = self.mongo.db['task_groups'].find_one(
-                {'_id': task['task_group_id'], 'state': state_to_index('processing')},
+                {'_id': task['task_group_id'][0], 'state': state_to_index('processing')},
                 {'_id': 1}
             )
             if not task_group:
                 description = 'All tasks in group failed or have been cancelled.'
-                self._task_group_transition(task['task_group_id'], 'processing', description, None, None)
+                self._task_group_transition(task['task_group_id'][0], 'processing', description, None, None)
 
         if state_to_index(state) in end_states():
-            self._check_task_group(task['task_group_id'])
+            self._check_task_group(task['task_group_id'][0])
             if task.get('notifications'):
                 notify(task['notifications'])
 

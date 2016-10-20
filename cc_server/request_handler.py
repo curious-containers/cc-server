@@ -1,7 +1,6 @@
 from jsonschema import validate
 from threading import Thread
 from traceback import format_exc
-from pprint import pprint
 from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, Unauthorized
 
@@ -149,36 +148,38 @@ class RequestHandler:
             return self._cancel_tasks(json_input)
         return self._cancel_task(json_input)
 
-    def _register_task(self, json_input):
+    def _register_task(self, json_input, task_group_id):
+        json_input['username'] = request.authorization.username
         json_input['state'] = 0
         json_input['trials'] = 0
         json_input['transitions'] = []
+        json_input['task_group_id'] = [task_group_id]
         task_id = self.mongo.db['tasks'].insert_one(json_input).inserted_id
+
+        #self.mongo.db['tasks'].update({'_id': task_id}, {
+        #    '$set': {'task_group_id': task_group_id}
+        #})
 
         self.state_handler.transition('tasks', task_id, 'created', 'Task created.')
         self.state_handler.transition('tasks', task_id, 'waiting', 'Task waiting.')
 
-        self.mongo.db['task_groups'].update({'_id': json_input['task_group_id']}, {
+        self.mongo.db['task_groups'].update({'_id': task_group_id}, {
             '$push': {'task_ids': task_id},
         })
 
         return {'state': state_to_index('success'), '_id': task_id}
 
     def _create_task(self, json_input, task_group_id):
-        json_input['username'] = request.authorization.username
-        json_input['task_group_id'] = task_group_id
-        response = self._register_task(json_input)
+        response = self._register_task(json_input, task_group_id)
         Thread(target=self.worker.post_task).start()
         return response
 
     def _create_tasks(self, json_input, task_group_id):
         responses = []
         for json_task in json_input['tasks']:
-            json_task['username'] = request.authorization.username
-            json_task['task_group_id'] = task_group_id
-            responses.append(self._register_task(json_task))
+            responses.append(self._register_task(json_task, task_group_id))
         Thread(target=self.worker.post_task).start()
-        return prepare_response({'tasks': responses})
+        return {'tasks': responses, 'task_group_id': task_group_id}
 
     @auth(require_admin=False, require_credentials=False)
     @validation(tasks_schema)
@@ -190,11 +191,9 @@ class RequestHandler:
         self.state_handler.transition('task_groups', task_group_id, 'created', 'Task group created.')
         if json_input.get('tasks'):
             result = self._create_tasks(json_input, task_group_id)
-            result['task_group_id'] = task_group_id
         else:
             result = self._create_task(json_input, task_group_id)
         self.state_handler.transition('task_groups', task_group_id, 'waiting', 'Task group waiting.')
-
         return prepare_response(result)
 
     @auth(require_admin=False, require_credentials=False)
@@ -213,12 +212,14 @@ class RequestHandler:
         if json_input.get('limit'):
             pipeline.append({'$limit': json_input['limit']})
         try:
-            containers = self.mongo.db[collection].aggregate(pipeline)
+            cursor = self.mongo.db[collection].aggregate(pipeline)
         except:
             raise BadRequest('Could not execute aggregation pipeline with MongoDB: {}'.format(format_exc()))
+
+        result = list(cursor)
         return prepare_response({
             'state': state_to_index('success'),
-            collection: list(containers),
+            collection: result,
             'description': description
         })
 
@@ -345,7 +346,6 @@ class RequestHandler:
         if is_state(json_input['content']['state'], 'failed'):
             description = 'Something went wrong on the other side.'
             self.state_handler.transition(collection, c['_id'], 'failed', description)
-            pprint(json_input['content'])
             return
 
         if not is_state(json_input['content']['state'], 'success'):
