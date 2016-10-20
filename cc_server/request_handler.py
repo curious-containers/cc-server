@@ -56,7 +56,7 @@ class RequestHandler:
         return {
             'status': state_to_index('success'),
             'description': 'Curious Containers Server is running.',
-            'version': 0.3
+            'version': 0.4
         }
 
     @auth(require_admin=False)
@@ -155,10 +155,6 @@ class RequestHandler:
         json_input['transitions'] = []
         json_input['task_group_id'] = [task_group_id]
         task_id = self.mongo.db['tasks'].insert_one(json_input).inserted_id
-
-        #self.mongo.db['tasks'].update({'_id': task_id}, {
-        #    '$set': {'task_group_id': task_group_id}
-        #})
 
         self.state_handler.transition('tasks', task_id, 'created', 'Task created.')
         self.state_handler.transition('tasks', task_id, 'waiting', 'Task waiting.')

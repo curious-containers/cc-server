@@ -31,7 +31,7 @@ def get_root():
         {
             "state": 3,
             "description": "Curious Containers Server is running.",
-            "version": 0.3
+            "version": 0.4
         }
     """
     return request_handler.get_root()
@@ -51,7 +51,6 @@ def post_tasks_query():
     Take a look at the
     `MongoDB documentation <https://docs.mongodb.com/manual/reference/method/db.collection.aggregate/>`__ for further
     instructions.
-
 
     **Example request**
 
