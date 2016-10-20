@@ -37,57 +37,6 @@ _input_result_ssh_schema = {
     'additionalProperties': False
 }
 
-_input_xnat_schema = {
-    'type': 'object',
-    'properties': {
-        'xnat_host': {'type': 'string'},
-        'xnat_username': {'type': 'string'},
-        'xnat_password': {'type': 'string'},
-        'xnat_project': {'type': 'string'},
-        'xnat_subject': {'type': 'string'},
-        'xnat_session': {'type': 'string'},
-        'xnat_folder': {'type': 'string'},
-        'xnat_file_name': {'type': 'string'}
-    },
-    'required': [
-        'xnat_host',
-        'xnat_username',
-        'xnat_password',
-        'xnat_project',
-        'xnat_subject',
-        'xnat_session',
-        'xnat_folder',
-        'xnat_file_name'
-    ],
-    'additionalProperties': False
-}
-
-_result_xnat_schema = {
-    'type': 'object',
-    'properties': {
-        'xnat_host': {'type': 'string'},
-        'xnat_username': {'type': 'string'},
-        'xnat_password': {'type': 'string'},
-        'xnat_project': {'type': 'string'},
-        'xnat_subject': {'type': 'string'},
-        'xnat_session': {'type': 'string'},
-        'xnat_folder': {'type': 'string'},
-        'xnat_xsi_type': {'type': 'string'},
-        'xnat_file_name': {'type': 'string'}
-    },
-    'required': [
-        'xnat_host',
-        'xnat_username',
-        'xnat_password',
-        'xnat_project',
-        'xnat_subject',
-        'xnat_session',
-        'xnat_folder',
-        'xnat_xsi_type'
-    ],
-    'additionalProperties': False
-}
-
 _input_http_schema = {
     'type': 'object',
     'properties': {
@@ -383,8 +332,7 @@ _task_schema = {
                 'type': 'object',
                 'anyOf': [
                     _input_result_ssh_schema,
-                    _input_http_schema,
-                    _input_xnat_schema
+                    _input_http_schema
                 ]
             }
         },
@@ -395,8 +343,7 @@ _task_schema = {
                 'anyOf': [
                     _input_result_ssh_schema,
                     _result_http_schema,
-                    _result_json_schema,
-                    _result_xnat_schema
+                    _result_json_schema
                 ]
             }
         },
