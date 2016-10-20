@@ -89,20 +89,19 @@ class StateHandler:
         t = _transition(state, description, exception, caused_by)
         self._append_transition('application_containers', application_container_id, t)
 
+        task_id = application_container['task_id'][0]
+
         if state == 'created':
-            task_id = application_container['task_id']
             self._task_transition(
                 task_id, 'processing', description, None, {'application_container_id': application_container_id}
             )
 
         elif state == 'failed':
-            task_id = application_container['task_id']
             self._task_transition(
                 task_id, 'failed', description, None, {'application_container_id': application_container_id}
             )
 
         elif state == 'success':
-            task_id = application_container['task_id']
             self._task_transition(
                 task_id, 'success', description, None, {'application_container_id': application_container_id}
             )

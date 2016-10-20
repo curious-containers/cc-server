@@ -246,7 +246,7 @@ class RequestHandler:
         if json_input['callback_type'] == 0:
             # collect input file information and send with response
 
-            task_id = c['task_id']
+            task_id = c['task_id'][0]
             task = self.mongo.db['tasks'].find_one(
                 {'_id': task_id},
                 {'input_files': 1, 'no_cache': 1}

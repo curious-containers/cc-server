@@ -55,7 +55,7 @@ class Cluster:
                 {'task_id': 1}
             )
             task = self.mongo.db['tasks'].find_one(
-                {'_id': application_container['task_id']},
+                {'_id': application_container['task_id'][0]},
                 {'input_files': 1}
             )
 

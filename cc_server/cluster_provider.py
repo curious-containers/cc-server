@@ -147,7 +147,7 @@ class DockerProvider:
 
     def create_application_container(self, application_container_id):
         application_container = self.mongo.db['application_containers'].find_one({'_id': application_container_id})
-        task_id = application_container['task_id']
+        task_id = application_container['task_id'][0]
         task = self.mongo.db['tasks'].find_one({'_id': task_id})
 
         settings = {
