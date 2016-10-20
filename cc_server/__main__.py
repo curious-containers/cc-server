@@ -46,9 +46,9 @@ def post_tasks_query():
 
     **JSON fields**
 
-    * **match** (required): Retrieve objects matching the given criteria.
-    * **sort** (optional): Sort by JSON fields of matched objects.
-    * **project** (optional): Filter JSON fields of matched objects.
+    * **match** (required): Retrieve documents matching the given criteria.
+    * **sort** (optional): Sort by JSON fields of documents.
+    * **project** (optional): Filter JSON fields of documents.
     * **limit** (optional): Return only the first *n* documents.
 
     The match, sort and project objects are, in this order, given to MongoDB as aggregation pipeline.
