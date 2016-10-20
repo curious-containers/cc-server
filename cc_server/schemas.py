@@ -48,7 +48,8 @@ _input_http_schema = {
                 _basic_auth,
                 _digest_auth
             ]
-        }
+        },
+        'http_ssl_verify': {'type': 'boolean'}
     },
     'required': ['http_url'],
     'additionalProperties': False
@@ -65,7 +66,8 @@ _result_http_schema = {
                 _basic_auth,
                 _digest_auth
             ]
-        }
+        },
+        'http_ssl_verify': {'type': 'boolean'}
     },
     'required': ['http_url'],
     'additionalProperties': False
@@ -82,7 +84,8 @@ _result_json_schema = {
                 _basic_auth,
                 _digest_auth
             ]
-        }
+        },
+        'json_ssl_verify': {'type': 'boolean'}
     },
     'required': ['json_url'],
     'additionalProperties': False
