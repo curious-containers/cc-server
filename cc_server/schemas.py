@@ -423,12 +423,9 @@ cancel_schema = {
 query_schema = {
     'type': 'object',
     'properties': {
-        'match': {'type': 'object'},
-        'sort': {'type': 'object'},
-        'project': {'type': 'object'},
-        'limit': {'type': 'integer'}
+        'aggregate': {'type': 'array'}
     },
-    'required': ['match'],
+    'required': ['aggregate'],
     'additionalProperties': False
 }
 

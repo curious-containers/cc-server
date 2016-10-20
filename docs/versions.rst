@@ -4,7 +4,7 @@ Version Management
 This site contains a Docker compatibility table and a change log, including migration instructions.
 
 All Curious Container components (CC-Server, CC-Container-Worker and the CC-Images) have a version tag.
-If you are using CC-Server 0.3 for example, you should use the other components with the exact same version number.
+If you are using CC-Server 0.4 for example, you should use the other components with the exact same version number.
 Docker images with a specific version tag can be pulled from a Docker registry and software versions with a certain tag
 can be pulled from git.
 
@@ -25,10 +25,13 @@ CC-Server    Docker
 Change Log
 ----------
 
-Version 0.4 (in development)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Version 0.4
+^^^^^^^^^^^
 
-- CC-Server user API changed, to be HTTP standard compliant
+- CC-Server user API changed, to be HTTP standard compliant (using POST instead of GET and DELETE for endpoints with required JSON input).
+- API does now return 400 (BadRequest) and 401 (Unauthorized) status codes if applicable.
+- Query endpoints now support arbitrary MongoDB aggregation pipelines.
+- HTTP input and result file handling improved in CC-Container-Worker.
 
 Version 0.3
 ^^^^^^^^^^^
