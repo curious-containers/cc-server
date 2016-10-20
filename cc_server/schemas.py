@@ -208,7 +208,7 @@ _tracing_telemetry_process_schema = {
         'pid': {'type': 'integer'},
         'start': {'type': 'number'},
         'end': {'type': ['number', 'null']},
-        'exit_code': {'type': 'integer'},
+        'exit_code': {'type': ['integer', 'null']},
         'signal': {'type': ['integer', 'null']}
     },
     'required': ['pid', 'start', 'end', 'exit_code', 'signal'],
@@ -237,12 +237,11 @@ _tracing_telemetry_file_access_full_schema = {
 _tracing_telemetry_syscall_attribute_schema = {
     'type': 'object',
     'properties': {
-        'name': {'type': 'string'},
-        'type': {'type': 'string'},
-        'value': {'type': ['number', 'string']},
+        'name': {'type': ['string', 'null']},
+        'type': {'type': ['string', 'null']},
         'text': {'type': ['string', 'null']}
     },
-    'required': ['name', 'type', 'value'],
+    'required': ['name', 'type', 'text'],
     'additionalProperties': False
 }
 
@@ -252,8 +251,8 @@ _tracing_telemetry_syscall_short_schema = {
         'name': {'type': 'string'},
         'pid': {'type': 'integer'},
         'start': {'type': 'number'},
-        'end': {'type': 'number'},
-        'result': {'type': 'integer'}
+        'end': {'type': ['number', 'null']},
+        'result': {'type': ['integer', 'null']}
     },
     'required': ['name', 'pid', 'start', 'end', 'result'],
     'additionalProperties': False
@@ -265,8 +264,8 @@ _tracing_telemetry_syscall_full_schema = {
         'name': {'type': 'string'},
         'pid': {'type': 'integer'},
         'start': {'type': 'number'},
-        'end': {'type': 'number'},
-        'result': {'type': 'integer'},
+        'end': {'type': ['number', 'null']},
+        'result': {'type': ['integer', 'null']},
         'attributes': {
             'type': 'array',
             'minItems': 0,
