@@ -183,7 +183,8 @@ class DockerProvider:
         host_config = self.client.create_host_config(
             mem_limit=mem_limit,
             memswap_limit=mem_limit,
-            privileged=privileged
+            privileged=privileged,
+            security_opt=['seccomp:unconfined']
         )
 
         with self.thread_limit:
