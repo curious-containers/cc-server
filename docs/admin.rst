@@ -385,12 +385,12 @@ information take a look at the official `Apache 2 documentation <https://httpd.a
        SSLCertificateKeyFile /PATH/TO/key.pem
        SSLCertificateChainFile /PATH/TO/chain.pem
 
-       ServerName cc.my-domain.tld
-       ServerAlias cc.my-domain.tld
+       ServerName my-domain.tld
+       ServerAlias my-domain.tld
 
-       ProxyPass / http://localhost:5000/
-       ProxyPassReverse / http://localhost:5000/
-       RedirectMatch ^/$ https://cc.my-domain.tld:443
+       ProxyPass /cc/ http://localhost:5000/
+       ProxyPassReverse /cc/ http://localhost:5000/
+       RedirectMatch ^/cc/(.*)$ https://my-domain.tld/cc/$1
    </VirtualHost>
 
 

@@ -66,9 +66,9 @@ requests. The following Python code shows how to request a token. See `GET /toke
    username = 'admin'
    password = 'PASSWORD'
 
-   r = requests.get('cc.my-domain.tld/token', auth=(username, password))
+   r = requests.get('my-domain.tld/cc/token', auth=(username, password))
    data = r.json()
-   requests.get('cc.my-domain.tld', auth=(username, data['token']))
+   requests.get('my-domain.tld/cc', auth=(username, data['token']))
 
 
 API reference

@@ -163,7 +163,7 @@ Modify and run the following Python 3 code:
        }]
    }
 
-   requests.post('https://cc.my-domain.tld/tasks', json=task, auth=(username, password))
+   requests.post('https://my-domain.tld/cc/tasks', json=task, auth=(username, password))
 
 
 In the *config.toml* file of the CC-Sample-App one input file and two result files have been defined. The purpose of Curious
@@ -212,22 +212,19 @@ HTTP
 *The exact behaviour of the HTTP data connector depends on implementation details of the source HTTP server.*
 
 It is possible to download input files from a web server via an HTTP GET request. The only required field is
-**http_url** pointing to a server resource. A string with additional JSON data can be set with the **http_data** field,
-but is not required. The optional field **http_auth** can either contain **basic_username** and **basic_password** to
-enable *HTTPBasicAuth* or **digest_username** and **digest_password** to enable *HTTPDigestAuth*.
+**http_url** pointing to a server resource. The optional field **http_auth** can either contain **basic_username** and
+**basic_password** to enable *HTTPBasicAuth* or **digest_username** and **digest_password** to enable *HTTPDigestAuth*.
+Setting **http_ssl_verify** to *false* is optional and insecure, but can be used to ignore faulty SSL/TLS certificates.
 
 .. code-block:: json
 
    {
        "http_url": "https://my-domain.tld/input_files/some_data.csv",
-       "http_data": {
-           "key1": "value1",
-           "key2": "value2"
-       },
        "http_auth": {
            "basic_username": "ccdata",
            "basic_password": "PASSWORD"
-       }
+       },
+       "http_ssl_verify": true
    }
 
 Data Connectors for Result Files
@@ -259,23 +256,22 @@ created by the data connector if it is not yet existent. Already existing files 
 HTTP
 """"
 
-*The exact behaviour of the HTTP data connector depends on implementation details of the destination HTTP server.*
-
-This data connector can be used to upload result files to a web server via an HTTP POST request. The only required field
-is **http_url** pointing to a server resource. The optional field **http_auth** can either contain **basic_username**
-and **basic_password** to enable *HTTPBasicAuth* or **digest_username** and **digest_password** to enable
-*HTTPDigestAuth*. The file will be uploaded with the *application/octet-stream* content type. A file name that is sent
-to the destination server alongside the actual file must be specified in the **http_file_name** field.
+This data connector can be used to upload result files to a web server via an HTTP POST or PUT request. The required
+fields are **http_url** pointing to a server resource and the **http_method** to be used (either **PUT** or **POST**).
+The optional field **http_auth** can either contain **basic_username** and **basic_password** to enable *HTTPBasicAuth*
+or **digest_username** and **digest_password** to enable *HTTPDigestAuth*. Setting **http_ssl_verify** to *false* is
+optional and insecure, but can be used to ignore faulty SSL/TLS certificates.
 
 .. code-block:: json
 
    {
        "http_url": "https://my-domain.tld/result_files/some_data.csv",
-       "http_file_name": "some_data.csv",
+       "http_method": "PUT",
        "http_auth": {
            "basic_username": "ccdata",
            "basic_password": "PASSWORD"
-       }
+       },
+       "http_ssl_verify": true
    }
 
 
@@ -288,7 +284,8 @@ connector will read the contents from the file and decode the JSON data. If some
 **json_data** field, the respective key-value pairs will be added to the JSON data produced by the application. The
 resulting JSON data will be send to an HTTP server specified in the mandatory **json_url** field. The optional field
 **json_auth** can either contain **basic_username** and **basic_password** to enable *HTTPBasicAuth* or
-**digest_username** and **digest_password** to enable *HTTPDigestAuth*.
+**digest_username** and **digest_password** to enable *HTTPDigestAuth*. Setting **json_ssl_verify** to *false* is
+optional and insecure, but can be used to ignore faulty SSL/TLS certificates.
 
 .. code-block:: json
 
@@ -301,7 +298,8 @@ resulting JSON data will be send to an HTTP server specified in the mandatory **
        "json_auth": {
            "basic_username": "ccdata",
            "basic_password": "PASSWORD"
-       }
+       },
+       "json_ssl_verify": true
    }
 
 

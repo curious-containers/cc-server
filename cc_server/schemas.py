@@ -41,7 +41,6 @@ _input_http_schema = {
     'type': 'object',
     'properties': {
         'http_url': {'type': 'string'},
-        'http_data': {'type': 'string'},
         'http_auth': {
             'type': 'object',
             'oneOf': [
@@ -59,7 +58,7 @@ _result_http_schema = {
     'type': 'object',
     'properties': {
         'http_url': {'type': 'string'},
-        'http_file_name': {'type': 'string'},
+        'http_method': {'enum': ['put', 'post', 'PUT', 'POST']},
         'http_auth': {
             'type': 'object',
             'oneOf': [
@@ -69,7 +68,7 @@ _result_http_schema = {
         },
         'http_ssl_verify': {'type': 'boolean'}
     },
-    'required': ['http_url'],
+    'required': ['http_url', 'http_method'],
     'additionalProperties': False
 }
 
