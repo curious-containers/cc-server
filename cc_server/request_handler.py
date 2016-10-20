@@ -199,18 +199,13 @@ class RequestHandler:
     @auth(require_admin=False, require_credentials=False)
     @validation(query_schema)
     def _aggregate(self, json_input, collection):
-        pipeline = [{'$match': json_input['match']}]
+        pipeline = json_input['aggregate']
         if self.authorize.verify_user(require_credentials=False):
             description = 'Query executed as admin user.'
         else:
             description = 'Query executed.'
-            pipeline.append({'$match': {'username': request.authorization.username}})
-        if json_input.get('sort'):
-            pipeline.append({'$sort': json_input['sort']})
-        if json_input.get('project'):
-            pipeline.append({'$project': json_input['project']})
-        if json_input.get('limit'):
-            pipeline.append({'$limit': json_input['limit']})
+            pipeline = [{'$match': {'username': request.authorization.username}}] + pipeline
+
         try:
             cursor = self.mongo.db[collection].aggregate(pipeline)
         except:

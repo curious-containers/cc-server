@@ -46,12 +46,8 @@ def post_tasks_query():
 
     **JSON fields**
 
-    * **match** (required): Retrieve documents matching the given criteria.
-    * **sort** (optional): Sort by JSON fields of documents.
-    * **project** (optional): Filter JSON fields of documents.
-    * **limit** (optional): Return only the first *n* documents.
+    * **aggregate** (required): List of steps to be performed as MongoDB aggregation pipeline
 
-    The match, sort and project objects are, in this order, given to MongoDB as aggregation pipeline.
     Take a look at the
     `MongoDB documentation <https://docs.mongodb.com/manual/reference/method/db.collection.aggregate/>`__ for further
     instructions.
@@ -65,10 +61,12 @@ def post_tasks_query():
         Accept: application/json
 
         {
-            "match": {"_id": {"$in": ["57f63f73e004231a26ed187e", "57f63f73e004231a26ed187f"]}},
-            "sort": {"_id": -1},
-            "project": {"state": 1},
-            "limit": 2
+            "aggregate": [
+                {"$match": {"_id": {"$in": ["57f63f73e004231a26ed187e", "57f63f73e004231a26ed187f"]}}},
+                {"$sort": {"_id": -1}},
+                {"$project": {"state": 1}},
+                {"$limit": 2}
+            ]
         }
 
     **Example response**
