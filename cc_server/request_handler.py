@@ -210,6 +210,8 @@ class RequestHandler:
             pipeline.append({'$sort': json_input['sort']})
         if json_input.get('project'):
             pipeline.append({'$project': json_input['project']})
+        if json_input.get('limit'):
+            pipeline.append({'$limit': json_input['limit']})
         try:
             containers = self.mongo.db[collection].aggregate(pipeline)
         except:

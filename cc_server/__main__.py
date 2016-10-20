@@ -49,6 +49,7 @@ def post_tasks_query():
     * **match** (required): Retrieve objects matching the given criteria.
     * **sort** (optional): Sort by JSON fields of matched objects.
     * **project** (optional): Filter JSON fields of matched objects.
+    * **limit** (optional): Return only the first *n* documents.
 
     The match, sort and project objects are, in this order, given to MongoDB as aggregation pipeline.
     Take a look at the
@@ -66,7 +67,8 @@ def post_tasks_query():
         {
             "match": {"_id": {"$in": ["57f63f73e004231a26ed187e", "57f63f73e004231a26ed187f"]}},
             "sort": {"_id": -1},
-            "project": {"state": 1}
+            "project": {"state": 1},
+            "limit": 2
         }
 
     **Example response**

@@ -25,8 +25,8 @@ CC-Server    Docker
 Change Log
 ----------
 
-Version 0.4
-^^^^^^^^^^^
+Version 0.4 (in development)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - CC-Server user API changed, to be HTTP standard compliant
 

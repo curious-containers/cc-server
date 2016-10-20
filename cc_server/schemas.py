@@ -426,7 +426,8 @@ query_schema = {
     'properties': {
         'match': {'type': 'object'},
         'sort': {'type': 'object'},
-        'project': {'type': 'object'}
+        'project': {'type': 'object'},
+        'limit': {'type': 'integer'}
     },
     'required': ['match'],
     'additionalProperties': False
