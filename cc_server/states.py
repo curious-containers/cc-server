@@ -71,7 +71,10 @@ class StateHandler:
             {'state': 1}
         )
 
-        if task_group['state'] in end_states() or state_to_index(state) == task_group['state']:
+        if task_group['state'] in end_states():
+            return
+
+        if state_to_index(state) > 0 and state_to_index(state) == task_group['state']:
             return
 
         t = _transition(state, description, exception, caused_by)
