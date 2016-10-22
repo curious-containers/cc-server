@@ -29,8 +29,6 @@ def get_root():
         Content-Type: application/json
 
         {
-            "state": 3,
-            "description": "Curious Containers Server is running.",
             "version": 0.4
         }
     """
@@ -77,8 +75,6 @@ def post_tasks_query():
         Content-Type: application/json
 
         {
-            "state": 3,
-            "description": "Query executed as admin user.",
             "tasks": [
                 {"_id": "57f63f73e004231a26ed187f", "state": 2},
                 {"_id": "57f63f73e004231a26ed187e", "state": 2}
@@ -161,7 +157,6 @@ def post_tasks():
         Content-Type: application/json
 
         {
-            "state": 3,
             "_id": "57fbf45df62690000101afa5"
         }
 
@@ -217,10 +212,8 @@ def post_tasks():
         {
             "task_group_id": "57fbf45df62690000101afa4",
             "tasks": [{
-                "state": 3,
                 "_id": "57fbf45df62690000101afa5"
             }, {
-                "state": 3,
                 "_id": "57fbf45df62690000101afa6"
             }]
         }
@@ -259,8 +252,8 @@ def post_tasks_cancel():
         Content-Type: application/json
 
         {
-            "state": 3,
-            "description": "Task cancelled."
+            "_id": "57c3f73ae004232bd8b9b005",
+            "state": 5
         }
 
     **Example request 2: multiple tasks**
@@ -287,8 +280,6 @@ def post_tasks_cancel():
         Content-Type: application/json
 
         {
-            "state": 3,
-            "description": "Tasks cancelled.",
             "tasks": [{
                 "_id": "57c3f73ae004232bd8b9b005",
                 "state": 5
@@ -326,8 +317,6 @@ def get_token():
         Content-Type: application/json
 
         {
-            "description": "Token issued successfully.",
-            "state": 3,
             "token": "7e2950f21e3f0afd77253b8e13e2ee4da923e545389d424b",
             "valid_for_seconds": 172800
         }
@@ -418,7 +407,7 @@ def post_application_container_callback():
         Vary: Accept
         Content-Type: application/json
 
-        {"state": 3}
+        {}
     """
     return request_handler.post_application_container_callback(request.get_json())
 
@@ -464,7 +453,7 @@ def post_data_container_callback():
         Vary: Accept
         Content-Type: application/json
 
-        {"state": 3}
+        {}
     """
     return request_handler.post_data_container_callback(request.get_json())
 

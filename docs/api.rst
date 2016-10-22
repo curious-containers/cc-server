@@ -12,8 +12,9 @@ Quick reference
 About the API
 -------------
 
-Every API endpoint accepts JSON objects and returns JSON objects. Requests should always produce a HTTP 200 status.
-The *state* fields in response JSON objects indicate whether or not a request was successful.
+Every API endpoint accepts JSON objects and returns JSON objects. The **state** fields in an API response indicate the
+condition of tasks and containers. All possible states are listed below.
+
 
 **States**
 
@@ -23,8 +24,6 @@ The *state* fields in response JSON objects indicate whether or not a request wa
 3) **success**
 4) **failed**
 5) **cancelled**
-
-Most requests send either state 3 or state 4. Other states are used for task, app container and data container objects.
 
 Authorization
 ^^^^^^^^^^^^^
@@ -42,7 +41,7 @@ The following Python script shows how to do authorize an API call with the Pytho
    username = 'admin'
    password = 'PASSWORD'
 
-   requests.get('cc.my-domain.tld', auth=(username, password))
+   requests.get('my-domain.tld/cc', auth=(username, password))
 
 
 The same can be achieved with *curl* in a bash script.

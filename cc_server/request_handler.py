@@ -5,7 +5,7 @@ from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, Unauthorized
 
 from cc_server.helper import prepare_response, prepare_input
-from cc_server.states import is_state, state_to_index, end_states
+from cc_server.states import is_state, state_to_index
 from cc_server.schemas import query_schema, tasks_schema, callback_schema, cancel_schema
 
 
@@ -53,100 +53,66 @@ class RequestHandler:
 
     @auth(require_admin=False, require_credentials=False)
     def get_root(self):
-        return {
-            'status': state_to_index('success'),
-            'description': 'Curious Containers Server is running.',
-            'version': 0.4
-        }
+        return {'version': 0.4}
 
     @auth(require_admin=False)
     def get_token(self):
         token = self.authorize.issue_token()
         return {
-            'state': state_to_index('success'),
             'token': token,
-            'valid_for_seconds': self.config.defaults['authorization'].get('tokens_valid_for_seconds'),
-            'description': 'Token issued successfully.'
+            'valid_for_seconds': self.config.defaults['authorization'].get('tokens_valid_for_seconds')
         }
 
-    def _cancel_tasks(self, json_input):
-        task_ids = [task['_id'] for task in json_input['tasks']]
-        if json_input.get('username'):
-            tasks = self.mongo.db['tasks'].find({
-                'username': json_input.get('username'),
-                '_id': {'$in': task_ids},
-                'state': {'$nin': end_states()}
-            }, {
-                '_id': 1
-            })
-        else:
-            tasks = self.mongo.db['tasks'].find({
-                '_id': {'$in': task_ids},
-                'state': {'$nin': end_states()}
-            }, {
-                '_id': 1
-            })
-        task_ids = [task['_id'] for task in tasks]
-        for _id in task_ids:
-            description = 'Task cancelled.'
-            self.state_handler.transition('tasks', _id, 'cancelled', description)
-        tasks = self.mongo.db['tasks'].find(
-            {'_id': {'$in': task_ids}},
-            {'_id': 1, 'state': 1}
-        )
-        tasks = list(tasks)
-        if tasks:
-            Thread(target=self.worker.post_container_callback).start()
-        else:
-            return {
-                'state': state_to_index('failed'),
-                'description': 'No task cancelled.'
-            }
-        return prepare_response({
-            'state': state_to_index('success'),
-            'tasks': list(tasks),
-            'description': 'Tasks cancelled.'
-        })
-
-    def _cancel_task(self, json_input):
-        if json_input.get('username'):
-            task = self.mongo.db['tasks'].find_one({
-                'username': json_input.get('username'),
-                '_id': json_input['_id'],
-                'state': {'$nin': end_states()}
-            }, {
-                '_id': 1
-            })
-        else:
-            task = self.mongo.db['tasks'].find_one({
-                '_id': json_input['_id'],
-                'state': {'$nin': end_states()}
-            }, {
-                '_id': 1
-            })
-        if task:
-            Thread(target=self.worker.post_container_callback).start()
-        else:
-            return {
-                'state': state_to_index('failed'),
-                'description': 'Task not cancelled.'
-            }
+    def _cancel(self, json_input):
         description = 'Task cancelled.'
-        self.state_handler.transition('tasks', task['_id'], 'cancelled', description)
-        return {
-            'state': state_to_index('success'),
-            'description': 'Task cancelled.'
-        }
+        self.state_handler.transition('tasks', json_input['_id'], 'cancelled', description)
+        task = self.mongo.db['tasks'].find_one({
+            '_id': json_input['_id']
+        }, {
+            '_id': 1,
+            'state': 1
+        })
+        return task
+
+    def _cancel_task(self, json_input, username):
+        self._is_task(json_input, username)
+        return self._cancel(json_input)
+
+    def _cancel_tasks(self, json_input, username):
+        for task in json_input['tasks']:
+            self._is_task(task, username)
+        responses = []
+        for task in json_input['tasks']:
+            responses.append(self._cancel(task))
+        return {'tasks': responses}
+
+    def _is_task(self, json_input, username):
+        if username:
+            task = self.mongo.db['tasks'].find_one(
+                {'username': username, '_id': json_input['_id']},
+                {'_id': 1}
+            )
+        else:
+            task = self.mongo.db['tasks'].find_one(
+                {'_id': json_input['_id']},
+                {'_id': 1}
+            )
+        if not task:
+            raise BadRequest('Task not found: {}'.format(json_input['_id']))
 
     @auth(require_admin=False, require_credentials=False)
     @validation(cancel_schema)
     def post_tasks_cancel(self, json_input):
+        username = None
         if not self.authorize.verify_user(require_credentials=False):
-            json_input['username'] = request.authorization.username
+            username = request.authorization.username
 
         if json_input.get('tasks'):
-            return self._cancel_tasks(json_input)
-        return self._cancel_task(json_input)
+            response = self._cancel_tasks(json_input, username)
+        else:
+            response = self._cancel_task(json_input, username)
+        Thread(target=self.worker.post_container_callback).start()
+        return prepare_response(response)
 
     def _register_task(self, json_input, task_group_id):
         json_input['username'] = request.authorization.username
@@ -163,18 +129,15 @@ class RequestHandler:
             '$push': {'task_ids': task_id},
         })
 
-        return {'state': state_to_index('success'), '_id': task_id}
+        return {'_id': task_id}
 
     def _create_task(self, json_input, task_group_id):
-        response = self._register_task(json_input, task_group_id)
-        Thread(target=self.worker.post_task).start()
-        return response
+        return self._register_task(json_input, task_group_id)
 
     def _create_tasks(self, json_input, task_group_id):
         responses = []
         for json_task in json_input['tasks']:
             responses.append(self._register_task(json_task, task_group_id))
-        Thread(target=self.worker.post_task).start()
         return {'tasks': responses, 'task_group_id': task_group_id}
 
     @auth(require_admin=False, require_credentials=False)
@@ -190,16 +153,14 @@ class RequestHandler:
         else:
             result = self._create_task(json_input, task_group_id)
         self.state_handler.transition('task_groups', task_group_id, 'waiting', 'Task group waiting.')
+        Thread(target=self.worker.post_task).start()
         return prepare_response(result)
 
     @auth(require_admin=False, require_credentials=False)
     @validation(query_schema)
     def _aggregate(self, json_input, collection):
         pipeline = json_input['aggregate']
-        if self.authorize.verify_user(require_credentials=False):
-            description = 'Query executed as admin user.'
-        else:
-            description = 'Query executed.'
+        if not self.authorize.verify_user(require_credentials=False):
             pipeline = [{'$match': {'username': request.authorization.username}}] + pipeline
 
         try:
@@ -208,11 +169,7 @@ class RequestHandler:
             raise BadRequest('Could not execute aggregation pipeline with MongoDB: {}'.format(format_exc()))
 
         result = list(cursor)
-        return prepare_response({
-            'state': state_to_index('success'),
-            collection: result,
-            'description': description
-        })
+        return prepare_response({collection: result})
 
     def post_application_containers_query(self, json_input):
         return self._aggregate(json_input, 'application_containers')
@@ -241,7 +198,7 @@ class RequestHandler:
 
         if is_state(c['state'], 'failed'):
             Thread(target=self.worker.post_container_callback).start()
-            raise BadRequest('Container is in state failed.')
+            raise BadRequest('Container failed.')
 
         if json_input['callback_type'] == 0:
             # collect input file information and send with response
@@ -272,8 +229,6 @@ class RequestHandler:
                             f['input_file_key'] = k
                             response['input_files'].append(f)
                             break
-
-            response['state'] = state_to_index('success')
             return response
 
         elif json_input['callback_type'] == 3:
@@ -281,7 +236,7 @@ class RequestHandler:
             self.state_handler.transition('application_containers', c['_id'], 'success', description)
             Thread(target=self.worker.post_container_callback).start()
 
-        return {'state': state_to_index('success')}
+        return {}
 
     @auth(require_auth=False)
     @validation(callback_schema)
@@ -298,7 +253,7 @@ class RequestHandler:
 
         if is_state(c['state'], 'failed'):
             Thread(target=self.worker.post_container_callback).start()
-            raise BadRequest('Container is in state failed.')
+            raise BadRequest('Container failed.')
 
         if json_input['callback_type'] == 1:
             if not json_input['content'].get('input_file_keys') \
@@ -318,7 +273,7 @@ class RequestHandler:
 
             Thread(target=self.worker.post_data_container_callback).start()
 
-        return {'state': state_to_index('success')}
+        return {}
 
     def _validate_callback(self, json_input, collection):
         c = self.mongo.db[collection].find_one({'_id': json_input['container_id']})
