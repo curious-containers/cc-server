@@ -149,7 +149,7 @@ When starting the server it connects to an **internal_port** with port 5000 as d
 reachable at localhost:5000 and requests can be sent to the API. This **internal_port** should never be exposed to
 internet (configure a firewall to ensure this), because flask does not provide TLS encryption for the HTTP communication.
 Another web server (e.g. Apache 2) can be used as a TLS proxy by forwarding requests to the **internal_port**.
-Therefore the external adress of CC-Server (e.g. https://cc.my-domain.tld) differs from the internal adress (e.g. 
+Therefore the external adress of CC-Server (e.g. https://my-domain.tld/cc) differs from the internal adress (e.g.
 http://localhost:5000) and the external adress must be specified as **host**. CC-Server runs Docker containers
 with a CC-Container-Worker. Since the worker sends callback requests to this **host** adress, this adress must be
 reachable by the container. The easiest way to achieve this, is to expose the **host** adress to the internet. Take a
@@ -158,7 +158,7 @@ look at the `Apache 2 TLS Proxy documentation <#apache-2-tls-proxy>`__ for a sam
 .. code-block:: toml
 
    [server]
-   host = 'https://cc.my-domain.tld'
+   host = 'https://my-domain.tld/cc'
    internal_port = 5000
    log_dir = '~/.cc_server/'
 
