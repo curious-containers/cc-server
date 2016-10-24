@@ -35,7 +35,7 @@ class Worker:
             {'state': state_to_index('created')},
             {'task_id': 1}
         )
-        task_ids = [ac['task_id'] for ac in application_containers]
+        task_ids = [ac['task_id'][0] for ac in application_containers]
         tasks = self.mongo.db['tasks'].find({'_id': {'$in': task_ids}})
         images = {
             task['application_container_description']['image']:
