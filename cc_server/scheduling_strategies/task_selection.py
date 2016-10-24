@@ -8,7 +8,7 @@ class FIFO:
     def __iter__(self):
         cursor = self.mongo.db['tasks'].aggregate([
             {'$match': {'state': state_to_index('waiting')}},
-            {'$sort': {'transitions.0.timestamp': 1}}
+            {'$sort': {'created_at': 1}}
         ])
         for task in cursor:
             yield task

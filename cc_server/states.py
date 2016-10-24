@@ -115,10 +115,19 @@ class StateHandler:
         else:
             print(collection, _id, index_to_state(t['state']))
 
-        self.mongo.db[collection].update({'_id': _id}, {
-            '$push': {'transitions': t},
-            '$set': {'state': t['state']}
-        })
+        if is_state(t['state'], 'created'):
+            self.mongo.db[collection].update({'_id': _id}, {
+                '$push': {'transitions': t},
+                '$set': {
+                    'state': t['state'],
+                    'created_at': t['timestamp']
+                }
+            })
+        else:
+            self.mongo.db[collection].update({'_id': _id}, {
+                '$push': {'transitions': t},
+                '$set': {'state': t['state']}
+            })
         if t['state'] in end_states():
             data = self.mongo.db[collection].find_one({'_id': _id})
             del data['_id']
