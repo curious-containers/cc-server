@@ -287,7 +287,7 @@ class RequestHandler:
         })
 
         if json_input['callback_type'] != len(c['callbacks']):
-            description = 'Callback with invalid callback_type has been sent'
+            description = 'Callback with invalid callback_type has been sent.'
             self.state_handler.transition(collection, c['_id'], 'failed', description)
             return
 
