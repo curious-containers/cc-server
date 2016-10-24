@@ -11,7 +11,8 @@ from cc_server.schemas import query_schema, tasks_schema, callback_schema, cance
 
 def task_group_prototype():
     return {
-        'state': 0,
+        'state': -1,
+        'created_at': None,
         'transitions': [],
         'username': None,
         'task_ids': []
@@ -116,7 +117,8 @@ class RequestHandler:
 
     def _register_task(self, json_input, task_group_id):
         json_input['username'] = request.authorization.username
-        json_input['state'] = 0
+        json_input['state'] = -1
+        json_input['created_at'] = None
         json_input['trials'] = 0
         json_input['transitions'] = []
         json_input['task_group_id'] = [task_group_id]

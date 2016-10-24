@@ -64,7 +64,11 @@ class Cluster:
             for f in files:
                 data_container = self.mongo.db['data_containers'].find_one(
                     {
-                        'state': {'$in': [state_to_index('waiting'), state_to_index('processing')]},
+                        'state': {'$in': [
+                            state_to_index('created'),
+                            state_to_index('waiting'),
+                            state_to_index('processing')
+                        ]},
                         'input_files': f
                     }, {'_id': 1}
                 )

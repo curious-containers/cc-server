@@ -1,10 +1,10 @@
-from cc_server.states import state_to_index
 from cc_server.helper import key_generator
 
 
 def application_container_prototype():
     return {
-        'state': 0,
+        'state': -1,
+        'created_at': None,
         'transitions': [],
         'username': None,
         'task_id': None,
@@ -51,7 +51,7 @@ class Scheduler:
                 self.caching.apply(application_container_id)
 
             data_containers = self.mongo.db['data_containers'].find(
-                {'state': state_to_index('created')},
+                {'state': -1},
                 {'_id': 1, 'cluster_node': 1}
             )
 

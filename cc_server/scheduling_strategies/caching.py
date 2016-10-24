@@ -4,7 +4,7 @@ from cc_server.helper import key_generator
 
 def data_container_prototype():
     return {
-        'state': 0,
+        'state': -1,
         'transitions': [],
         'username': None,
         'task_id': None,
@@ -36,19 +36,7 @@ class OneCachePerTaskNoDuplicates:
         data_container_ids = application_container['data_container_ids']
         input_files = task['input_files']
 
-        unassigned_input_files = []
-
-        for i, (f, dc_id) in enumerate(zip(input_files, data_container_ids)):
-            if dc_id:
-                continue
-            data_container = self.mongo.db['data_containers'].find_one(
-                {'state': state_to_index('created'), 'input_files': f},
-                {'_id': 1}
-            )
-            if data_container:
-                data_container_ids[i] = data_container['_id']
-                continue
-            unassigned_input_files.append(f)
+        unassigned_input_files = [f for f, dc_id in zip(input_files, data_container_ids) if not dc_id]
 
         if unassigned_input_files:
             data_container = data_container_prototype()
