@@ -187,7 +187,7 @@ class StateHandler:
                 notify(task['notifications'])
 
     def update_task_groups(self):
-        task_groups = self.mongo.db['task_groups'].find_one(
+        task_groups = self.mongo.db['task_groups'].find(
             {'state': {'$nin': end_states()}},
             {'task_ids': 1, 'tasks_count': 1}
         )
