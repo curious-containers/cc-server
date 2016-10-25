@@ -74,7 +74,7 @@ class StateHandler:
         if task_group['state'] in end_states():
             return
 
-        if state_to_index(state) > 0 and state_to_index(state) == task_group['state']:
+        if state_to_index(state) == task_group['state']:
             return
 
         t = _transition(state, description, exception, caused_by)
@@ -173,47 +173,48 @@ class StateHandler:
 
         if state == 'processing':
             task_group = self.mongo.db['task_groups'].find_one(
-                {'_id': task['task_group_id'][0], 'state': state_to_index('processing')},
+                {'_id': task['task_group_id'][0], 'state': state_to_index('waiting')},
                 {'_id': 1}
             )
-            if not task_group:
-                description = 'All tasks in group failed or have been cancelled.'
-                self._task_group_transition(task['task_group_id'][0], 'processing', description, None, None)
+            if task_group:
+                description = 'Task group processing.'
+                self._task_group_transition(
+                    task['task_group_id'][0], 'processing', description, None, {'task_id': task_id}
+                )
 
         if state_to_index(state) in end_states():
-            self._check_task_group(task['task_group_id'][0])
             if task.get('notifications'):
                 notify(task['notifications'])
 
-    def _check_task_group(self, task_group_id):
-        task_group = self.mongo.db['task_groups'].find_one(
-            {'_id': task_group_id},
-            {'task_ids': 1}
+    def update_task_groups(self):
+        task_groups = self.mongo.db['task_groups'].find_one(
+            {'state': {'$nin': end_states()}},
+            {'task_ids': 1, 'tasks_count': 1}
         )
-        tasks = self.mongo.db['tasks'].find(
-            {
-                '_id': {'$in': task_group['task_ids']},
-                'state': {'$in': end_states()}
-            },
-            {'_id': 1}
-        )
-        num_tasks = len(task_group['task_ids'])
-        num_tasks_in_endstate = len(list(tasks))
-        if num_tasks != num_tasks_in_endstate:
-            return
-        task = self.mongo.db['tasks'].find_one(
-            {
-                '_id': {'$in': task_group['task_ids']},
-                'state': state_to_index('success')
-            },
-            {'_id': 1}
-        )
-        if task:
-            description = 'All tasks in group finished.'
-            self._task_group_transition(task_group_id, 'success', description, None, None)
-            return
-        description = 'All tasks in group failed or have been cancelled.'
-        self._task_group_transition(task_group_id, 'failed', description, None, None)
+        for task_group in task_groups:
+            tasks = self.mongo.db['tasks'].find(
+                {
+                    '_id': {'$in': task_group['task_ids']},
+                    'state': {'$in': end_states()}
+                },
+                {'_id': 1}
+            )
+            tasks = list(tasks)
+            if task_group['tasks_count'] != len(tasks):
+                continue
+            task = self.mongo.db['tasks'].find_one(
+                {
+                    '_id': {'$in': task_group['task_ids']},
+                    'state': state_to_index('success')
+                },
+                {'_id': 1}
+            )
+            if task:
+                description = 'All tasks in group finished.'
+                self._task_group_transition(task_group['_id'], 'success', description, None, None)
+                continue
+            description = 'All tasks in group failed or have been cancelled.'
+            self._task_group_transition(task_group['_id'], 'failed', description, None, None)
 
     def _data_container_transition(self, data_container_id, state, description, exception, caused_by):
         data_container = self.mongo.db['data_containers'].find_one(

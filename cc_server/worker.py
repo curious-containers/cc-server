@@ -82,6 +82,7 @@ class Worker:
         with self.post_task_lock:
 
             self.cluster.clean_up_exited_containers()
+            self.state_handler.update_task_groups()
             self.scheduler.schedule()
             self.update_images()
             self.create_containers()
