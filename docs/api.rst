@@ -41,7 +41,7 @@ The following Python script shows how to do authorize an API call with the Pytho
    username = 'admin'
    password = 'PASSWORD'
 
-   requests.get('my-domain.tld/cc', auth=(username, password))
+   requests.get('my-domain.tld/cc/', auth=(username, password))
 
 
 The same can be achieved with *curl* in a bash script.
@@ -67,7 +67,7 @@ requests. The following Python code shows how to request a token. See `GET /toke
 
    r = requests.get('my-domain.tld/cc/token', auth=(username, password))
    data = r.json()
-   requests.get('my-domain.tld/cc', auth=(username, data['token']))
+   requests.get('my-domain.tld/cc/', auth=(username, data['token']))
 
 
 API reference

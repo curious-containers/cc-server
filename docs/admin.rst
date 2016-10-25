@@ -393,6 +393,8 @@ information take a look at the official `Apache 2 documentation <https://httpd.a
        RedirectMatch ^/cc/(.*)$ https://my-domain.tld/cc/$1
    </VirtualHost>
 
+CC-Server is now ready to use at *https://my-domain.tld/cc/*.
+
 
 Docker Registry
 ---------------
@@ -401,3 +403,77 @@ Container images created by users have to be deployed to a Docker registry. The 
 `Docker Hub registry <https://hub.docker.com/>`__ with free public repositories or a paid plan for private repositories can
 be used. Consider deploying a private Docker repository in order to provide free private repositories to your users.
 Instructions can be found in the official `Docker Registry documentation <https://docs.docker.com/registry/deploying/>`__.
+
+
+Web User Interface
+------------------
+
+The web interface CC-UI is an optional component and can be used to quickly access information about task groups, tasks,
+application containers and data containers. The following instructions describe the deployment process with Apache 2,
+assuming that the Apache web server is already set up with CC-Server running at *https://my-domain.tld/cc/*.
+
+First edit the Apache configuration to contain the desired deployment directory (e.g. */opt/cc-ui*). Remember to restart
+the web server afterwards.
+
+.. code-block:: apache
+
+   Listen 443
+
+   <VirtualHost *:443>
+       ProxyRequests Off
+       SSLEngine On
+       SSLCertificateFile /PATH/TO/cert.pem
+       SSLCertificateKeyFile /PATH/TO/key.pem
+       SSLCertificateChainFile /PATH/TO/chain.pem
+
+       ServerName my-domain.tld
+       ServerAlias my-domain.tld
+
+       DocumentRoot /opt/cc-ui
+       <Directory /opt/cc-ui>
+           Require all granted
+       </Directory>
+
+       ProxyPass /cc/ http://localhost:5000/
+       ProxyPassReverse /cc/ http://localhost:5000/
+       RedirectMatch ^/cc/(.*)$ https://my-domain.tld/cc/$1
+   </VirtualHost>
+
+Install **nodejs** and **npm** on your platform and run the following commands.
+
+.. code-block:: bash
+
+   git clone https://github.com/curious-containers/cc-ui.git
+   cd cc-ui
+
+   touch src/config.js
+   npm install
+   npm run build
+
+
+The *build* directory contains the generated HTML and JavaScript files. Copy the files to your deployment directory and
+fix the file permissions for Apache.
+
+.. code-block:: bash
+
+   cp -R ./build /opt/cc-ui
+   chown -R www-data:www-data /opt/cc-ui
+
+
+CC-UI is now ready to use at *https://my-domain.tld/*.
+
+
+Configuration
+^^^^^^^^^^^^^
+
+In the case, that CC-Server is not deployed at *https://my-domain.tld/cc/*, the location can be configured in the
+**src/config.js** file.
+
+.. code-block:: javascript
+
+   export const host = 'https://my-domain.tld/path/to/cc/'
+
+
+**IMPORTANT NOTE:** A Browser will not send REST requests to the CC-Server backend, if the protocol, ip/domain or port
+are different from your CC-UI deployment. Take a look at `CORS <https://www.w3.org/TR/cors/>`__ and configure Apache to
+accept cross-origin requests. This may affect the security of CC-UI (although CC-UI does not set cookies).
