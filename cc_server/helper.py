@@ -7,9 +7,8 @@ UNSAFE_KEYS = [
     'password',
     'callback_key',
     'ssh_password',
-    'http_auth',
-    'json_data',
-    'json_auth'
+    'basic_password',
+    'digest_password'
 ]
 
 

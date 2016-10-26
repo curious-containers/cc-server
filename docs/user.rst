@@ -280,9 +280,8 @@ JSON via HTTP
 
 Instead of uploading a file, it is possible to upload result values in a JSON object via an HTTP POST request. In order
 to use this feature, the application running in the container must write a JSON encoded string to a file. The JSON data
-connector will read the contents from the file and decode the JSON data. If some additional data is specified in the
-**json_data** field, the respective key-value pairs will be added to the JSON data produced by the application. The
-resulting JSON data will be send to an HTTP server specified in the mandatory **json_url** field. The optional field
+connector will read the contents from the file and decode the JSON data. The
+resulting JSON object will be send to an HTTP server specified in the mandatory **json_url** field. The optional field
 **json_auth** can either contain **basic_username** and **basic_password** to enable *HTTPBasicAuth* or
 **digest_username** and **digest_password** to enable *HTTPDigestAuth*. Setting **json_ssl_verify** to *false* is
 optional and insecure, but can be used to ignore faulty SSL/TLS certificates.
@@ -291,10 +290,6 @@ optional and insecure, but can be used to ignore faulty SSL/TLS certificates.
 
    {
        "json_url": "https://my-domain.tld/result_json/",
-       "json_data": {
-           "key1": "value1",
-           "key2": "value2"
-       },
        "json_auth": {
            "basic_username": "ccdata",
            "basic_password": "PASSWORD"

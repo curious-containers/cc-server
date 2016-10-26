@@ -76,7 +76,6 @@ _result_json_schema = {
     'type': 'object',
     'properties': {
         'json_url': {'type': 'string'},
-        'json_data': {'type': 'object'},
         'json_auth': {
             'type': 'object',
             'oneOf': [
