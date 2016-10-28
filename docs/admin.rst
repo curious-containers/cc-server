@@ -240,6 +240,17 @@ defaults
 *The defaults section in the TOML configuration is for values, that usually do not need to be change in order to run
 CC-Server.*
 
+The **application_container_description** fields contain information about how to run an application container. The
+images contain CC-Container-Worker, which is usually stored in the image file system at */opt/container_worker*.
+The appropriate command to start the worker is given as **entry_point**. This default value can be overwritten by
+specifying a different **entry_point** in a task.
+
+.. code-block:: toml
+
+   [defaults.application_container_description]
+   entry_point = 'python3 /opt/container_worker'
+
+
 The **data_container_description** fields contain information about how to run a data container. CC-Image-Ubuntu and
 CC-Image-Fedora are both supported as data container images. Specify the URL of one of theses images, or a customized
 image, in the **image** field. The images contain CC-Container-Worker, which is usually stored in the image file system
@@ -299,19 +310,6 @@ a login token, which can be used instead of the original password for a certain 
    num_login_attempts = 3
    block_for_seconds = 120
    tokens_valid_for_seconds = 172800
-
-
-In the **mtu** section the maximum transmission unit for network interfaces of the Docker containers can be set. This is
-a possible workaround for problems that arise when setting up Docker Swarm with a Docker Overlay Network (VXLAN) on top
-of another VXLAN (e.g. using Docker Swarm in an OpenStack Cloud). Be careful with this option, because CC-Server will
-start the containers in *privileged* mode to enable CC-Container-Worker to modify the network interfaces in the running
-container. The **mtu** subsection should be deleted from the configuration file if not required.
-
-.. code-block:: toml
-
-   [defaults.mtu]
-   eth0 = 1450
-   eth1 = 1450
 
 
 Create User Accounts

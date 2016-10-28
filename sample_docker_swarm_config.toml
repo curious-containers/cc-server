@@ -25,7 +25,10 @@ client_cert = [
 ]
 assert_hostname = false
 
-[defaults.container_description]
+[defaults.application_container_description]
+entry_point = 'python3 /opt/container_worker'
+
+[defaults.data_container_description]
 image = 'docker.io/curiouscontainers/cc-image-ubuntu'
 entry_point = 'python3 /opt/container_worker'
 container_ram = 512
@@ -45,9 +48,3 @@ max_task_trials = 3
 num_login_attempts = 3
 block_for_seconds = 120
 tokens_valid_for_seconds = 172800
-
-# only necessary if Docker Overlay Network (VXLAN) is configured on top of another VXLAN
-# (e.g. using Docker Swarm in OpenStack Cloud)
-# [defaults.mtu]
-# eth0 = 1450
-# eth1 = 1450

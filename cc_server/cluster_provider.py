@@ -94,7 +94,7 @@ class DockerProvider:
         }, {'application_container_description': 1})
 
         reserved_ram = sum([task['application_container_description']['container_ram'] for task in tasks])
-        reserved_ram += len(list(data_containers)) * self.config.defaults['container_description']['container_ram']
+        reserved_ram += len(list(data_containers)) * self.config.defaults['data_container_description']['container_ram']
 
         return [{
             'name': 'local',
@@ -156,14 +156,13 @@ class DockerProvider:
             'callback_key': application_container['callback_key'],
             'callback_url': '{}/application-containers/callback'.format(self.config.server['host'].rstrip('/')),
             'result_files': task['result_files'],
-            'mtu': self.config.defaults.get('mtu'),
             'no_cache': task.get('no_cache'),
             'parameters': task['application_container_description'].get('parameters'),
             'sandbox': task['application_container_description'].get('sandbox'),
             'tracing': task['application_container_description'].get('tracing')
         }
 
-        entry_point = self.config.defaults['container_description']['entry_point']
+        entry_point = self.config.defaults['application_container_description']['entry_point']
         if task['application_container_description'].get('entry_point'):
             entry_point = task['application_container_description']['entry_point']
 
@@ -174,17 +173,16 @@ class DockerProvider:
 
         #print('application_container', command)
 
-        privileged = False
-        if self.config.defaults.get('mtu'):
-            privileged = True
-
         mem_limit = '{}MB'.format(task['application_container_description']['container_ram'])
+
+        security_opt = None
+        if task['application_container_description'].get('sandbox'):
+            security_opt = ['seccomp:unconfined']
 
         host_config = self.client.create_host_config(
             mem_limit=mem_limit,
             memswap_limit=mem_limit,
-            privileged=privileged,
-            security_opt=['seccomp:unconfined']
+            security_opt=security_opt
         )
 
         with self.thread_limit:
@@ -211,11 +209,10 @@ class DockerProvider:
             'container_type': 'data',
             'callback_key': data_container['callback_key'],
             'callback_url': '{}/data-containers/callback'.format(self.config.server['host'].rstrip('/')),
-            'input_files': data_container['input_files'],
-            'mtu': self.config.defaults.get('mtu')
+            'input_files': data_container['input_files']
         }
 
-        entry_point = self.config.defaults['container_description']['entry_point']
+        entry_point = self.config.defaults['data_container_description']['entry_point']
 
         command = '{} \'{}\''.format(
             entry_point,
@@ -224,22 +221,17 @@ class DockerProvider:
 
         #print('data_container', command)
 
-        privileged = False
-        if self.config.defaults.get('mtu'):
-            privileged = True
-
-        mem_limit = '{}MB'.format(self.config.defaults['container_description']['container_ram'])
+        mem_limit = '{}MB'.format(self.config.defaults['data_container_description']['container_ram'])
 
         host_config = self.client.create_host_config(
             mem_limit=mem_limit,
-            memswap_limit=mem_limit,
-            privileged=privileged
+            memswap_limit=mem_limit
         )
 
         with self.thread_limit:
             self.client.create_container(
                 name=str(data_container_id),
-                image=self.config.defaults['container_description']['image'],
+                image=self.config.defaults['data_container_description']['image'],
                 host_config=host_config,
                 command=command,
                 environment=['constraint:node=={}'.format(data_container['cluster_node'])]
