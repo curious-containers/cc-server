@@ -176,7 +176,7 @@ class DockerProvider:
         mem_limit = '{}MB'.format(task['application_container_description']['container_ram'])
 
         security_opt = None
-        if task['application_container_description'].get('sandbox'):
+        if task['application_container_description'].get('tracing'):
             security_opt = ['seccomp:unconfined']
 
         host_config = self.client.create_host_config(
