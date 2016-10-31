@@ -24,7 +24,6 @@ CC-Sample-App           `Github <https://github.com/curious-containers/cc-sample
 CC-Image-Ubuntu         `Github <https://github.com/curious-containers/cc-image-ubuntu>`__         `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-ubuntu/>`__         docker.io/curiouscontainers/cc-image-ubuntu
 CC-Image-Fedora         `Github <https://github.com/curious-containers/cc-image-fedora>`__         `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-fedora/>`__         docker.io/curiouscontainers/cc-image-fedora
 CC-Image-Debian         `Github <https://github.com/curious-containers/cc-image-debian>`__         `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-debian/>`__         docker.io/curiouscontainers/cc-image-debian
-CC-Image-Debian-Matlab  `Github <https://github.com/curious-containers/cc-image-debian-matlab>`__  `Docker Hub <https://hub.docker.com/r/curiouscontainers/cc-image-debian-matlab/>`__  docker.io/curiouscontainers/cc-image-debian-matlab
 ======================  =========================================================================  ===================================================================================  ==================================================
 
 The CC-Sample-App contains the bash script *algorithm.sh* which is a minimal program that can be executed by
