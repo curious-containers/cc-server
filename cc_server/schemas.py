@@ -1,91 +1,10 @@
-_basic_auth = {
+_connector_schema = {
     'type': 'object',
     'properties': {
-        'basic_username': {'type': 'string'},
-        'basic_password': {'type': 'string'}
+        'connector_type': {'type': 'string'},
+        'connector_access': {'type': 'object'}
     },
-    'required': ['basic_username', 'basic_password'],
-    'additionalProperties': False
-}
-
-_digest_auth = {
-    'type': 'object',
-    'properties': {
-        'digest_username': {'type': 'string'},
-        'digest_password': {'type': 'string'}
-    },
-    'required': ['digest_username', 'digest_password'],
-    'additionalProperties': False
-}
-
-_input_result_ssh_schema = {
-    'type': 'object',
-    'properties': {
-        'ssh_host': {'type': 'string'},
-        'ssh_username': {'type': 'string'},
-        'ssh_password': {'type': 'string'},
-        'ssh_file_dir': {'type': 'string'},
-        'ssh_file_name': {'type': 'string'},
-    },
-    'required': [
-        'ssh_host',
-        'ssh_username',
-        'ssh_password',
-        'ssh_file_dir',
-        'ssh_file_name'
-    ],
-    'additionalProperties': False
-}
-
-_input_http_schema = {
-    'type': 'object',
-    'properties': {
-        'http_url': {'type': 'string'},
-        'http_auth': {
-            'type': 'object',
-            'oneOf': [
-                _basic_auth,
-                _digest_auth
-            ]
-        },
-        'http_ssl_verify': {'type': 'boolean'}
-    },
-    'required': ['http_url'],
-    'additionalProperties': False
-}
-
-_result_http_schema = {
-    'type': 'object',
-    'properties': {
-        'http_url': {'type': 'string'},
-        'http_method': {'enum': ['put', 'post', 'PUT', 'POST']},
-        'http_auth': {
-            'type': 'object',
-            'oneOf': [
-                _basic_auth,
-                _digest_auth
-            ]
-        },
-        'http_ssl_verify': {'type': 'boolean'}
-    },
-    'required': ['http_url', 'http_method'],
-    'additionalProperties': False
-}
-
-_result_json_schema = {
-    'type': 'object',
-    'properties': {
-        'json_url': {'type': 'string'},
-        'json_auth': {
-            'type': 'object',
-            'oneOf': [
-                _basic_auth,
-                _digest_auth
-            ]
-        },
-        'json_ssl_verify': {'type': 'boolean'}
-    },
-    'required': ['json_url'],
+    'required': ['connector_type', 'connector_access'],
     'additionalProperties': False
 }
 
@@ -331,8 +250,7 @@ _task_schema = {
             'items': {
                 'type': 'object',
                 'anyOf': [
-                    _input_result_ssh_schema,
-                    _input_http_schema
+                    _connector_schema
                 ]
             }
         },
@@ -341,9 +259,7 @@ _task_schema = {
             'items': {
                 'type': 'object',
                 'anyOf': [
-                    _input_result_ssh_schema,
-                    _result_http_schema,
-                    _result_json_schema
+                    _connector_schema
                 ]
             }
         },
@@ -352,7 +268,7 @@ _task_schema = {
             'items': {
                 'type': 'object',
                 'anyOf': [
-                    _input_http_schema
+                    _connector_schema
                 ]
             }
         }

@@ -37,7 +37,7 @@ def validation(schema):
                 validate(json_input, schema)
                 json_input = prepare_input(json_input)
             except:
-                print(format_exc())
+                #print(format_exc())
                 raise BadRequest('JSON input not valid: {}'.format(format_exc()))
             return func(self, json_input, *args, **kwargs)
         return wrapper
@@ -228,8 +228,10 @@ class RequestHandler:
                     for f, k in zip(data_container['input_files'], data_container['input_file_keys']):
                         if f == input_file:
                             response['input_files'].append({
-                                'data_container_url': 'http://{}/'.format(ip),
-                                'input_file_key': k
+                                'connector_type': 'http',
+                                'connector_access': {
+                                    'url': 'http://{}/{}'.format(ip, k)
+                                }
                             })
                             break
             return response
