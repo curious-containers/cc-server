@@ -37,7 +37,8 @@ def validation(schema):
                 validate(json_input, schema)
                 json_input = prepare_input(json_input)
             except:
-                #print(format_exc())
+                if self.config.server.get('debug'):
+                    print(format_exc())
                 raise BadRequest('JSON input not valid: {}'.format(format_exc()))
             return func(self, json_input, *args, **kwargs)
         return wrapper
