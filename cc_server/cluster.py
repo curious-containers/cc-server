@@ -33,6 +33,10 @@ class Cluster:
     def start_data_container(self, data_container_id):
         try:
             self.cluster_provider.start_container(data_container_id)
+            if self.config.server.get('debug'):
+                self.cluster_provider.wait_for_container(data_container_id)
+                logs = self.cluster_provider.logs_from_container(data_container_id)
+                print(logs)
         except:
             description = 'Container start failed.'
             self.state_handler.transition('data_containers', data_container_id, 'failed', description,
@@ -42,6 +46,10 @@ class Cluster:
     def start_application_container(self, application_container_id):
         try:
             self.cluster_provider.start_container(application_container_id)
+            if self.config.server.get('debug'):
+                self.cluster_provider.wait_for_container(application_container_id)
+                logs = self.cluster_provider.logs_from_container(application_container_id)
+                print(logs)
         except:
             description = 'Container start failed.'
             self.state_handler.transition('application_containers', application_container_id, 'failed', description,

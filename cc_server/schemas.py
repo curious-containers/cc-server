@@ -440,10 +440,6 @@ callback_schema = {
                 'state': {'type': 'number'},
                 'description': {'type': 'string'},
                 'exception': {'type': ['string', 'null']},
-                'input_file_keys': {
-                    'type': 'array',
-                    'items': {'type': 'string'}
-                },
                 'telemetry': {
                     'type': ['object', 'null'],
                     'properties': {

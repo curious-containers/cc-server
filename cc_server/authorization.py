@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from time import time
 from flask import request
 
-from cc_server.helper import key_generator, equal_keys
+from cc_server.helper import generate_secret, equal_keys
 
 
 def _get_ip():
@@ -104,7 +104,7 @@ class Authorize:
         print('Unverified login attempt: added block entry!')
 
     def issue_token(self):
-        token = key_generator()
+        token = generate_secret()
         username = request.authorization.username
         ip = _get_ip()
         self.mongo.db['tokens'].insert_one({

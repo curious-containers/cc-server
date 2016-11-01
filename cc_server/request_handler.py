@@ -37,6 +37,7 @@ def validation(schema):
                 validate(json_input, schema)
                 json_input = prepare_input(json_input)
             except:
+                print(format_exc())
                 raise BadRequest('JSON input not valid: {}'.format(format_exc()))
             return func(self, json_input, *args, **kwargs)
         return wrapper
@@ -226,10 +227,10 @@ class RequestHandler:
 
                     for f, k in zip(data_container['input_files'], data_container['input_file_keys']):
                         if f == input_file:
-                            f = input_file
-                            f['data_container_url'] = 'http://{}/'.format(ip)
-                            f['input_file_key'] = k
-                            response['input_files'].append(f)
+                            response['input_files'].append({
+                                'data_container_url': 'http://{}/'.format(ip),
+                                'input_file_key': k
+                            })
                             break
             return response
 
@@ -258,18 +259,6 @@ class RequestHandler:
             raise BadRequest('Container failed.')
 
         if json_input['callback_type'] == 1:
-            if not json_input['content'].get('input_file_keys') \
-                    or len(json_input['content']['input_file_keys']) != len(c['input_files']):
-
-                description = 'Callback with callback_type 1 did not send valid input_file_keys.'
-                self.state_handler.transition('data_containers', c['_id'], 'failed', description)
-                return {'state': state_to_index('failed'), 'description': 'Container is in state failed.'}
-
-            self.mongo.db['data_containers'].update_one(
-                {'_id': c['_id']},
-                {'$set': {'input_file_keys': json_input['content']['input_file_keys']}}
-            )
-
             description = 'Input files available in data container.'
             self.state_handler.transition('data_containers', c['_id'], 'processing', description)
 

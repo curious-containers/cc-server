@@ -1,4 +1,4 @@
-from cc_server.helper import key_generator
+from cc_server.helper import generate_secret
 
 
 def application_container_prototype():
@@ -10,7 +10,7 @@ def application_container_prototype():
         'task_id': None,
         'data_container_ids': [],
         'callbacks': [],
-        'callback_key': key_generator(),
+        'callback_key': generate_secret(),
         'telemetry': None,
         'cluster_node': None
     }

@@ -3,16 +3,8 @@ from binascii import hexlify
 from streql import equals
 from bson.objectid import ObjectId
 
-UNSAFE_KEYS = [
-    'password',
-    'callback_key',
-    'ssh_password',
-    'basic_password',
-    'digest_password'
-]
 
-
-def key_generator():
+def generate_secret():
     return hexlify(urandom(24)).decode('utf-8')
 
 
@@ -40,33 +32,28 @@ def prepare_input(data):
     return _prepare_input(data, False)
 
 
-def prepare_response(data):
+def _prepare(data, replace_objectid, replace_secret):
     if isinstance(data, dict):
         result = {}
         for key, val in data.items():
-            if key in UNSAFE_KEYS:
-                val = 10*'*'
+            if not replace_secret and ('key' in key or 'password' in key):
+                result[key] = _prepare(val, replace_objectid, True)
             else:
-                val = prepare_response(val)
-            result[key] = val
+                result[key] = _prepare(val, replace_objectid, replace_secret)
         return result
     elif isinstance(data, list):
-        return [prepare_response(e) for e in data]
+        return [_prepare(e, replace_objectid, replace_secret) for e in data]
     elif isinstance(data, ObjectId):
-        return str(data)
+        if replace_objectid:
+            return str(data)
+    elif replace_secret:
+        return 10*'*'
     return data
+
+
+def prepare_response(data):
+    return _prepare(data, True, False)
 
 
 def remove_secrets(data):
-    if isinstance(data, dict):
-        result = {}
-        for key, val in data.items():
-            if key in UNSAFE_KEYS:
-                val = 10*'*'
-            else:
-                val = prepare_response(val)
-            result[key] = val
-        return result
-    elif isinstance(data, list):
-        return [prepare_response(e) for e in data]
-    return data
+    return _prepare(data, False, False)

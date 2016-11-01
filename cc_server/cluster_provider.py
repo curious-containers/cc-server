@@ -108,7 +108,7 @@ class DockerProvider:
         with self.thread_limit:
             for line in self.client.pull(image, stream=True, auth_config=registry_auth):
                 line = str(line)
-                if 'Error' in line:
+                if 'error' in line.lower():
                     raise(Exception(line))
 
     def list_containers(self):
@@ -133,7 +133,7 @@ class DockerProvider:
 
     def logs_from_container(self, _id):
         with self.thread_limit:
-            return self.client.logs(str(_id))
+            return self.client.logs(str(_id)).decode("utf-8")
 
     def start_container(self, _id):
         with self.thread_limit:
@@ -209,7 +209,8 @@ class DockerProvider:
             'container_type': 'data',
             'callback_key': data_container['callback_key'],
             'callback_url': '{}/data-containers/callback'.format(self.config.server['host'].rstrip('/')),
-            'input_files': data_container['input_files']
+            'input_files': data_container['input_files'],
+            'input_file_keys': data_container['input_file_keys']
         }
 
         entry_point = self.config.defaults['data_container_description']['entry_point']
@@ -219,7 +220,7 @@ class DockerProvider:
             json.dumps(settings)
         )
 
-        #print('data_container', command)
+        print('data_container', command)
 
         mem_limit = '{}MB'.format(self.config.defaults['data_container_description']['container_ram'])
 

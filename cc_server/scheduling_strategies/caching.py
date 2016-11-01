@@ -1,17 +1,16 @@
-from cc_server.states import state_to_index
-from cc_server.helper import key_generator
+from cc_server.helper import generate_secret
 
 
-def data_container_prototype():
+def data_container_prototype(username, input_files):
     return {
         'state': -1,
         'transitions': [],
-        'username': None,
+        'username': username,
         'task_id': None,
-        'input_files': [],
-        'input_file_keys': [],
+        'input_files': input_files,
+        'input_file_keys': [generate_secret() for _ in input_files],
         'callbacks': [],
-        'callback_key': key_generator(),
+        'callback_key': generate_secret(),
         'cluster_node': None
     }
 
@@ -39,9 +38,7 @@ class OneCachePerTaskNoDuplicates:
         unassigned_input_files = [f for f, dc_id in zip(input_files, data_container_ids) if not dc_id]
 
         if unassigned_input_files:
-            data_container = data_container_prototype()
-            data_container['username'] = task['username']
-            data_container['input_files'] = unassigned_input_files
+            data_container = data_container_prototype(task['username'], input_files)
             data_container_id = self.mongo.db['data_containers'].insert_one(data_container).inserted_id
             data_container_ids = [val if val else data_container_id for val in data_container_ids]
 
