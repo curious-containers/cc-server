@@ -5,7 +5,7 @@ from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, Unauthorized
 
 from cc_server.helper import prepare_response, prepare_input
-from cc_server.states import is_state, state_to_index
+from cc_server.states import is_state
 from cc_server.schemas import query_schema, tasks_schema, callback_schema, cancel_schema
 
 
