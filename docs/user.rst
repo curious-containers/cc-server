@@ -141,24 +141,33 @@ Modify and run the following Python 3 code:
            "parameters": ["--arg1", "value1", "--arg2", "value2"]
        },
        "input_files": [{
-           "ssh_host": "my-domain.tld",
-           "ssh_username": "ccdata",
-           "ssh_password": "PASSWORD",
-           "ssh_file_dir": "/home/ccdata/input_files",
-           "ssh_file_name": "some_data.csv"
+           "connector_type": "ssh",
+           "connector_access": {
+               "host": "my-domain.tld",
+               "username": "ccdata",
+               "password": "PASSWORD",
+               "file_dir": "/home/ccdata/input_files",
+               "file_name": "some_data.csv"
+           }
        }],
        "result_files": [{
-           "ssh_host": "my-domain.tld",
-           "ssh_username": "ccdata",
-           "ssh_password": "PASSWORD",
-           "ssh_file_dir": "/home/ccdata/result_files",
-           "ssh_file_name": "some_data.csv"
+           "connector_type": "ssh",
+           "connector_access": {
+               "host": "my-domain.tld",
+               "username": "ccdata",
+               "password": "PASSWORD",
+               "file_dir": "/home/ccdata/result_files",
+               "file_name": "some_data.csv"
+           }
        }, {
-           "ssh_host": "my-domain.tld",
-           "ssh_username": "ccdata",
-           "ssh_password": "PASSWORD",
-           "ssh_file_dir": "/home/ccdata/result_files",
-           "ssh_file_name": "parameters.txt"
+           "connector_type": "ssh",
+           "connector_access": {
+               "host": "my-domain.tld",
+               "username": "ccdata",
+               "password": "PASSWORD",
+               "file_dir": "/home/ccdata/result_files",
+               "file_name": "parameters.txt"
+           }
        }]
    }
 
@@ -192,16 +201,19 @@ This connector uses an SSH tunnel to transfer files via the SFTP protocol. This 
 it is the easiest way to configure a secure file server, that can be exposed to the internet if required. Create a new
 system user (e.g *ccdata*) with a strong password on a server and enable ssh access with password authentication.
 The user should only have access to the users home directory. Place the files that should be accessible in this directory.
-Specify the mandatory JSON fields **ssh_host**, **ssh_username**, **ssh_password**, **ssh_file_dir** and **ssh_file_name**.
+Specify the mandatory JSON fields **host**, **username**, **password**, **file_dir** and **file_name**.
 
 .. code-block:: json
 
    {
-       "ssh_host": "my-domain.tld",
-       "ssh_username": "ccdata",
-       "ssh_password": "PASSWORD",
-       "ssh_file_dir": "/home/ccdata/input_files",
-       "ssh_file_name": "some_data.csv"
+       "connector_type": "ssh",
+       "connector_access": {
+           "host": "my-domain.tld",
+           "username": "ccdata",
+           "password": "PASSWORD",
+           "file_dir": "/home/ccdata/input_files",
+           "file_name": "some_data.csv"
+       }
    }
 
 
@@ -211,19 +223,25 @@ HTTP
 *The exact behaviour of the HTTP data connector depends on implementation details of the source HTTP server.*
 
 It is possible to download input files from a web server via an HTTP GET request. The only required field is
-**http_url** pointing to a server resource. The optional field **http_auth** can either contain **basic_username** and
-**basic_password** to enable *HTTPBasicAuth* or **digest_username** and **digest_password** to enable *HTTPDigestAuth*.
-Setting **http_ssl_verify** to *false* is optional and insecure, but can be used to ignore faulty SSL/TLS certificates.
+**url** pointing to a server resource. Specifying authentication information via the **auth** field is optional. The
+required fields for **auth** are **auth_type**, **username** and **password**. The **auth_type** can be *basic* to enable
+*HTTPBasicAuth* or *digest* to enable *HTTPDigestAuth* Setting **ssl_verify** to *false* is optional and insecure,
+but can be used to ignore faulty SSL/TLS certificates.
 
 .. code-block:: json
 
    {
-       "http_url": "https://my-domain.tld/input_files/some_data.csv",
-       "http_auth": {
-           "basic_username": "ccdata",
-           "basic_password": "PASSWORD"
-       },
-       "http_ssl_verify": true
+       "connector_type": "http",
+       "connector_access": {
+           "url": "https://my-domain.tld/input_files/some_data.csv",
+           "auth": {
+               "auth_type": "basic",
+               "username": "ccdata",
+               "password": "PASSWORD"
+           },
+           "ssl_verify": true
+       }
+
    }
 
 Data Connectors for Result Files
@@ -238,17 +256,20 @@ SFTP via SSH (Recommended)
 """"""""""""""""""""""""""
 
 This data connector for uploading result files works exactly like the
-`equivalent data connector for input files <#sftp-via-ssh-recommended>`__. The destination **ssh_file_dir** will be
+`equivalent data connector for input files <#sftp-via-ssh-recommended>`__. The destination **file_dir** will be
 created by the data connector if it is not yet existent. Already existing files will be overwritten.
 
 .. code-block:: json
 
    {
-       "ssh_host": "my-domain.tld",
-       "ssh_username": "ccdata",
-       "ssh_password": "PASSWORD",
-       "ssh_file_dir": "/home/ccdata/result_files",
-       "ssh_file_name": "some_data.csv"
+       "connector_type": "ssh",
+       "connector_access": {
+           "host": "my-domain.tld",
+           "username": "ccdata",
+           "password": "PASSWORD",
+           "file_dir": "/home/ccdata/result_files",
+           "file_name": "some_data.csv"
+       }
    }
 
 
@@ -256,21 +277,26 @@ HTTP
 """"
 
 This data connector can be used to upload result files to a web server via an HTTP POST or PUT request. The required
-fields are **http_url** pointing to a server resource and the **http_method** to be used (either **PUT** or **POST**).
-The optional field **http_auth** can either contain **basic_username** and **basic_password** to enable *HTTPBasicAuth*
-or **digest_username** and **digest_password** to enable *HTTPDigestAuth*. Setting **http_ssl_verify** to *false* is
-optional and insecure, but can be used to ignore faulty SSL/TLS certificates.
+fields are **url** pointing to a server resource and the **method** to be used (either **PUT** or **POST**).
+Specifying authentication information via the **auth** field is optional. The required fields for **auth** are
+**auth_type**, **username** and **password**. The **auth_type** can be *basic* to enable *HTTPBasicAuth* or *digest* to
+enable *HTTPDigestAuth* Setting **ssl_verify** to *false* is optional and insecure, but can be used to ignore faulty
+SSL/TLS certificates.
 
 .. code-block:: json
 
    {
-       "http_url": "https://my-domain.tld/result_files/some_data.csv",
-       "http_method": "PUT",
-       "http_auth": {
-           "basic_username": "ccdata",
-           "basic_password": "PASSWORD"
-       },
-       "http_ssl_verify": true
+       "connector_type": "http",
+       "connector_access": {
+           "url": "https://my-domain.tld/result_files/some_data.csv",
+           "method": "PUT",
+           "auth": {
+               "auth_type": "basic"
+               "username": "ccdata",
+               "password": "PASSWORD"
+           },
+           "ssl_verify": true
+       }
    }
 
 
@@ -279,21 +305,25 @@ JSON via HTTP
 
 Instead of uploading a file, it is possible to upload result values in a JSON object via an HTTP POST request. In order
 to use this feature, the application running in the container must write a JSON encoded string to a file. The JSON data
-connector will read the contents from the file and decode the JSON data. The
-resulting JSON object will be send to an HTTP server specified in the mandatory **json_url** field. The optional field
-**json_auth** can either contain **basic_username** and **basic_password** to enable *HTTPBasicAuth* or
-**digest_username** and **digest_password** to enable *HTTPDigestAuth*. Setting **json_ssl_verify** to *false* is
-optional and insecure, but can be used to ignore faulty SSL/TLS certificates.
+connector will read the contents from the file and decode the JSON data. The resulting JSON object will be send to an
+HTTP server specified in the mandatory **url** field. Specifying authentication information via the **auth** field is
+optional. The required fields for **auth** are **auth_type**, **username** and **password**. The **auth_type** can be
+*basic* to enable *HTTPBasicAuth* or *digest* to enable *HTTPDigestAuth* Setting **ssl_verify** to *false* is optional
+and insecure, but can be used to ignore faulty SSL/TLS certificates.
 
 .. code-block:: json
 
    {
-       "json_url": "https://my-domain.tld/result_json/",
-       "json_auth": {
-           "basic_username": "ccdata",
-           "basic_password": "PASSWORD"
-       },
-       "json_ssl_verify": true
+       "connector_type": "json",
+       "connector_access": {
+           "url": "https://my-domain.tld/result_json/",
+           "auth": {
+               "auth_type": "basic"
+               "username": "ccdata",
+               "password": "PASSWORD"
+           },
+           "ssl_verify": true
+       }
    }
 
 

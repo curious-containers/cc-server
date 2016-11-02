@@ -124,24 +124,34 @@ def post_tasks():
                 "parameters": ["--arg1", "value1", "--arg2", "value2"]
             },
             "input_files": [{
-                "ssh_host": "my-domain.tld",
-                "ssh_username": "ccdata",
-                "ssh_password": "PASSWORD",
-                "ssh_file_dir": "/home/ccdata/input_files",
-                "ssh_file_name": "some_data.csv"
+                "connector_type": "ssh",
+                "connector_access": {
+                    "host": "my-domain.tld",
+                    "username": "ccdata",
+                    "password": "PASSWORD",
+                    "file_dir": "/home/ccdata/input_files",
+                    "file_name": "some_data.csv"
+                }
+
             }],
             "result_files": [{
-                "ssh_host": "my-domain.tld",
-                "ssh_username": "ccdata",
-                "ssh_password": "PASSWORD",
-                "ssh_file_dir": "/home/ccdata/result_files",
-                "ssh_file_name": "some_data.csv"
+                "connector_type": "ssh",
+                "connector_access": {
+                    "host": "my-domain.tld",
+                    "username": "ccdata",
+                    "password": "PASSWORD",
+                    "file_dir": "/home/ccdata/result_files",
+                    "file_name": "some_data.csv"
+                }
             }, {
-                "ssh_host": "my-domain.tld",
-                "ssh_username": "ccdata",
-                "ssh_password": "PASSWORD",
-                "ssh_file_dir": "/home/ccdata/result_files",
-                "ssh_file_name": "parameters.txt"
+                "connector_type": "ssh",
+                "connector_access": {
+                    "host": "my-domain.tld",
+                    "username": "ccdata",
+                    "password": "PASSWORD",
+                    "file_dir": "/home/ccdata/result_files",
+                    "file_name": "parameters.txt"
+                }
             }],
             "notifications": [{
                 "http_url": "my-domain.tld/1/notify
@@ -174,14 +184,24 @@ def post_tasks():
                     "container_ram": 1024
                 },
                 "input_files": [{
-                    "http_url": "https://my-domain.tld/input_files/1/some_data.csv",
+                    "connector_type": "http",
+                    "connector_access": {
+                        "url": "https://my-domain.tld/input_files/A/some_data.csv"
+                    }
+
                 }],
                 "result_files": [{
-                    "http_url": "https://my-domain.tld/result_files/1/",
-                    "http_file_name": "some_data.csv"
+                    "connector_type": "http",
+                    "connector_access": {
+                        "url": "https://my-domain.tld/result_files/A/1/",
+                        "method": "POST"
+                    }
                 }, {
-                    "http_url": "https://my-domain.tld/result_files/1/",
-                    "http_file_name": "parameters.txt"
+                    "connector_type": "http",
+                    "connector_access": {
+                        "url": "https://my-domain.tld/result_files/A/2/",
+                        "method": "POST"
+                    }
                 }]
             }, {
                 "application_container_description": {
@@ -189,14 +209,24 @@ def post_tasks():
                     "container_ram": 1024
                 },
                 "input_files": [{
-                    "http_url": "https://my-domain.tld/input_files/2/some_data.csv",
+                    "connector_type": "http",
+                    "connector_access": {
+                        "url": "https://my-domain.tld/input_files/B/some_data.csv"
+                    }
+
                 }],
                 "result_files": [{
-                    "http_url": "https://my-domain.tld/result_files/2/",
-                    "http_file_name": "some_data.csv"
+                    "connector_type": "http",
+                    "connector_access": {
+                        "url": "https://my-domain.tld/result_files/B/1/",
+                        "method": "POST"
+                    }
                 }, {
-                    "http_url": "https://my-domain.tld/result_files/2/",
-                    "http_file_name": "parameters.txt"
+                    "connector_type": "http",
+                    "connector_access": {
+                        "url": "https://my-domain.tld/result_files/B/2/",
+                        "method": "POST"
+                    }
                 }]
             }]
         }
