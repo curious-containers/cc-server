@@ -4,7 +4,7 @@ Version Management
 This site contains a Docker compatibility table and a change log, including migration instructions.
 
 All Curious Container components (CC-Server, CC-Container-Worker and the CC-Images) have a version tag.
-If you are using CC-Server 0.4 for example, you should use the other components with the exact same version number.
+If you are using CC-Server 0.5 for example, you should use the other components with the exact same version number.
 Docker images with a specific version tag can be pulled from a Docker registry and software versions with a certain tag
 can be pulled from git.
 
@@ -20,10 +20,17 @@ CC-Server    Docker
 0.2          12
 0.3          12
 0.4          12
+0.5          12
 ===========  =========
 
 Change Log
 ----------
+
+Version 0.5
+^^^^^^^^^^^
+
+- Major refactoring of data connectors in CC-Container-Worker. Plugin architecture now supports custom data connectors.
+- CC-Server API change to support the new data connector architecture.
 
 Version 0.4
 ^^^^^^^^^^^

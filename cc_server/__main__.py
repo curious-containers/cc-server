@@ -29,7 +29,7 @@ def get_root():
         Content-Type: application/json
 
         {
-            "version": 0.4
+            "version": 0.5
         }
     """
     return request_handler.get_root()
@@ -154,7 +154,8 @@ def post_tasks():
                 }
             }],
             "notifications": [{
-                "http_url": "my-domain.tld/1/notify
+                "url": "my-domain.tld/notify/",
+                "method": "POST"
             }]
         }
 

@@ -56,7 +56,7 @@ class RequestHandler:
 
     @auth(require_admin=False, require_credentials=False)
     def get_root(self):
-        return {'version': 0.4}
+        return {'version': 0.5}
 
     @auth(require_admin=False)
     def get_token(self):
