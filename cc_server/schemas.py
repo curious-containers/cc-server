@@ -370,6 +370,9 @@ callback_schema = {
                             'items': {'type': ['number', 'null']}
                         },
                         'wall_time': {'type': 'number'},
+                        'std_out': {'type': 'string'},
+                        'std_err': {'type': 'string'},
+                        'return_code': {'type': 'integer'},
                         'tracing': {
                             'type': 'object',
                             'properties': {

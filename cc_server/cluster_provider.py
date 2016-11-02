@@ -156,7 +156,6 @@ class DockerProvider:
             'callback_key': application_container['callback_key'],
             'callback_url': '{}/application-containers/callback'.format(self.config.server['host'].rstrip('/')),
             'result_files': task['result_files'],
-            'no_cache': task.get('no_cache'),
             'parameters': task['application_container_description'].get('parameters'),
             'sandbox': task['application_container_description'].get('sandbox'),
             'tracing': task['application_container_description'].get('tracing')
@@ -220,7 +219,7 @@ class DockerProvider:
             json.dumps(settings)
         )
 
-        print('data_container', command)
+        #print('data_container', command)
 
         mem_limit = '{}MB'.format(self.config.defaults['data_container_description']['container_ram'])
 
