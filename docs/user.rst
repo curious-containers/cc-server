@@ -291,7 +291,7 @@ SSL/TLS certificates.
            "url": "https://my-domain.tld/result_files/some_data.csv",
            "method": "PUT",
            "auth": {
-               "auth_type": "basic"
+               "auth_type": "basic",
                "username": "ccdata",
                "password": "PASSWORD"
            },
@@ -318,7 +318,7 @@ and insecure, but can be used to ignore faulty SSL/TLS certificates.
        "connector_access": {
            "url": "https://my-domain.tld/result_json/",
            "auth": {
-               "auth_type": "basic"
+               "auth_type": "basic",
                "username": "ccdata",
                "password": "PASSWORD"
            },
