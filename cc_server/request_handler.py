@@ -1,8 +1,10 @@
+import json
 from jsonschema import validate
 from threading import Thread
 from traceback import format_exc
 from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, Unauthorized
+from gridfs import GridFS
 
 from cc_server.helper import prepare_response, prepare_input
 from cc_server.states import is_state
@@ -273,6 +275,11 @@ class RequestHandler:
         c = self.mongo.db[collection].find_one({'_id': json_input['container_id']})
         if is_state(c['state'], 'failed') or is_state(c['state'], 'success'):
             return
+
+        if json_input['content'].get('telemetry', {}).get('tracing'):
+            gridfs = GridFS(self.mongo.db, collection='tracing')
+            tracing_id = gridfs.put(json.dumps(json_input['content']['telemetry']['tracing']), encoding='utf-8')
+            json_input['content']['telemetry']['tracing'] = [tracing_id]
 
         self.mongo.db[collection].update({'_id': c['_id']}, {
             '$push': {'callbacks': json_input}
