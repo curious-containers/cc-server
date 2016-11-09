@@ -55,7 +55,6 @@ _syscall_seccomp_filter_schema = {
             'minItems': 0,
             'maxItems': 6,
             'items': {
-                'type': 'object',
                 'anyOf': [
                     _syscall_filter_condition_one_parameter_schema,
                     _syscall_filter_condition_two_parameter_schema
@@ -90,7 +89,6 @@ _sandbox_seccomp_schema = {
         'filter_items': {
             'type': 'array',
             'items': {
-                'type': 'object',
                 'anyOf': [
                     _syscall_seccomp_filter_schema
                 ]
@@ -189,7 +187,6 @@ _tracing_telemetry_syscall_full_schema = {
             'minItems': 0,
             'maxItems': 6,
             'items': {
-                'type': 'object',
                 'anyOf': [
                     _tracing_telemetry_syscall_attribute_schema
                 ]
@@ -248,7 +245,6 @@ _task_schema = {
         'input_files': {
             'type': 'array',
             'items': {
-                'type': 'object',
                 'anyOf': [
                     _connector_schema
                 ]
@@ -257,16 +253,15 @@ _task_schema = {
         'result_files': {
             'type': 'array',
             'items': {
-                'type': 'object',
                 'anyOf': [
-                    _connector_schema
+                    _connector_schema,
+                    {'type': 'null'}
                 ]
             }
         },
         'notifications': {
             'type': 'array',
             'items': {
-                'type': 'object',
                 'anyOf': [
                     _connector_schema
                 ]
@@ -287,7 +282,6 @@ _tasks_schema = {
         'tasks': {
             'type': 'array',
             'items': {
-                'type': 'object',
                 'anyOf': [
                     _task_schema
                 ]
@@ -379,7 +373,6 @@ callback_schema = {
                                 'processes': {
                                     'type': 'array',
                                     'items': {
-                                        'type': 'object',
                                         'anyOf': [
                                             _tracing_telemetry_process_schema
                                         ]
@@ -388,17 +381,15 @@ callback_schema = {
                                 'file_access': {
                                     'type': 'array',
                                     'items': {
-                                        'type': ['string', 'object'],
                                         'anyOf': [
                                             _tracing_telemetry_file_access_short_schema,
-                                            _tracing_telemetry_file_access_full_schema
+                                            _tracing_telemetry_file_access_full_schema,
                                         ]
                                     }
                                 },
                                 'syscalls': {
                                     'type': 'array',
                                     'items': {
-                                        'type': 'object',
                                         'anyOf': [
                                             _tracing_telemetry_syscall_short_schema,
                                             _tracing_telemetry_syscall_full_schema
