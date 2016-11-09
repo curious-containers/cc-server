@@ -5,6 +5,7 @@ from traceback import format_exc
 from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, Unauthorized
 from gridfs import GridFS
+from bson.objectid import ObjectId
 
 from cc_server.helper import prepare_response, prepare_input
 from cc_server.states import is_state
@@ -27,7 +28,7 @@ def auth(require_auth=True, require_admin=True, require_credentials=True):
             if require_auth:
                 if not self.authorize.verify_user(require_admin=require_admin, require_credentials=require_credentials):
                     raise Unauthorized()
-            return jsonify(func(self, *args, **kwargs))
+            return func(self, *args, **kwargs)
         return wrapper
     return dec
 
@@ -58,15 +59,15 @@ class RequestHandler:
 
     @auth(require_admin=False, require_credentials=False)
     def get_root(self):
-        return {'version': 0.5}
+        return jsonify({'version': 0.5})
 
     @auth(require_admin=False)
     def get_token(self):
         token = self.authorize.issue_token()
-        return {
+        return jsonify({
             'token': token,
             'valid_for_seconds': self.config.defaults['authorization'].get('tokens_valid_for_seconds')
-        }
+        })
 
     def _cancel(self, json_input):
         description = 'Task cancelled.'
@@ -117,7 +118,7 @@ class RequestHandler:
         else:
             response = self._cancel_task(json_input, username)
         Thread(target=self.worker.post_container_callback).start()
-        return prepare_response(response)
+        return jsonify(prepare_response(response))
 
     def _register_task(self, json_input, task_group_id):
         json_input['username'] = request.authorization.username
@@ -160,10 +161,8 @@ class RequestHandler:
             result = self._create_task(json_input, task_group_id)
         self.state_handler.transition('task_groups', task_group_id, 'waiting', 'Task group waiting.')
         Thread(target=self.worker.post_task).start()
-        return prepare_response(result)
+        return jsonify(prepare_response(result))
 
-    @auth(require_admin=False, require_credentials=False)
-    @validation(query_schema)
     def _aggregate(self, json_input, collection):
         pipeline = json_input['aggregate']
         if not self.authorize.verify_user(require_credentials=False):
@@ -175,19 +174,55 @@ class RequestHandler:
             raise BadRequest('Could not execute aggregation pipeline with MongoDB: {}'.format(format_exc()))
 
         result = list(cursor)
-        return prepare_response({collection: result})
+        return {collection: result}
 
+    @auth(require_admin=False, require_credentials=False)
+    @validation(query_schema)
     def post_application_containers_query(self, json_input):
-        return self._aggregate(json_input, 'application_containers')
+        return jsonify(prepare_response(self._aggregate(json_input, 'application_containers')))
 
+    @auth(require_admin=False, require_credentials=False)
+    @validation(query_schema)
     def post_data_containers_query(self, json_input):
-        return self._aggregate(json_input, 'data_containers')
+        return jsonify(prepare_response(self._aggregate(json_input, 'data_containers')))
 
+    @auth(require_admin=False, require_credentials=False)
+    @validation(query_schema)
     def post_tasks_query(self, json_input):
-        return self._aggregate(json_input, 'tasks')
+        return jsonify(prepare_response(self._aggregate(json_input, 'tasks')))
 
+    @auth(require_admin=False, require_credentials=False)
+    @validation(query_schema)
     def post_task_groups_query(self, json_input):
-        return self._aggregate(json_input, 'task_groups')
+        return jsonify(prepare_response(self._aggregate(json_input, 'task_groups')))
+
+    @auth(require_admin=False, require_credentials=False)
+    def get_application_containers_tracing(self, _id):
+        try:
+            _id = ObjectId(_id)
+        except:
+            raise BadRequest('_id not valid: {}'.format(format_exc()))
+
+        query = {'aggregate': [
+            {'$match': {'_id': _id}},
+            {'$project': {'callbacks.content.telemetry.tracing': 1}}
+        ]}
+        result = self._aggregate(query, 'application_containers')
+        tracing_id = None
+        try:
+            tracing_id = result['application_containers'][0]['callbacks'][2]['content']['telemetry']['tracing'][0]
+        except:
+            pass
+
+        if not tracing_id:
+            return jsonify({})
+
+        gridfs = GridFS(self.mongo.db, collection='tracing')
+        tracing = gridfs.find_one({'_id': tracing_id}).read().decode('utf-8')
+        if not tracing:
+            return jsonify({})
+
+        return tracing
 
     @auth(require_auth=False)
     @validation(callback_schema)
@@ -237,14 +272,14 @@ class RequestHandler:
                                 }
                             })
                             break
-            return response
+            return jsonify(response)
 
         elif json_input['callback_type'] == 3:
             description = 'Callback with callback_type 3 and has been sent.'
             self.state_handler.transition('application_containers', c['_id'], 'success', description)
             Thread(target=self.worker.post_container_callback).start()
 
-        return {}
+        return jsonify({})
 
     @auth(require_auth=False)
     @validation(callback_schema)
@@ -269,7 +304,7 @@ class RequestHandler:
 
             Thread(target=self.worker.post_data_container_callback).start()
 
-        return {}
+        return jsonify({})
 
     def _validate_callback(self, json_input, collection):
         c = self.mongo.db[collection].find_one({'_id': json_input['container_id']})

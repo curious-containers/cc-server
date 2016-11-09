@@ -383,6 +383,15 @@ def post_application_containers_query():
     return request_handler.post_application_containers_query(request.get_json())
 
 
+@app.route('/application-containers/<_id>/tracing', methods=['GET'])
+def get_application_containers_tracing(_id):
+    """
+    .. :quickref: User API; Retrieve tracing data of app container.
+
+    """
+    return request_handler.get_application_containers_tracing(_id)
+
+
 @app.route('/data-containers/query', methods=['POST'])
 def post_data_containers_query():
     """
