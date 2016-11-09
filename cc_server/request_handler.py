@@ -276,7 +276,7 @@ class RequestHandler:
         if is_state(c['state'], 'failed') or is_state(c['state'], 'success'):
             return
 
-        if json_input['content'].get('telemetry', {}).get('tracing'):
+        if json_input['content'].get('telemetry') and json_input['content'].get('telemetry').get('tracing'):
             gridfs = GridFS(self.mongo.db, collection='tracing')
             tracing_id = gridfs.put(json.dumps(json_input['content']['telemetry']['tracing']), encoding='utf-8')
             json_input['content']['telemetry']['tracing'] = [tracing_id]
