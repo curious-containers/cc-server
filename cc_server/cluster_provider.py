@@ -249,7 +249,13 @@ class DockerProvider:
 
 
 def _to_mib(val, unit):
-    if unit != 'GiB':
-        raise Exception("Unit '{}' not supported.".format(unit))
+    if unit == 'B':
+        return val / (1000 ** 2)
+    elif unit == 'KiB':
+        return val / 1000
+    elif unit == 'MiB':
+        return val
+    elif unit == 'GiB':
+        return val * 1000
 
-    return val * 1000
+    raise Exception("Unit '{}' not supported.".format(unit))
