@@ -23,7 +23,7 @@ mongo = MongoClient('mongodb://%s:%s@%s/%s' % (
     config.mongo['dbname']
 ))
 
-delete_collections = ['tasks', 'task_groups', 'application_containers', 'data_containers', 'block_entries']
+delete_collections = ['tasks', 'task_groups', 'application_containers', 'data_containers', 'block_entries', 'tracing']
 preserve_collections = ['users']
 
 print('You are in the process of DELETING the following database collections:')
@@ -35,7 +35,8 @@ for c in preserve_collections:
 
 input('Hit [ENTER] to proceed...')
 
+db = mongo[config.mongo['dbname']]
 for c in delete_collections:
-    mongo.db[c].drop()
+    db[c].drop()
 
 print('Done!')
