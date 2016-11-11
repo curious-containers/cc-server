@@ -108,6 +108,8 @@ class DockerProvider:
         with self.thread_limit:
             for line in self.client.pull(image, stream=True, auth_config=registry_auth):
                 line = str(line)
+                if self.config.server.get('debug'):
+                    print(line)
                 if 'error' in line.lower():
                     raise(Exception(line))
 
@@ -170,7 +172,8 @@ class DockerProvider:
             json.dumps(settings)
         )
 
-        #print('application_container', command)
+        if self.config.server.get('debug'):
+            print('application_container', command)
 
         mem_limit = '{}MB'.format(task['application_container_description']['container_ram'])
 
@@ -219,7 +222,8 @@ class DockerProvider:
             json.dumps(settings)
         )
 
-        #print('data_container', command)
+        if self.config.server.get('debug'):
+            print('data_container', command)
 
         mem_limit = '{}MB'.format(self.config.defaults['data_container_description']['container_ram'])
 
