@@ -2,12 +2,12 @@
 
 import sys
 import os
-from pymongo import MongoClient
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
 
 from cc_server.configuration import Config
+from cc_server.database import Mongo
 
 conf_file_path = None
 try:
@@ -16,12 +16,9 @@ except:
     pass
 
 config = Config(conf_file_path)
-mongo = MongoClient('mongodb://%s:%s@%s/%s' % (
-    config.mongo['username'],
-    config.mongo['password'],
-    config.mongo['host'],
-    config.mongo['dbname']
-))
+mongo = Mongo(
+    config=config
+)
 
 delete_collections = ['tasks', 'task_groups', 'application_containers', 'data_containers', 'block_entries', 'tracing']
 preserve_collections = ['users']
@@ -35,8 +32,6 @@ for c in preserve_collections:
 
 input('Hit [ENTER] to proceed...')
 
-db = mongo[config.mongo['dbname']]
-for c in delete_collections:
-    db[c].drop()
+mongo.drop_db_collections(delete_collections)
 
 print('Done!')

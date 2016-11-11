@@ -523,10 +523,10 @@ def main():
     from logging.handlers import RotatingFileHandler
     from os import makedirs
     from os.path import expanduser, join, exists
-    from pymongo import MongoClient
     from pprint import pprint
     from threading import Thread
     from cc_server.configuration import Config
+    from cc_server.database import Mongo
     from cc_server.worker import Worker
     from cc_server.request_handler import RequestHandler
     from cc_server.scheduling import Scheduler
@@ -556,12 +556,9 @@ def main():
         debug_log.setLevel(logging.DEBUG)
         logging.getLogger('werkzeug').addHandler(debug_log)
 
-    mongo = MongoClient('mongodb://%s:%s@%s/%s' % (
-        config.mongo['username'],
-        config.mongo['password'],
-        config.mongo['host'],
-        config.mongo['dbname']
-    ))
+    mongo = Mongo(
+        config=config
+    )
     state_handler = StateHandler(
         mongo=mongo,
         config=config
