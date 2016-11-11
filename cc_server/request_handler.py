@@ -62,6 +62,11 @@ class RequestHandler:
         return jsonify({'version': 0.5})
 
     @auth(require_admin=False)
+    def put_worker(self):
+        Thread(target=self.worker.post_task).start()
+        return jsonify({})
+
+    @auth(require_admin=False)
     def get_token(self):
         token = self.authorize.issue_token()
         return jsonify({
