@@ -1,8 +1,8 @@
 import os
 import toml
-from pymongo import MongoClient
 
 from cc_server.configuration import Config
+from cc_server.database import Mongo
 from cc_server.authorization import Authorize
 from cc_server.__main__ import main
 
@@ -14,13 +14,9 @@ password = credentials['credentials']['password']
 
 config = Config(None)
 
-mongo = MongoClient('mongodb://%s:%s@%s/%s' % (
-    config.mongo['username'],
-    config.mongo['password'],
-    config.mongo['host'],
-    config.mongo['dbname']
-))
-
+mongo = Mongo(
+    config=config
+)
 authorize = Authorize(
     mongo=mongo,
     config=config
