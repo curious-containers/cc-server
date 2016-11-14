@@ -647,6 +647,7 @@ def main():
     # ----------- update nodes status -----------
     print('Update nodes status...')
     cluster.update_nodes_status()
+    # -------------------------------------------
 
     # --------------- docker info ---------------
     print('Healthy nodes:')

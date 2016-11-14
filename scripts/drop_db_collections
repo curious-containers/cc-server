@@ -20,8 +20,18 @@ mongo = Mongo(
     config=config
 )
 
-delete_collections = ['tasks', 'task_groups', 'application_containers', 'data_containers', 'block_entries', 'tracing']
-preserve_collections = ['users']
+delete_collections = [
+    'tasks',
+    'task_groups',
+    'application_containers',
+    'data_containers',
+    'block_entries',
+    'tracing',
+    'dead_nodes'
+]
+preserve_collections = [
+    'users'
+]
 
 print('You are in the process of DELETING the following database collections:')
 for c in delete_collections:
