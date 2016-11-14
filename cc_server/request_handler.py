@@ -1,5 +1,5 @@
 import json
-from jsonschema import validate
+import jsonschema
 from threading import Thread
 from traceback import format_exc
 from flask import request, jsonify
@@ -23,6 +23,7 @@ def task_group_prototype():
 
 
 def auth(require_auth=True, require_admin=True, require_credentials=True):
+    """function decorator"""
     def dec(func):
         def wrapper(self, *args, **kwargs):
             if require_auth:
@@ -33,16 +34,34 @@ def auth(require_auth=True, require_admin=True, require_credentials=True):
     return dec
 
 
+def _validate_schema_worker(json_input, schema):
+    try:
+        jsonschema.validate(json_input, schema)
+    except:
+        return format_exc()
+    return None
+
+
 def validation(schema):
+    """function decorator"""
     def dec(func):
         def wrapper(self, json_input, *args, **kwargs):
+            # json schema validation
+            formatted_exception = self.worker.pool.apply(_validate_schema_worker, (json_input, schema))
+            if formatted_exception:
+                if self.config.server.get('debug'):
+                    print(formatted_exception)
+                raise BadRequest('JSON input not valid: {}'.format(formatted_exception))
+
+            # cast string IDs to ObjectIDs
             try:
-                validate(json_input, schema)
                 json_input = prepare_input(json_input)
             except:
                 if self.config.server.get('debug'):
                     print(format_exc())
                 raise BadRequest('JSON input not valid: {}'.format(format_exc()))
+
+            # call request function
             return func(self, json_input, *args, **kwargs)
         return wrapper
     return dec

@@ -1,10 +1,12 @@
 from threading import Lock, Thread
+from multiprocessing import Pool, cpu_count
 
 from cc_server.states import state_to_index
 
 
 class Worker:
     def __init__(self, mongo, cluster, scheduler, state_handler):
+        self.pool = Pool(processes=cpu_count())
         self.cluster = cluster
         self.mongo = mongo
         self.scheduler = scheduler
