@@ -545,6 +545,9 @@ def post_data_container_callback():
 
 
 def main():
+    import multiprocessing
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+
     import sys
     import logging
     from logging.handlers import RotatingFileHandler
@@ -635,7 +638,8 @@ def main():
         worker=worker,
         authorize=authorize,
         config=config,
-        state_handler=state_handler
+        state_handler=state_handler,
+        pool=pool
     )
     # -------------------------------------------
 

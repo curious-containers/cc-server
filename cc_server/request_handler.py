@@ -46,7 +46,7 @@ def validation(schema):
     def dec(func):
         def wrapper(self, json_input, *args, **kwargs):
             # json schema validation
-            formatted_exception = self.worker.pool.apply(_validate_schema_worker, (json_input, schema))
+            formatted_exception = self.pool.apply(_validate_schema_worker, (json_input, schema))
             if formatted_exception:
                 if self.config.server.get('debug'):
                     print(formatted_exception)
@@ -67,13 +67,14 @@ def validation(schema):
 
 
 class RequestHandler:
-    def __init__(self, mongo, cluster, worker, authorize, config, state_handler):
+    def __init__(self, mongo, cluster, worker, authorize, config, state_handler, pool):
         self.cluster = cluster
         self.mongo = mongo
         self.worker = worker
         self.authorize = authorize
         self.config = config
         self.state_handler = state_handler
+        self.pool = pool
 
     @auth(require_admin=False, require_credentials=False)
     def get_root(self):
