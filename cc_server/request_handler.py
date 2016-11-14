@@ -22,13 +22,12 @@ def task_group_prototype():
     }
 
 
-def auth(require_auth=True, require_admin=True, require_credentials=True):
+def auth(require_admin=True, require_credentials=True):
     """function decorator"""
     def dec(func):
         def wrapper(self, *args, **kwargs):
-            if require_auth:
-                if not self.authorize.verify_user(require_admin=require_admin, require_credentials=require_credentials):
-                    raise Unauthorized()
+            if not self.authorize.verify_user(require_admin=require_admin, require_credentials=require_credentials):
+                raise Unauthorized()
             return func(self, *args, **kwargs)
         return wrapper
     return dec
@@ -248,7 +247,6 @@ class RequestHandler:
 
         return tracing
 
-    @auth(require_auth=False)
     @validation(callback_schema)
     def post_application_container_callback(self, json_input):
         if not self.authorize.verify_callback(json_input, 'application_containers'):
@@ -305,7 +303,6 @@ class RequestHandler:
 
         return jsonify({})
 
-    @auth(require_auth=False)
     @validation(callback_schema)
     def post_data_container_callback(self, json_input):
         if not self.authorize.verify_callback(json_input, 'data_containers'):
