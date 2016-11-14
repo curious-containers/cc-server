@@ -69,6 +69,9 @@ class DockerProvider:
     def update_nodes_status(self):
         nodes = self._info_style()
         for node in nodes:
+            if node.get('status', 'healthy') != 'healthy':
+                continue
+
             is_dead = False
             container_name = str(uuid4())
             node_name = node['name']
