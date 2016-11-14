@@ -644,8 +644,15 @@ def main():
     cluster.update_data_container_image(config.defaults['data_container_description']['image'])
     # -------------------------------------------
 
+    # ----------- update nodes status -----------
+    print('Update nodes status...')
+    cluster.update_nodes_status()
+
     # --------------- docker info ---------------
+    print('Healthy nodes:')
     pprint(cluster_provider.nodes())
+    print('Dead nodes:')
+    pprint(list(mongo.db['dead_nodes'].find({})))
     # -------------------------------------------
 
     Thread(target=worker.post_task).start()

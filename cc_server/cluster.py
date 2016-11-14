@@ -17,6 +17,9 @@ class Cluster:
     def get_ip(self, _id):
         return self.cluster_provider.get_ip(_id)
 
+    def update_nodes_status(self):
+        self.cluster_provider.update_nodes_status()
+
     def nodes(self):
         return self.cluster_provider.nodes()
 
