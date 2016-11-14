@@ -17,7 +17,8 @@ class DockerProvider:
 
         self.client = docker.Client(
             base_url=self.config.docker['base_url'],
-            tls=tls
+            tls=tls,
+            timeout=self.config.docker.get('timeout')
         )
 
         self.thread_limit = Semaphore(self.config.docker['thread_limit'])
