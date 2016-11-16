@@ -88,11 +88,7 @@ _sandbox_seccomp_schema = {
         },
         'filter_items': {
             'type': 'array',
-            'items': {
-                'anyOf': [
-                    _syscall_seccomp_filter_schema
-                ]
-            }
+            'items': _syscall_seccomp_filter_schema
         }
     },
     'required': ['mode'],
@@ -102,18 +98,8 @@ _sandbox_seccomp_schema = {
 _sandbox_schema = {
     'type': 'object',
     'properties': {
-        'limits': {
-            'type': 'object',
-            'anyOf': [
-                _sandbox_limits_schema
-            ]
-        },
-        'seccomp': {
-            'type': 'object',
-            'anyOf': [
-                _sandbox_seccomp_schema
-            ]
-        }
+        'limits': _sandbox_limits_schema,
+        'seccomp': _sandbox_seccomp_schema
     },
     'additionalProperties': False
 }
@@ -186,11 +172,7 @@ _tracing_telemetry_syscall_full_schema = {
             'type': 'array',
             'minItems': 0,
             'maxItems': 6,
-            'items': {
-                'anyOf': [
-                    _tracing_telemetry_syscall_attribute_schema
-                ]
-            }
+            'items': _tracing_telemetry_syscall_attribute_schema
         }
     },
     'required': ['name', 'pid', 'start', 'end', 'result', 'attributes'],
@@ -220,18 +202,8 @@ _task_schema = {
                     'additionalProperties': False
                 },
                 'container_ram': {'type': 'number'},
-                'tracing': {
-                    'type': 'object',
-                    'anyOf': [
-                        _tracing_schema
-                    ]
-                },
-                'sandbox': {
-                    'type': 'object',
-                    'anyOf': [
-                        _sandbox_schema
-                    ]
-                },
+                'tracing': _tracing_schema,
+                'sandbox': _sandbox_schema,
                 'parameters': {
                     'anyOf': [
                         {'type': 'object'},
@@ -244,11 +216,7 @@ _task_schema = {
         },
         'input_files': {
             'type': 'array',
-            'items': {
-                'anyOf': [
-                    _connector_schema
-                ]
-            }
+            'items': _connector_schema
         },
         'result_files': {
             'type': 'array',
@@ -261,11 +229,7 @@ _task_schema = {
         },
         'notifications': {
             'type': 'array',
-            'items': {
-                'anyOf': [
-                    _connector_schema
-                ]
-            }
+            'items': _connector_schema
         }
     },
     'required': [
@@ -276,16 +240,40 @@ _task_schema = {
     'additionalProperties': False
 }
 
+_tracing_telemetry_schema = {
+    'type': 'object',
+    'properties': {
+        'processes': {
+            'type': 'array',
+            'items':  _tracing_telemetry_process_schema
+        },
+        'file_access': {
+            'type': 'array',
+            'items': {
+                'anyOf': [
+                    _tracing_telemetry_file_access_short_schema,
+                    _tracing_telemetry_file_access_full_schema,
+                ]
+            }
+        },
+        'syscalls': {
+            'type': 'array',
+            'items': {
+                'anyOf': [
+                    _tracing_telemetry_syscall_short_schema,
+                    _tracing_telemetry_syscall_full_schema
+                ]
+            }
+        }
+    }
+}
+
 _tasks_schema = {
     'type': 'object',
     'properties': {
         'tasks': {
             'type': 'array',
-            'items': {
-                'anyOf': [
-                    _task_schema
-                ]
-            }
+            'items': _task_schema
         }
     },
     'required': ['tasks'],
@@ -293,7 +281,6 @@ _tasks_schema = {
 }
 
 tasks_schema = {
-    'type': 'object',
     'anyOf': [
         _task_schema,
         _tasks_schema
@@ -367,37 +354,7 @@ callback_schema = {
                         'std_out': {'type': 'string'},
                         'std_err': {'type': 'string'},
                         'return_code': {'type': 'integer'},
-                        'tracing': {
-                            'type': 'object',
-                            'properties': {
-                                'processes': {
-                                    'type': 'array',
-                                    'items': {
-                                        'anyOf': [
-                                            _tracing_telemetry_process_schema
-                                        ]
-                                    }
-                                },
-                                'file_access': {
-                                    'type': 'array',
-                                    'items': {
-                                        'anyOf': [
-                                            _tracing_telemetry_file_access_short_schema,
-                                            _tracing_telemetry_file_access_full_schema,
-                                        ]
-                                    }
-                                },
-                                'syscalls': {
-                                    'type': 'array',
-                                    'items': {
-                                        'anyOf': [
-                                            _tracing_telemetry_syscall_short_schema,
-                                            _tracing_telemetry_syscall_full_schema
-                                        ]
-                                    }
-                                }
-                            },
-                        }
+                        'tracing': _tracing_telemetry_schema
                     },
                     'additionalProperties': False
                 }
