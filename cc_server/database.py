@@ -3,7 +3,7 @@ import pymongo
 
 class Mongo:
     def __init__(self, config):
-        self.db = pymongo.MongoClient('mongodb://%s:%s@%s/%s' % (
+        self.db = pymongo.MongoClient('mongodb://{}:{}@{}/{}'.format(
             config.mongo['username'],
             config.mongo['password'],
             config.mongo['host'],

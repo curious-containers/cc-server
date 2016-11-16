@@ -1,11 +1,8 @@
-import json
 import jsonschema
 from threading import Thread
 from traceback import format_exc
 from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, Unauthorized
-from gridfs import GridFS
-from bson.objectid import ObjectId
 
 from cc_server.helper import prepare_response, prepare_input
 from cc_server.states import is_state
@@ -220,34 +217,6 @@ class RequestHandler:
     def post_task_groups_query(self, json_input):
         return jsonify(prepare_response(self._aggregate(json_input, 'task_groups')))
 
-    @auth(require_admin=False, require_credentials=False)
-    def get_application_containers_tracing(self, _id):
-        try:
-            _id = ObjectId(_id)
-        except:
-            raise BadRequest('_id not valid: {}'.format(format_exc()))
-
-        query = {'aggregate': [
-            {'$match': {'_id': _id}},
-            {'$project': {'callbacks.content.telemetry.tracing': 1}}
-        ]}
-        result = self._aggregate(query, 'application_containers')
-        tracing_id = None
-        try:
-            tracing_id = result['application_containers'][0]['callbacks'][2]['content']['telemetry']['tracing'][0]
-        except:
-            pass
-
-        if not tracing_id:
-            return jsonify({})
-
-        gridfs = GridFS(self.mongo.db, collection='tracing')
-        tracing = gridfs.find_one({'_id': tracing_id}).read().decode('utf-8')
-        if not tracing:
-            return jsonify({})
-
-        return tracing
-
     @validation(callback_schema)
     def post_application_container_callback(self, json_input):
         if not self.authorize.verify_callback(json_input, 'application_containers'):
@@ -332,11 +301,6 @@ class RequestHandler:
         c = self.mongo.db[collection].find_one({'_id': json_input['container_id']})
         if is_state(c['state'], 'failed') or is_state(c['state'], 'success'):
             return
-
-        #if json_input['content'].get('telemetry') and json_input['content'].get('telemetry').get('tracing'):
-        #    gridfs = GridFS(self.mongo.db, collection='tracing')
-        #    tracing_id = gridfs.put(json.dumps(json_input['content']['telemetry']['tracing']), encoding='utf-8')
-        #    json_input['content']['telemetry']['tracing'] = [tracing_id]
 
         self.mongo.db[collection].update({'_id': c['_id']}, {
             '$push': {'callbacks': json_input}

@@ -411,33 +411,6 @@ def post_application_containers_query():
     return request_handler.post_application_containers_query(request.get_json())
 
 
-@app.route('/application-containers/<_id>/tracing', methods=['GET'])
-def get_application_containers_tracing(_id):
-    """
-    .. :quickref: User API; Retrieve tracing data of app container
-
-    Specify the _id of an app container to retrieve tracing information. This might return an empty JSON object if no
-    tracing data has been collected or if the app container is not accessible.
-
-    **Example request**
-
-    .. sourcecode:: http
-
-        GET /application-containers/57c3f517e00423251662f036/tracing HTTP/1.1
-
-    **Example response**
-
-    .. sourcecode:: http
-
-        HTTP/1.1 200 OK
-        Vary: Accept
-        Content-Type: application/json
-
-        {}
-    """
-    return request_handler.get_application_containers_tracing(_id)
-
-
 @app.route('/data-containers/query', methods=['POST'])
 def post_data_containers_query():
     """
