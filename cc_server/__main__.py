@@ -545,17 +545,33 @@ def post_data_container_callback():
 
 
 def main():
-    import multiprocessing
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-
     import sys
+    import multiprocessing
+    from cc_server.configuration import Config
+
+    # --------------- load config ---------------
+    conf_file_path = None
+    try:
+        conf_file_path = sys.argv[1]
+    except:
+        pass
+    config = Config(conf_file_path)
+    # -------------------------------------------
+
+    # ------------- initialize pool -------------
+    num_worker_processes = config.server.get('num_worker_processes')
+    if not num_worker_processes:
+        num_worker_processes = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=num_worker_processes)
+    # -------------------------------------------
+
     import logging
     from logging.handlers import RotatingFileHandler
     from os import makedirs
     from os.path import expanduser, join, exists
     from pprint import pprint
     from threading import Thread
-    from cc_server.configuration import Config
+
     from cc_server.database import Mongo
     from cc_server.worker import Worker
     from cc_server.request_handler import RequestHandler
@@ -568,15 +584,7 @@ def main():
     from cc_server.authorization import Authorize
     from cc_server.states import StateHandler
 
-    # ---------- initialize singletons ----------
-    conf_file_path = None
-    try:
-        conf_file_path = sys.argv[1]
-    except:
-        pass
-
-    config = Config(conf_file_path)
-
+    # ------------ initialize logger ------------
     if config.server.get('log_dir'):
         log_dir = expanduser(config.server['log_dir'])
         if not exists(log_dir):
@@ -585,7 +593,9 @@ def main():
         debug_log = RotatingFileHandler(join(log_dir, 'debug.log'), maxBytes=1024*1024*100, backupCount=20)
         debug_log.setLevel(logging.DEBUG)
         logging.getLogger('werkzeug').addHandler(debug_log)
+    # -------------------------------------------
 
+    # ---------- initialize singletons ----------
     mongo = Mongo(
         config=config
     )

@@ -19,7 +19,8 @@ _tracing_schema = {
         },
         'syscall': {
             'enum': ['none', 'short', 'full']
-        }
+        },
+        'tracing_file': _connector_schema
     },
     'required': ['enabled'],
     'additionalProperties': False
@@ -353,8 +354,7 @@ callback_schema = {
                         'wall_time': {'type': 'number'},
                         'std_out': {'type': 'string'},
                         'std_err': {'type': 'string'},
-                        'return_code': {'type': 'integer'},
-                        'tracing': _tracing_telemetry_schema
+                        'return_code': {'type': 'integer'}
                     },
                     'additionalProperties': False
                 }
