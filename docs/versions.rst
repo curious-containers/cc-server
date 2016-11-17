@@ -31,6 +31,8 @@ Version 0.6
 ^^^^^^^^^^^
 
 - This release fixes several critical bugs. Please note, that a new database will be created by default. In the CC-Server config.toml file, specify **dbname** as *db* to keep using the existing database.
+- Experimental support for invalidation of dead cluster nodes
+- Experimental support for tracing and sandboxing (undocumented)
 
 Version 0.5
 ^^^^^^^^^^^
