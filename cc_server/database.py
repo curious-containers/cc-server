@@ -3,10 +3,11 @@ import pymongo
 
 class Mongo:
     def __init__(self, config):
-        self.db = pymongo.MongoClient('mongodb://{}:{}@{}/{}'.format(
+        self.db = pymongo.MongoClient('mongodb://{}:{}@{}:{}/{}'.format(
             config.mongo['username'],
             config.mongo['password'],
             config.mongo['host'],
+            config.mongo.get('port', 27017),
             config.mongo['dbname']
         ))[config.mongo['dbname']]
 
