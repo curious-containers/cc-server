@@ -3,7 +3,7 @@ _connector_schema = {
     'properties': {
         'connector_type': {'type': 'string'},
         'connector_access': {'type': 'object'},
-        'enrich_metadata': {'type': 'boolean'}
+        'add_meta_data': {'type': 'boolean'}
     },
     'required': ['connector_type', 'connector_access'],
     'additionalProperties': False

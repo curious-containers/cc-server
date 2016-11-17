@@ -66,4 +66,86 @@ the following command.
 Custom Data Connectors
 ----------------------
 
-TODO
+In the CC-Container-Worker source code all data connectors for input files are located in *downloaders.py* and all data
+connectors for result files are located in *uploaders.py*. They are standalone functions, which share the same interface.
+In the function signature of the downloaders two arguments, **connector_access** and **local_input_file**, are specified.
+For the uploaders a three arguments, **connector_access**, **local_result_file** and **meta_data**, are specified. The
+argument **connector_access** will be filled with a dictionary of the **connector_access** information for a certain
+file, specified by a user in a task description. The **local_input_file** / **local_result_file** arguments will be
+will be filled with the respective information from the *config.toml* of the CC-Container-Worker, which contains
+information, where the file can be found or should be placed in the local file system of the Docker container. The
+**meta_data** argument must be in the function signature of the uploader, but is entirely optional to be used in the
+code. The existing data connectors give a good example how these arguments are used.
+
+In order to create custom data connectors, the empty Python files *custom_downloaders.py* and *custom_uploaders.py* of
+CC-Container-Worker can be overwritten when building a container image and filled. The CC-Worker-Worker will
+automatically pick up all functions specified in these files, which do not start with an underscore. The only
+requirement is that the function signatures are specified correctly and that the given function names are unique and do
+not collide with the existing connectors. A user can reference the custom connectors by specifying **connector_type**
+equals the function name in a task description.
+
+
+Sample implementation of a multi-file uploader
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**custom_uploaders.py**:
+
+.. code-block:: python
+
+   def http_multi_file(connector_access, local_result_file, meta_data):
+       local_file_paths = glob.glob(os.path.join(
+           local_result_file['dir'],
+           local_result_file['names']
+       ))
+
+       for local_file_path in local_file_paths:
+           with open(local_file_path, 'rb') as f:
+               r = requests.put(
+                   connector_access['url'],
+                   data=f,
+                   auth=helper.auth(connector_access.get('auth'))
+               )
+               r.raise_for_status()
+
+
+**config.toml** of CC-Container-Worker:
+
+.. code-block:: toml
+
+   [main]
+   application_command = 'bash /root/wrapper_sn_edfScan2edfData.sh'
+   local_input_files = []
+   local_result_files = [
+       {'dir' = '/home/ubuntu/result_files', 'names' = '*.csv'} # file name pattern
+   ]
+
+
+**Dockerfile**:
+
+.. code-block:: docker
+
+   FROM docker.io/curiouscontainers/cc-image-ubuntu
+   COPY config.toml /opt/config.toml
+
+   COPY custom_uploaders.py /opt/container_worker/custom_uploaders.py
+
+   COPY algorithm.sh /home/ubuntu/algorithm.sh
+
+
+Excerpt from a sample **task**:
+
+.. code-block:: json
+
+   {
+       "result_files": [{
+           "connector_type": "http_multi_file",
+           "connector_access": {
+               "url": "my-domain.tld/multi-file-endpoint",
+               "auth": {
+                   "auth_type": "basic",
+                   "username": "ccdata",
+                   "password": "PASSWORD"
+               }
+           }
+       }]
+   }
