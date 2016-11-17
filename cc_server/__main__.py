@@ -519,25 +519,6 @@ def post_data_container_callback():
 
 def main():
     import sys
-    import multiprocessing
-    from cc_server.configuration import Config
-
-    # --------------- load config ---------------
-    conf_file_path = None
-    try:
-        conf_file_path = sys.argv[1]
-    except:
-        pass
-    config = Config(conf_file_path)
-    # -------------------------------------------
-
-    # ------------- initialize pool -------------
-    num_worker_processes = config.server.get('num_worker_processes')
-    if not num_worker_processes:
-        num_worker_processes = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(processes=num_worker_processes)
-    # -------------------------------------------
-
     import logging
     from logging.handlers import RotatingFileHandler
     from os import makedirs
@@ -545,6 +526,7 @@ def main():
     from pprint import pprint
     from threading import Thread
 
+    from cc_server.configuration import Config
     from cc_server.database import Mongo
     from cc_server.worker import Worker
     from cc_server.request_handler import RequestHandler
@@ -556,6 +538,15 @@ def main():
     from cc_server.cluster_provider import DockerProvider
     from cc_server.authorization import Authorize
     from cc_server.states import StateHandler
+
+    # --------------- load config ---------------
+    conf_file_path = None
+    try:
+        conf_file_path = sys.argv[1]
+    except:
+        pass
+    config = Config(conf_file_path)
+    # -------------------------------------------
 
     # ------------ initialize logger ------------
     if config.server.get('log_dir'):
@@ -622,7 +613,6 @@ def main():
         authorize=authorize,
         config=config,
         state_handler=state_handler,
-        pool=pool
     )
     # -------------------------------------------
 

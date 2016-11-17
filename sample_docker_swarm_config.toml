@@ -10,7 +10,8 @@ log_dir = '~/.cc_server/'
 username = 'ccdbAdmin'
 password = 'PASSWORD'
 host = 'localhost'
-dbname = 'ccdb'
+port = 27017
+db = 'ccdb'
 
 [docker]
 thread_limit = 8

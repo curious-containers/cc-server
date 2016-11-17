@@ -106,81 +106,6 @@ _sandbox_schema = {
     'additionalProperties': False
 }
 
-_tracing_telemetry_process_schema = {
-    'type': 'object',
-    'properties': {
-        'pid': {'type': 'integer'},
-        'start': {'type': 'number'},
-        'end': {'type': ['number', 'null']},
-        'exit_code': {'type': ['integer', 'null']},
-        'signal': {'type': ['integer', 'null']}
-    },
-    'required': ['pid', 'start', 'end', 'exit_code', 'signal'],
-    'additionalProperties': False
-}
-
-_tracing_telemetry_file_access_short_schema = {
-    'type': 'string'
-}
-
-_tracing_telemetry_file_access_full_schema = {
-    'type': 'object',
-    'properties': {
-        'filename': {'type': 'string'},
-        'is_directory': {'type': 'boolean'},
-        'exists': {'type': 'boolean'},
-        'syscall': {'type': 'string'},
-        'access_time': {'type': 'number'},
-        'pid': {'type': 'integer'},
-        'syscall_result': {'type': 'integer'}
-    },
-    'required': ['pid', 'filename', 'is_directory', 'exists', 'syscall', 'access_time', 'syscall_result'],
-    'additionalProperties': False
-}
-
-_tracing_telemetry_syscall_attribute_schema = {
-    'type': 'object',
-    'properties': {
-        'name': {'type': ['string', 'null']},
-        'type': {'type': ['string', 'null']},
-        'text': {'type': ['string', 'null']}
-    },
-    'required': ['name', 'type', 'text'],
-    'additionalProperties': False
-}
-
-_tracing_telemetry_syscall_short_schema = {
-    'type': 'object',
-    'properties': {
-        'name': {'type': 'string'},
-        'pid': {'type': 'integer'},
-        'start': {'type': 'number'},
-        'end': {'type': ['number', 'null']},
-        'result': {'type': ['integer', 'null']}
-    },
-    'required': ['name', 'pid', 'start', 'end', 'result'],
-    'additionalProperties': False
-}
-
-_tracing_telemetry_syscall_full_schema = {
-    'type': 'object',
-    'properties': {
-        'name': {'type': 'string'},
-        'pid': {'type': 'integer'},
-        'start': {'type': 'number'},
-        'end': {'type': ['number', 'null']},
-        'result': {'type': ['integer', 'null']},
-        'attributes': {
-            'type': 'array',
-            'minItems': 0,
-            'maxItems': 6,
-            'items': _tracing_telemetry_syscall_attribute_schema
-        }
-    },
-    'required': ['name', 'pid', 'start', 'end', 'result', 'attributes'],
-    'additionalProperties': False
-}
-
 _task_schema = {
     'type': 'object',
     'properties': {
@@ -240,34 +165,6 @@ _task_schema = {
         'result_files'
     ],
     'additionalProperties': False
-}
-
-_tracing_telemetry_schema = {
-    'type': 'object',
-    'properties': {
-        'processes': {
-            'type': 'array',
-            'items':  _tracing_telemetry_process_schema
-        },
-        'file_access': {
-            'type': 'array',
-            'items': {
-                'anyOf': [
-                    _tracing_telemetry_file_access_short_schema,
-                    _tracing_telemetry_file_access_full_schema,
-                ]
-            }
-        },
-        'syscalls': {
-            'type': 'array',
-            'items': {
-                'anyOf': [
-                    _tracing_telemetry_syscall_short_schema,
-                    _tracing_telemetry_syscall_full_schema
-                ]
-            }
-        }
-    }
 }
 
 _tasks_schema = {

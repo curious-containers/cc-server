@@ -201,7 +201,8 @@ This connector uses an SSH tunnel to transfer files via the SFTP protocol. This 
 it is the easiest way to configure a secure file server, that can be exposed to the internet if required. Create a new
 system user (e.g *ccdata*) with a strong password on a server and enable ssh access with password authentication.
 The user should only have access to the users home directory. Place the files that should be accessible in this directory.
-Specify the mandatory JSON fields **host**, **username**, **password**, **file_dir** and **file_name**.
+Specify the mandatory JSON fields **host**, **username**, **password**, **file_dir** and **file_name**. The **port**
+field is optional.
 
 .. code-block:: json
 
@@ -209,6 +210,7 @@ Specify the mandatory JSON fields **host**, **username**, **password**, **file_d
        "connector_type": "ssh",
        "connector_access": {
            "host": "my-domain.tld",
+           "port": 22,
            "username": "ccdata",
            "password": "PASSWORD",
            "file_dir": "/home/ccdata/input_files",
@@ -265,6 +267,7 @@ created by the data connector if it is not yet existent. Already existing files 
        "connector_type": "ssh",
        "connector_access": {
            "host": "my-domain.tld",
+           "port": 22,
            "username": "ccdata",
            "password": "PASSWORD",
            "file_dir": "/home/ccdata/result_files",
@@ -309,12 +312,14 @@ connector will read the contents from the file and decode the JSON data. The res
 HTTP server specified in the mandatory **url** field. Specifying authentication information via the **auth** field is
 optional. The required fields for **auth** are **auth_type**, **username** and **password**. The **auth_type** can be
 *basic* to enable *HTTPBasicAuth* or *digest* to enable *HTTPDigestAuth* Setting **ssl_verify** to *false* is optional
-and insecure, but can be used to ignore faulty SSL/TLS certificates.
+and insecure, but can be used to ignore faulty SSL/TLS certificates. If the optional field **add_meta_data** is set to
+*true*, additional key-value pairs (e.g. **application_container_id**) will be added to the JSON data. Please note, that
+already existing keys will be overwritten.
 
 .. code-block:: json
 
    {
-       "connector_type": "json",
+       "connector_type": "http_json",
        "connector_access": {
            "url": "https://my-domain.tld/result_json/",
            "auth": {
@@ -323,7 +328,63 @@ and insecure, but can be used to ignore faulty SSL/TLS certificates.
                "password": "PASSWORD"
            },
            "ssl_verify": true
-       }
+       },
+       "add_meta_data": false
+   }
+
+
+JSON via MongoDB
+""""""""""""""""
+
+This data connector for uploading result files is similar to the `data connector for JSON via HTTP <#json-via-http>`__.
+Instead of sending the JSON data to a web server, it will be stored in a MongoDB collection. The fields **port**,
+**enable_ssl**, **ssl_verify**, **ssl_ca_cert_path** and **add_meta_data** are optional. Their standard values are given
+in the sample data below.
+
+.. code-block:: json
+
+   {
+       "connector_type": "mongodb_json",
+       "connector_access": {
+           "host": "my-domain.tld",
+           "port": 27017,
+           "username": "dbUser",
+           "password": "PASSWORD",
+           "db": "db",
+           "collection": "collection",
+           "enable_ssl": true,
+           "ssl_verify": true,
+           "ssl_ca_cert_path": null
+       },
+       "add_meta_data": false
+   }
+
+
+MongoDB GridFS
+""""""""""""""
+
+This data connector for uploading result files is similar to the
+`data connector for JSON via MongoDB <#json-via-mongodb>`__. Instead of sending the JSON data to a MongoDB, a streaming
+file upload to a MongoDB GridFS will be performed. The fields **port**, **file_name**, **enable_ssl**,
+**ssl_verify**, **ssl_ca_cert_path** and **add_meta_data** are optional. If no **file_name** is specified, it will be
+generated with the Python *uuid* module.
+
+.. code-block:: json
+
+   {
+       "connector_type": "mongodb_gridfs",
+       "connector_access": {
+           "host": "my-domain.tld",
+           "port": 27017,
+           "username": "dbUser",
+           "password": "PASSWORD",
+           "db": "db",
+           "file_name": "some_data.csv"
+           "enable_ssl": true,
+           "ssl_verify": true,
+           "ssl_ca_cert_path": null
+       },
+       "add_meta_data": false
    }
 
 

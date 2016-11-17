@@ -182,8 +182,8 @@ mongo
 """""
 
 Connect CC-Server to the previously installed MongoDB server. Assuming the database server is running the
-same machine as CC-Server, the **host** is specified as localhost. The **username**, **password** and **dbname** must be
-changed according to the privious MongoDB settings.
+same machine as CC-Server, the **host** is specified as localhost and the standard port is 27017. The **username**,
+**password** and **db** must be changed according to the privious MongoDB settings.
 
 .. code-block:: toml
 
@@ -191,7 +191,8 @@ changed according to the privious MongoDB settings.
    username = 'ccdbAdmin'
    password = 'PASSWORD'
    host = 'localhost'
-   dbname = 'ccdb'
+   port = 27017
+   db = 'ccdb'
 
 
 docker

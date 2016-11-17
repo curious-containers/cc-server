@@ -79,9 +79,8 @@ when not required any longer.
 Open Source
 ^^^^^^^^^^^
 
-All parts of Curious Containers are open source under the Apache 2 license, giving you the freedom to deploy the software
-in your data center and to use it in any commercial or nonprofit setting. `Contributing <developer.html#contributing>`__
-to the project is appreciated but not mandatory.
+All parts of Curious Containers are open source under the Apache 2 license.
+`Contributing <developer.html#contributing>`__ to the project is appreciated but not mandatory.
 
 Extensible Codebase
 ^^^^^^^^^^^^^^^^^^^

@@ -254,6 +254,7 @@ class DockerProvider:
 
         settings = {
             'container_id': str(application_container_id),
+            'task_id': str(task_id),
             'container_type': 'application',
             'callback_key': application_container['callback_key'],
             'callback_url': '{}/application-containers/callback'.format(self.config.server['host'].rstrip('/')),

@@ -30,48 +30,30 @@ def auth(require_admin=True, require_credentials=True):
     return dec
 
 
-def _validate_schema_worker(json_input, schema):
-    try:
-        jsonschema.validate(json_input, schema)
-    except:
-        return format_exc()
-    return None
-
-
 def validation(schema):
     """function decorator"""
     def dec(func):
         def wrapper(self, json_input, *args, **kwargs):
-            # json schema validation
-            formatted_exception = self.pool.apply(_validate_schema_worker, (json_input, schema))
-            if formatted_exception:
-                if self.config.server.get('debug'):
-                    print(formatted_exception)
-                raise BadRequest('JSON input not valid: {}'.format(formatted_exception))
-
-            # cast string IDs to ObjectIDs
             try:
+                jsonschema.validate(json_input, schema)
                 json_input = prepare_input(json_input)
             except:
                 if self.config.server.get('debug'):
                     print(format_exc())
                 raise BadRequest('JSON input not valid: {}'.format(format_exc()))
-
-            # call request function
             return func(self, json_input, *args, **kwargs)
         return wrapper
     return dec
 
 
 class RequestHandler:
-    def __init__(self, mongo, cluster, worker, authorize, config, state_handler, pool):
+    def __init__(self, mongo, cluster, worker, authorize, config, state_handler):
         self.cluster = cluster
         self.mongo = mongo
         self.worker = worker
         self.authorize = authorize
         self.config = config
         self.state_handler = state_handler
-        self.pool = pool
 
     @auth(require_admin=False, require_credentials=False)
     def get_root(self):
