@@ -447,6 +447,7 @@ Install **nodejs** and **npm** on your platform and run the following commands.
 
    touch src/config.js
    npm install
+   npm update
    npm run build
 
 

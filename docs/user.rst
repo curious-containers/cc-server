@@ -379,7 +379,7 @@ generated with the Python *uuid* module.
            "username": "dbUser",
            "password": "PASSWORD",
            "db": "db",
-           "file_name": "some_data.csv"
+           "file_name": "some_data.csv",
            "enable_ssl": true,
            "ssl_verify": true,
            "ssl_ca_cert_path": null
