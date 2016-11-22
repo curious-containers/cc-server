@@ -91,17 +91,17 @@ class DockerProvider:
                         is_dead = True
                         reason = container['Status']
                     break
-        print(self._logs_from_container(container_name))
+
         self._remove_container(container_name)
 
-        if not is_dead:
-            self.mongo.db['dead_nodes'].delete_one({'name': node_name})
-        else:
+        if is_dead:
             self.mongo.db['dead_nodes'].update_one(
                 {'name': node_name},
                 {'$set': {'name': node_name, 'reason': reason}},
                 upsert=True
             )
+        else:
+            self.mongo.db['dead_nodes'].delete_one({'name': node_name})
 
     def update_nodes_status(self):
         nodes = self._info_style()
