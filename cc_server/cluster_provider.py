@@ -101,7 +101,9 @@ class DockerProvider:
                 upsert=True
             )
         else:
-            self.mongo.db['dead_nodes'].delete_one({'name': node_name})
+            resurrected_nodes = self.mongo.db['dead_nodes'].find({'name': node_name}, {'_id': 1})
+            for resurrected_node in resurrected_nodes:
+                self.mongo.db['dead_nodes'].delete_one({'_id': resurrected_node['_id']})
 
     def update_nodes_status(self):
         nodes = self._info_style()
