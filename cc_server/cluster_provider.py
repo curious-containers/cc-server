@@ -1,9 +1,10 @@
 import sys
 import docker
 import json
-from threading import Semaphore
+from threading import Semaphore, Thread
 from requests.exceptions import ReadTimeout
-from uuid import uuid4
+from docker.errors import APIError
+from traceback import format_exc
 from pprint import pprint
 
 from cc_server.states import end_states
@@ -15,10 +16,10 @@ def handle_errors():
         def wrapper(self, *args, **kwargs):
             try:
                 return func(self, *args, **kwargs)
-            except ReadTimeout as e:
+            except Exception as e:
                 self.update_node_status()
                 print('Dead nodes:')
-                pprint(list(self.mongo.db['dead_nodes'].find({})))
+                pprint(list(self.mongo.db['dead_nodes'].find({}, {'name': 1})))
                 raise e
         return wrapper
     return dec
@@ -66,27 +67,51 @@ class DockerProvider:
         print('info style: local docker-engine.')
         return self._local_docker_engine_info_style
 
+    def _update_node_status(self, node):
+        if node.get('status', 'healthy') != 'healthy':
+            return
+
+        is_dead = False
+        node_name = node['name']
+        container_name = 'inspect_{}'.format(node_name)
+        reason = None
+        try:
+            self._create_inspection_container(container_name, node_name)
+            self._start_container(container_name)
+            self._wait_for_container(container_name)
+        except (ReadTimeout, APIError):
+            is_dead = True
+            reason = format_exc()
+
+        if not is_dead:
+            containers = self._list_containers()
+            for container in containers:
+                if container['Names'][0].split('/')[1] == container_name:
+                    if not ('0' in container['Status']):
+                        is_dead = True
+                        reason = container['Status']
+                    break
+        print(self._logs_from_container(container_name))
+        self._remove_container(container_name)
+
+        if not is_dead:
+            self.mongo.db['dead_nodes'].delete_one({'name': node_name})
+        else:
+            self.mongo.db['dead_nodes'].update_one(
+                {'name': node_name},
+                {'$set': {'name': node_name, 'reason': reason}},
+                upsert=True
+            )
+
     def update_nodes_status(self):
         nodes = self._info_style()
+        threads = []
         for node in nodes:
-            if node.get('status', 'healthy') != 'healthy':
-                continue
-
-            is_dead = False
-            container_name = str(uuid4())
-            node_name = node['name']
-            try:
-                self._create_inspection_container(container_name, node_name)
-                self._start_container(container_name)
-                self._wait_for_container(container_name)
-            except ReadTimeout:
-                is_dead = True
-            self._remove_container(container_name)
-
-            if not is_dead:
-                self.mongo.db['dead_nodes'].delete_one({'name': node_name})
-            else:
-                self.mongo.db['dead_nodes'].update_one({'name': node_name}, {'$set': {'name': node_name}}, upsert=True)
+            t = Thread(target=self._update_node_status, args=(node,))
+            t.start()
+            threads.append(t)
+        for t in threads:
+            t.join()
 
     def _filter_dead_nodes(self, nodes):
         result = []
@@ -173,6 +198,9 @@ class DockerProvider:
 
     @handle_errors()
     def list_containers(self):
+        return self._list_containers()
+
+    def _list_containers(self):
         with self.thread_limit:
             return self.client.containers(quiet=False, all=True, limit=-1)
 
@@ -225,7 +253,9 @@ class DockerProvider:
 
     def _create_inspection_container(self, container_name, node_name):
         settings = {
-            'container_type': 'inspection'
+            'container_type': 'inspection',
+            'timeout': self.config.docker.get('timeout'),
+            'inspection_url': '{}'.format(self.config.server['host'].rstrip('/'))
         }
 
         entry_point = self.config.defaults['data_container_description']['entry_point']
@@ -245,6 +275,13 @@ class DockerProvider:
                 command=command,
                 environment=['constraint:node=={}'.format(node_name)]
             )
+
+        if self.config.docker.get('net'):
+            with self.thread_limit:
+                self.client.connect_container_to_network(
+                    container=str(container_name),
+                    net_id=self.config.docker['net']
+                )
 
     @handle_errors()
     def create_application_container(self, application_container_id):

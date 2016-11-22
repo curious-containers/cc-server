@@ -1,4 +1,6 @@
 from threading import Lock, Thread
+from pprint import pprint
+from time import sleep
 
 from cc_server.states import state_to_index
 
@@ -73,8 +75,25 @@ class Worker:
             j += 1
         for t in threads:
             t.join()
-
         print('-------- Scheduled --------\n{}\tApplication Containers\n{}\tData Containers'.format(i, j))
+
+    def startup(self):
+        sleep(1)
+        # ----------- update nodes status -----------
+        print('Update nodes status...')
+        self.cluster.update_nodes_status()
+        # -------------------------------------------
+
+        # --------------- docker info ---------------
+        print('Healthy nodes:')
+        pprint(self.cluster.nodes())
+        print('Dead nodes:')
+        pprint(list(self.mongo.db['dead_nodes'].find({})))
+        # -------------------------------------------
+
+        # ------ run tasks already in database ------
+        self.post_task()
+        # -------------------------------------------
 
     def post_task(self):
         if not self._check_thread_count():

@@ -56,10 +56,6 @@ class RequestHandler:
         self.state_handler = state_handler
 
     @auth(require_admin=False, require_credentials=False)
-    def get_root(self):
-        return jsonify({'version': 0.5})
-
-    @auth(require_admin=False)
     def put_worker(self):
         Thread(target=self.worker.post_task).start()
         return jsonify({})

@@ -12,11 +12,11 @@ data = {
     'pwd': configuration['mongo']['password'],
     'roles': [{
         'role': 'readWrite',
-        'db': configuration['mongo']['dbname']
+        'db': configuration['mongo']['db']
     }]
 }
 command = 'mongo --host mongo --eval \'database = db.getSiblingDB("{}"); database.createUser({})\''.format(
-    configuration['mongo']['dbname'],
+    configuration['mongo']['db'],
     dumps(data)
 )
 call(command, shell=True)

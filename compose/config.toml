@@ -8,10 +8,11 @@ username = 'ccdbAdmin'
 password = 'PASSWORD'
 host = 'mongo'
 port = 27017
-db = 'ccdb'
+db = 'db'
 
 [docker]
 thread_limit = 8
+timeout = 120
 base_url = 'dind:2375'
 
 [defaults.application_container_description]

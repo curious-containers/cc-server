@@ -1,6 +1,6 @@
 import os
 import sys
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 sys.path.insert(0, os.path.abspath('.'))
 
@@ -29,10 +29,10 @@ def get_root():
         Content-Type: application/json
 
         {
-            "version": 0.5
+            "version": 0.7
         }
     """
-    return request_handler.get_root()
+    return jsonify({'version': 0.7})
 
 
 @app.route('/worker', methods=['PUT'])
@@ -523,7 +523,6 @@ def main():
     from logging.handlers import RotatingFileHandler
     from os import makedirs
     from os.path import expanduser, join, exists
-    from pprint import pprint
     from threading import Thread
 
     from cc_server.configuration import Config
@@ -621,19 +620,7 @@ def main():
     cluster.update_data_container_image(config.defaults['data_container_description']['image'])
     # -------------------------------------------
 
-    # ----------- update nodes status -----------
-    print('Update nodes status...')
-    cluster.update_nodes_status()
-    # -------------------------------------------
-
-    # --------------- docker info ---------------
-    print('Healthy nodes:')
-    pprint(cluster_provider.nodes())
-    print('Dead nodes:')
-    pprint(list(mongo.db['dead_nodes'].find({})))
-    # -------------------------------------------
-
-    Thread(target=worker.post_task).start()
+    Thread(target=worker.startup).start()
 
     app.run(host='0.0.0.0', port=config.server['internal_port'])
 

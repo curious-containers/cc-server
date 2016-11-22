@@ -15,6 +15,7 @@ db = 'ccdb'
 
 [docker]
 thread_limit = 8
+timeout = 120
 base_url = '192.168.99.99:3376'
 net = 'cc-overlay-network'
 
