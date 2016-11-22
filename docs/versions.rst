@@ -22,10 +22,18 @@ CC-Server    Docker
 0.4          12
 0.5          12
 0.6          12
+0.7          12
 ===========  =========
 
 Change Log
 ----------
+
+Version 0.7
+^^^^^^^^^^^
+
+- Changed config format for CC-Images from TOML to JSON. Result files are now specified as dict instead of list
+- The result files specification for tasks changed. All result files must now have a field **local_result_file** to reference the dict key of the CC-Image config.json.
+- It is now possible to upload a result files multiple times to different remote locations.
 
 Version 0.6
 ^^^^^^^^^^^

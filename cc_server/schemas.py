@@ -1,4 +1,26 @@
-_connector_schema = {
+_input_connector_schema = {
+    'type': 'object',
+    'properties': {
+        'connector_type': {'type': 'string'},
+        'connector_access': {'type': 'object'}
+    },
+    'required': ['connector_type', 'connector_access'],
+    'additionalProperties': False
+}
+
+_result_connector_schema = {
+    'type': 'object',
+    'properties': {
+        'local_result_file': {'type': 'string'},
+        'connector_type': {'type': 'string'},
+        'connector_access': {'type': 'object'},
+        'add_meta_data': {'type': 'boolean'}
+    },
+    'required': ['connector_type', 'connector_access'],
+    'additionalProperties': False
+}
+
+_tracing_connector_schema = {
     'type': 'object',
     'properties': {
         'connector_type': {'type': 'string'},
@@ -6,6 +28,36 @@ _connector_schema = {
         'add_meta_data': {'type': 'boolean'}
     },
     'required': ['connector_type', 'connector_access'],
+    'additionalProperties': False
+}
+
+_notification_connector_schema = {
+    'type': 'object',
+    'properties': {
+        'connector_type': {'type': 'string'},
+        'connector_access': {
+            'type': 'object',
+            'properties': {
+                'url': {'type': 'string'},
+                'method': {'enum': ['PUT', 'POST', 'put', 'post', 'Put', 'Post']},
+                'json_data': {'type': 'object'},
+                'ssl_verify': {'type': 'boolean'},
+                'auth': {
+                    'type': 'object',
+                    'properties': {
+                        'auth_type': {'enum': ['basic', 'digest']},
+                        'username': {'type': 'string'},
+                        'password': {'type': 'string'}
+                    },
+                    'required': ['auth_type', 'username', 'password'],
+                    'additionalProperties': False
+                }
+            },
+            'required': ['url', 'method'],
+            'additionalProperties': False
+        }
+    },
+    'required': ['connector_access'],
     'additionalProperties': False
 }
 
@@ -21,7 +73,7 @@ _tracing_schema = {
         'syscall': {
             'enum': ['none', 'short', 'full']
         },
-        'tracing_file': _connector_schema
+        'tracing_file': _tracing_connector_schema
     },
     'required': ['enabled'],
     'additionalProperties': False
@@ -143,20 +195,20 @@ _task_schema = {
         },
         'input_files': {
             'type': 'array',
-            'items': _connector_schema
+            'items': _input_connector_schema
         },
         'result_files': {
             'type': 'array',
             'items': {
                 'anyOf': [
-                    _connector_schema,
+                    _result_connector_schema,
                     {'type': 'null'}
                 ]
             }
         },
         'notifications': {
             'type': 'array',
-            'items': _connector_schema
+            'items': _notification_connector_schema
         }
     },
     'required': [
