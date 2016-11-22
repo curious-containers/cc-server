@@ -26,7 +26,6 @@ delete_collections = [
     'application_containers',
     'data_containers',
     'block_entries',
-    'tracing',
     'dead_nodes'
 ]
 preserve_collections = [
