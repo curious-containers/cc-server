@@ -253,15 +253,10 @@ class DockerProvider:
         task = self.mongo.db['tasks'].find_one({'_id': task_id})
 
         settings = {
-            'container_id': str(application_container_id),
-            'task_id': str(task_id),
             'container_type': 'application',
+            'container_id': str(application_container_id),
             'callback_key': application_container['callback_key'],
-            'callback_url': '{}/application-containers/callback'.format(self.config.server['host'].rstrip('/')),
-            'result_files': task['result_files'],
-            'parameters': task['application_container_description'].get('parameters'),
-            'sandbox': task['application_container_description'].get('sandbox'),
-            'tracing': task['application_container_description'].get('tracing')
+            'callback_url': '{}/application-containers/callback'.format(self.config.server['host'].rstrip('/'))
         }
 
         entry_point = self.config.defaults['application_container_description']['entry_point']

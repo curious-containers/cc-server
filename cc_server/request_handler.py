@@ -221,13 +221,21 @@ class RequestHandler:
             task_id = c['task_id'][0]
             task = self.mongo.db['tasks'].find_one(
                 {'_id': task_id},
-                {'input_files': 1, 'no_cache': 1}
+                {'input_files': 1, 'no_cache': 1, 'result_files': 1, 'application_container_description': 1}
             )
 
+            response = {
+                'task_id': str(task_id),
+                'result_files': task['result_files'],
+                'parameters': task['application_container_description'].get('parameters'),
+                'sandbox': task['application_container_description'].get('sandbox'),
+                'tracing': task['application_container_description'].get('tracing')
+            }
+
             if task.get('no_cache'):
-                response = {'input_files': task['input_files']}
+                response['input_files'] = task['input_files']
             else:
-                response = {'input_files': []}
+                response['input_files'] = []
                 for input_file, data_container_id in zip(task['input_files'], c['data_container_ids']):
 
                     data_container = self.mongo.db['data_containers'].find_one(
