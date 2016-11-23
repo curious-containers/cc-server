@@ -1,6 +1,5 @@
 from threading import Lock, Thread
 from pprint import pprint
-from time import sleep
 
 from cc_server.states import state_to_index
 
@@ -79,7 +78,11 @@ class Worker:
         print('-------- Scheduled --------\n{}\tApplication Containers\n{}\tData Containers'.format(i, j))
 
     def startup(self):
-        sleep(1)
+        # -------- load data container image --------
+        print('Pulling data container image...')
+        self.cluster.update_data_container_image(self.config.defaults['data_container_description']['image'])
+        # -------------------------------------------
+
         # ----------- update nodes status -----------
         if self.config.defaults['error_handling'].get('dead_node_invalidation'):
             print('Update nodes status...')

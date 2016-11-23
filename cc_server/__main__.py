@@ -616,11 +616,6 @@ def main():
     )
     # -------------------------------------------
 
-    # -------- load data container image --------
-    print('Pulling data container image...')
-    cluster.update_data_container_image(config.defaults['data_container_description']['image'])
-    # -------------------------------------------
-
     Thread(target=worker.startup).start()
 
     app.run(host='0.0.0.0', port=config.server['internal_port'])
