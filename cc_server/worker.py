@@ -100,7 +100,7 @@ class Worker:
         pprint(self.cluster.nodes())
         if self.config.defaults['error_handling'].get('dead_node_invalidation'):
             print('Dead nodes:')
-            pprint(list(self.mongo.db['dead_nodes'].find({})))
+            pprint(list(self.mongo.db['dead_nodes'].find({}, {'name': 1})))
         # -------------------------------------------
 
         # ------ run tasks already in database ------

@@ -95,6 +95,7 @@ class DockerProvider:
         container_name = 'inspect_{}'.format(node_name)
         reason = None
         try:
+            self._remove_container(container_name)
             self._create_inspection_container(container_name, node_name)
             self._start_container(container_name)
             self._wait_for_container(container_name)
