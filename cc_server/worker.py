@@ -91,7 +91,7 @@ class Worker:
         # -------------------------------------------
 
         # ----------- update nodes status -----------
-        if self.config.defaults['error_handling'].get('dead_node_invalidation') and dead_node_invalidation:
+        if dead_node_invalidation:
             self.cluster.update_nodes_status()
         # -------------------------------------------
 

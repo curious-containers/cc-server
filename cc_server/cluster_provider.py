@@ -18,8 +18,7 @@ def handle_errors():
             try:
                 return func(self, *args, **kwargs)
             except:
-                if self.config.defaults['error_handling'].get('dead_node_invalidation'):
-                    self.update_nodes_status()
+                self.update_nodes_status()
                 raise
         return wrapper
     return dec
@@ -108,6 +107,8 @@ class DockerProvider:
                 self.mongo.db['dead_nodes'].delete_one({'_id': resurrected_node['_id']})
 
     def update_nodes_status(self):
+        if not self.config.defaults['error_handling'].get('dead_node_invalidation'):
+            return
         if self._node_invalidation_lock.locked():
             return
         with self._node_invalidation_lock:
