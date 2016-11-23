@@ -1,7 +1,7 @@
 import sys
 import docker
 import json
-from threading import Semaphore, Thread, Condition, Lock
+from threading import Semaphore, Thread, Lock
 from queue import Queue, Empty
 from requests.exceptions import ReadTimeout
 from docker.errors import APIError
@@ -25,17 +25,6 @@ def handle_errors():
     return dec
 
 
-def api_access():
-    """function decorator"""
-    def dec(func):
-        def wrapper(self, *args, **kwargs):
-            with self._api_condition:
-                self._api_condition.wait_for(self.api_available)
-            return func(self, *args, **kwargs)
-        return wrapper
-    return dec
-
-
 class DockerProvider:
     def __init__(self, mongo, config):
         self.mongo = mongo
@@ -52,13 +41,8 @@ class DockerProvider:
         )
 
         self.thread_limit = Semaphore(self.config.docker['thread_limit'])
-        self._api_condition = Condition()
-        self._api_available = True
         self._node_invalidation_lock = Lock()
         self._info_style = self.detect_info_style()
-
-    def api_available(self):
-        return self._api_available
 
     def detect_info_style(self):
         info = None
@@ -84,7 +68,7 @@ class DockerProvider:
         print('info style: local docker-engine.')
         return self._local_docker_engine_info_style
 
-    def _update_nodes_status(self, node):
+    def _update_node_status(self, node):
         if node.get('status', 'healthy') != 'healthy':
             return
 
@@ -128,21 +112,14 @@ class DockerProvider:
             return
         with self._node_invalidation_lock:
             print('Update nodes status...')
-            with self._api_condition:
-                self._api_available = False
-            try:
-                nodes = self._info_style()
-                threads = []
-                for node in nodes:
-                    t = Thread(target=self._update_nodes_status, args=(node,))
-                    t.start()
-                    threads.append(t)
-                for t in threads:
-                    t.join()
-            finally:
-                with self._api_condition:
-                    self._api_available = True
-                    self._api_condition.notify_all()
+            nodes = self._info_style()
+            threads = []
+            for node in nodes:
+                t = Thread(target=self._update_node_status, args=(node,))
+                t.start()
+                threads.append(t)
+            for t in threads:
+                t.join()
             print('Dead nodes:')
             pprint(list(self.mongo.db['dead_nodes'].find({}, {'name': 1})))
 
@@ -219,7 +196,6 @@ class DockerProvider:
             'reserved_cpus': None
         }]
 
-    @api_access()
     @handle_errors()
     def update_image(self, image, registry_auth):
         errors = Queue()
@@ -247,7 +223,6 @@ class DockerProvider:
                     errors.put(Exception(line))
                     return
 
-    @api_access()
     @handle_errors()
     def list_containers(self):
         return self._list_containers()
@@ -256,7 +231,6 @@ class DockerProvider:
         with self.thread_limit:
             return self.client.containers(quiet=False, all=True, limit=-1)
 
-    @api_access()
     @handle_errors()
     def remove_container(self, _id):
         self._remove_container(_id)
@@ -273,7 +247,6 @@ class DockerProvider:
         except:
             pass
 
-    @api_access()
     @handle_errors()
     def wait_for_container(self, _id):
         self._wait_for_container(_id)
@@ -282,7 +255,6 @@ class DockerProvider:
         with self.thread_limit:
             self.client.wait(str(_id))
 
-    @api_access()
     @handle_errors()
     def logs_from_container(self, _id):
         self._logs_from_container(_id)
@@ -291,7 +263,6 @@ class DockerProvider:
         with self.thread_limit:
             return self.client.logs(str(_id)).decode("utf-8")
 
-    @api_access()
     @handle_errors()
     def start_container(self, _id):
         self._start_container(_id)
@@ -300,7 +271,6 @@ class DockerProvider:
         with self.thread_limit:
             self.client.start(str(_id))
 
-    @api_access()
     @handle_errors()
     def get_ip(self, _id):
         if self.config.docker.get('net'):
@@ -339,7 +309,6 @@ class DockerProvider:
                     net_id=self.config.docker['net']
                 )
 
-    @api_access()
     @handle_errors()
     def create_application_container(self, application_container_id):
         application_container = self.mongo.db['application_containers'].find_one({'_id': application_container_id})
@@ -393,7 +362,6 @@ class DockerProvider:
                     net_id=self.config.docker['net']
                 )
 
-    @api_access()
     @handle_errors()
     def create_data_container(self, data_container_id):
         data_container = self.mongo.db['data_containers'].find_one({'_id': data_container_id})
@@ -440,7 +408,6 @@ class DockerProvider:
                     net_id=self.config.docker['net']
                 )
 
-    @api_access()
     @handle_errors()
     def nodes(self):
         return self._filter_dead_nodes(self._info_style())
