@@ -86,6 +86,7 @@ class Worker:
             print('Pulling data container image...')
             self.cluster.update_data_container_image(self.config.defaults['data_container_description']['image'])
         except:
+            print('Pulling data container image caused error.')
             dead_node_invalidation = False
         # -------------------------------------------
 

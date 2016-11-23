@@ -129,6 +129,7 @@ class DockerProvider:
         if self._node_invalidation_lock.locked():
             return
         with self._node_invalidation_lock:
+            print('Update nodes status...')
             with self._api_condition:
                 self._api_available = False
             try:
