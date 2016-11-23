@@ -34,6 +34,7 @@ class Worker:
         self.post_task()
 
     def update_images(self):
+        print('Pulling application container images...')
         application_containers = self.mongo.db['application_containers'].find(
             {'state': state_to_index('created')},
             {'task_id': 1}
@@ -53,6 +54,7 @@ class Worker:
             t.join()
 
     def create_containers(self):
+        print('Create containers...')
         application_containers = self.mongo.db['application_containers'].find(
             {'state': state_to_index('created')},
             {'_id': 1}
