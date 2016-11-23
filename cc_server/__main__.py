@@ -597,6 +597,7 @@ def main():
     worker = Worker(
         mongo=mongo,
         cluster=cluster,
+        config=config,
         scheduler=scheduler,
         state_handler=state_handler
     )

@@ -6,9 +6,10 @@ from cc_server.states import state_to_index
 
 
 class Worker:
-    def __init__(self, mongo, cluster, scheduler, state_handler):
+    def __init__(self, mongo, cluster, config, scheduler, state_handler):
         self.cluster = cluster
         self.mongo = mongo
+        self.config = config
         self.scheduler = scheduler
         self.state_handler = state_handler
         self.post_task_lock = Lock()
@@ -80,15 +81,17 @@ class Worker:
     def startup(self):
         sleep(1)
         # ----------- update nodes status -----------
-        print('Update nodes status...')
-        self.cluster.update_nodes_status()
+        if self.config.defaults['error_handling'].get('dead_node_invalidation'):
+            print('Update nodes status...')
+            self.cluster.update_nodes_status()
         # -------------------------------------------
 
         # --------------- docker info ---------------
         print('Healthy nodes:')
         pprint(self.cluster.nodes())
-        print('Dead nodes:')
-        pprint(list(self.mongo.db['dead_nodes'].find({})))
+        if self.config.defaults['error_handling'].get('dead_node_invalidation'):
+            print('Dead nodes:')
+            pprint(list(self.mongo.db['dead_nodes'].find({})))
         # -------------------------------------------
 
         # ------ run tasks already in database ------

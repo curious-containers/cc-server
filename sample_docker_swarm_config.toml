@@ -15,7 +15,8 @@ db = 'ccdb'
 
 [docker]
 thread_limit = 8
-timeout = 120
+api_timeout = 30
+pull_timeout = 120
 base_url = '192.168.99.99:3376'
 net = 'cc-overlay-network'
 
@@ -45,6 +46,7 @@ container_allocation = 'spread'
 
 [defaults.error_handling]
 max_task_trials = 3
+dead_node_invalidation = true
 
 [defaults.authorization]
 num_login_attempts = 3

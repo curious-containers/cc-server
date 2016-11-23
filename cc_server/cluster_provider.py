@@ -2,6 +2,7 @@ import sys
 import docker
 import json
 from threading import Semaphore, Thread
+from queue import Queue, Empty
 from requests.exceptions import ReadTimeout
 from docker.errors import APIError
 from traceback import format_exc
@@ -16,11 +17,12 @@ def handle_errors():
         def wrapper(self, *args, **kwargs):
             try:
                 return func(self, *args, **kwargs)
-            except Exception as e:
-                self.update_node_status()
-                print('Dead nodes:')
-                pprint(list(self.mongo.db['dead_nodes'].find({}, {'name': 1})))
-                raise e
+            except:
+                if self.config.defaults['error_handling'].get('dead_node_invalidation'):
+                    self.update_nodes_status()
+                    print('Dead nodes:')
+                    pprint(list(self.mongo.db['dead_nodes'].find({}, {'name': 1})))
+                raise
         return wrapper
     return dec
 
@@ -37,7 +39,7 @@ class DockerProvider:
         self.client = docker.Client(
             base_url=self.config.docker['base_url'],
             tls=tls,
-            timeout=self.config.docker.get('timeout')
+            timeout=self.config.docker.get('api_timeout')
         )
 
         self.thread_limit = Semaphore(self.config.docker['thread_limit'])
@@ -190,13 +192,30 @@ class DockerProvider:
 
     @handle_errors()
     def update_image(self, image, registry_auth):
+        errors = Queue()
+        if self.config.docker.get('pull_timeout'):
+            t = Thread(target=self._update_image, args=(image, registry_auth, errors))
+            t.start()
+            t.join(timeout=self.config.docker['pull_timeout'])
+            if t.is_alive():
+                raise Exception('Pull timeout.')
+        else:
+            self._update_image(image, registry_auth, errors)
+        try:
+            e = errors.get(block=False)
+            raise e
+        except Empty:
+            pass
+
+    def _update_image(self, image, registry_auth, errors):
         with self.thread_limit:
             for line in self.client.pull(image, stream=True, auth_config=registry_auth):
                 line = str(line)
                 if self.config.server.get('debug'):
                     print(line)
                 if 'error' in line.lower():
-                    raise(Exception(line))
+                    errors.put(Exception(line))
+                    return
 
     @handle_errors()
     def list_containers(self):
@@ -256,7 +275,6 @@ class DockerProvider:
     def _create_inspection_container(self, container_name, node_name):
         settings = {
             'container_type': 'inspection',
-            'timeout': self.config.docker.get('timeout'),
             'inspection_url': '{}'.format(self.config.server['host'].rstrip('/'))
         }
 
