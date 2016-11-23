@@ -616,6 +616,10 @@ def main():
     )
     # -------------------------------------------
 
+    # ------- Reset dead nodes collection -------
+    mongo.db['dead_nodes'].drop()
+    # -------------------------------------------
+
     Thread(target=worker.startup).start()
 
     app.run(host='0.0.0.0', port=config.server['internal_port'])
