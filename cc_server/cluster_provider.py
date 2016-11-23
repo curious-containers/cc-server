@@ -20,8 +20,6 @@ def handle_errors():
             except:
                 if self.config.defaults['error_handling'].get('dead_node_invalidation'):
                     self.update_nodes_status()
-                    print('Dead nodes:')
-                    pprint(list(self.mongo.db['dead_nodes'].find({}, {'name': 1})))
                 raise
         return wrapper
     return dec
@@ -145,6 +143,8 @@ class DockerProvider:
                 with self._api_condition:
                     self._api_available = True
                     self._api_condition.notify_all()
+            print('Dead nodes:')
+            pprint(list(self.mongo.db['dead_nodes'].find({}, {'name': 1})))
 
     def _filter_dead_nodes(self, nodes):
         result = []

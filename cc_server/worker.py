@@ -92,16 +92,12 @@ class Worker:
 
         # ----------- update nodes status -----------
         if self.config.defaults['error_handling'].get('dead_node_invalidation') and dead_node_invalidation:
-            print('Update nodes status...')
             self.cluster.update_nodes_status()
         # -------------------------------------------
 
         # --------------- docker info ---------------
         print('Healthy nodes:')
         pprint(self.cluster.nodes())
-        if self.config.defaults['error_handling'].get('dead_node_invalidation'):
-            print('Dead nodes:')
-            pprint(list(self.mongo.db['dead_nodes'].find({}, {'name': 1})))
         # -------------------------------------------
 
         # ------ run tasks already in database ------
