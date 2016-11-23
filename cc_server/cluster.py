@@ -31,7 +31,7 @@ class Cluster:
         try:
             self.cluster_provider.update_image(image, registry_auth)
         except:
-            print(format_exc())
+            print('Pulling application container image caused error.')
 
     def start_data_container(self, data_container_id):
         try:
