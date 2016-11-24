@@ -239,7 +239,7 @@ class RequestHandler:
                         {'input_files': 1, 'input_file_keys': 1}
                     )
 
-                    ip = self.cluster.get_ip(data_container_id)
+                    ip = self.cluster.get_ip(data_container_id, 'data_containers')
 
                     for f, k in zip(data_container['input_files'], data_container['input_file_keys']):
                         if f == input_file:

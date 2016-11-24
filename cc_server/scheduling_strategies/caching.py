@@ -1,7 +1,7 @@
 from cc_server.helper import generate_secret
 
 
-def data_container_prototype(username, input_files):
+def data_container_prototype(username, input_files, container_ram):
     return {
         'state': -1,
         'transitions': [],
@@ -11,14 +11,16 @@ def data_container_prototype(username, input_files):
         'input_file_keys': [generate_secret() for _ in input_files],
         'callbacks': [],
         'callback_key': generate_secret(),
-        'cluster_node': None
+        'cluster_node': None,
+        'container_ram': container_ram
     }
 
 
 class OneCachePerTaskNoDuplicates:
-    def __init__(self, mongo, cluster):
+    def __init__(self, mongo, cluster, config):
         self.mongo = mongo
         self.cluster = cluster
+        self.config = config
 
     def apply(self, application_container_id):
         self.cluster.assign_existing_data_containers(application_container_id)
@@ -38,7 +40,8 @@ class OneCachePerTaskNoDuplicates:
         unassigned_input_files = [f for f, dc_id in zip(input_files, data_container_ids) if not dc_id]
 
         if unassigned_input_files:
-            data_container = data_container_prototype(task['username'], input_files)
+            container_ram = self.config.defaults['data_container_description']['container_ram']
+            data_container = data_container_prototype(task['username'], input_files, container_ram)
             data_container_id = self.mongo.db['data_containers'].insert_one(data_container).inserted_id
             data_container_ids = [val if val else data_container_id for val in data_container_ids]
 

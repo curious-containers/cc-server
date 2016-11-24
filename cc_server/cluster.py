@@ -14,8 +14,8 @@ class Cluster:
 
         self.data_container_lock = Lock()
 
-    def get_ip(self, _id):
-        return self.cluster_provider.get_ip(_id)
+    def get_ip(self, container_id, collection):
+        return self.cluster_provider.get_ip(container_id, collection)
 
     def update_nodes_status(self):
         self.cluster_provider.update_nodes_status()
@@ -25,39 +25,23 @@ class Cluster:
 
     def update_data_container_image(self, image):
         registry_auth = self.config.defaults['data_container_description'].get('registry_auth')
-        self.cluster_provider.update_image(image, registry_auth)
+        self.cluster_provider.update_data_container_image(image, registry_auth)
 
-    def update_application_container_image(self, image, registry_auth):
-        try:
-            self.cluster_provider.update_image(image, registry_auth)
-        except:
-            print('Pulling application container image caused error.')
+    def update_application_container_image(self, node_name, image, registry_auth):
+        self.cluster_provider.update_image(node_name, image, registry_auth)
 
-    def start_data_container(self, data_container_id):
+    def start_container(self, container_id, collection):
         try:
-            self.cluster_provider.start_container(data_container_id)
+            self.cluster_provider.start_container(container_id, collection)
             if self.config.server.get('debug'):
-                self.cluster_provider.wait_for_container(data_container_id)
-                logs = self.cluster_provider.logs_from_container(data_container_id)
+                self.cluster_provider.wait_for_container(container_id, collection)
+                logs = self.cluster_provider.logs_from_container(container_id, collection)
                 print(logs)
         except:
             description = 'Container start failed.'
-            self.state_handler.transition('data_containers', data_container_id, 'failed', description,
+            self.state_handler.transition(collection, container_id, 'failed', description,
                        exception=format_exc())
-            self.cluster_provider.remove_container(data_container_id)
-
-    def start_application_container(self, application_container_id):
-        try:
-            self.cluster_provider.start_container(application_container_id)
-            if self.config.server.get('debug'):
-                self.cluster_provider.wait_for_container(application_container_id)
-                logs = self.cluster_provider.logs_from_container(application_container_id)
-                print(logs)
-        except:
-            description = 'Container start failed.'
-            self.state_handler.transition('application_containers', application_container_id, 'failed', description,
-                       exception=format_exc())
-            self.cluster_provider.remove_container(application_container_id)
+            self.cluster_provider.remove_container(container_id, collection)
 
     def assign_existing_data_containers(self, application_container_id):
         with self.data_container_lock:
@@ -92,27 +76,16 @@ class Cluster:
                 '$set': {'data_container_ids': data_container_ids}
             })
 
-    def create_data_container(self, data_container_id):
+    def create_container(self, container_id, collection):
         try:
-            self.cluster_provider.create_data_container(data_container_id)
+            self.cluster_provider.create_container(container_id, collection)
             description = 'Container waiting.'
-            self.state_handler.transition('data_containers', data_container_id, 'waiting', description)
+            self.state_handler.transition(collection, container_id, 'waiting', description)
         except:
             description = 'Container creation failed.'
-            self.state_handler.transition('data_containers', data_container_id, 'failed', description,
+            self.state_handler.transition(collection, container_id, 'failed', description,
                        exception=format_exc())
-            self.cluster_provider.remove_container(data_container_id)
-
-    def create_application_container(self, application_container_id):
-        try:
-            self.cluster_provider.create_application_container(application_container_id)
-            description = 'Container waiting.'
-            self.state_handler.transition('application_containers', application_container_id, 'waiting', description)
-        except:
-            description = 'Container creation failed.'
-            self.state_handler.transition('application_containers', application_container_id, 'failed', description,
-                       exception=format_exc())
-            self.cluster_provider.remove_container(application_container_id)
+            self.cluster_provider.remove_container(container_id, collection)
 
     def clean_up_finished_containers(self):
         container_ids = []
@@ -122,19 +95,13 @@ class Cluster:
             except:
                 pass
         if container_ids:
-            cursors = [
-                self.mongo.db['application_containers'].find({
+            for collection in ['application_containers', 'data_containers']:
+                containers = self.mongo.db[collection].find({
                     '_id': {'$in': container_ids},
                     'state': {'$in': end_states()}
                 }, {'_id': 1}),
-                self.mongo.db['data_containers'].find({
-                    '_id': {'$in': container_ids},
-                    'state': {'$in': end_states()}
-                }, {'_id': 1})
-            ]
-            for cursor in cursors:
-                for container in cursor:
-                    self.cluster_provider.remove_container(container['_id'])
+                for container in containers:
+                    self.cluster_provider.remove_container(container['_id'], collection)
 
     def clean_up_exited_containers(self):
         containers = {}
@@ -155,22 +122,17 @@ class Cluster:
                 pass
 
         if container_ids:
-            cursors = {}
-            cursors['application_containers'] = self.mongo.db['application_containers'].find({
-                '_id': {'$in': container_ids},
-                'state': {'$nin': end_states()}
-            }, {'_id': 1})
-            cursors['data_containers'] = self.mongo.db['data_containers'].find({
-                '_id': {'$in': container_ids},
-                'state': {'$nin': end_states()}
-            }, {'_id': 1})
-
-            for collection, cursor in cursors.items():
-                for container in cursor:
-                    status = containers[str(container['_id'])]
-                    description = 'Container exited unexpectedly ({}).'.format(status)
-                    self.state_handler.transition(collection, container['_id'], 'failed', description)
-                    self.cluster_provider.remove_container(container['_id'])
+            for collection in ['application_containers', 'data_containers']:
+                containers = self.mongo.db[collection].find(
+                    {'_id': {'$in': container_ids}},
+                    {'_id': 1, 'state': 1}
+                )
+                for container in containers:
+                    if container['state'] in end_states():
+                        status = containers[str(container['_id'])]
+                        description = 'Container exited unexpectedly: {}'.format(status)
+                        self.state_handler.transition(collection, container['_id'], 'failed', description)
+                    self.cluster_provider.remove_container(container['_id'], collection)
 
     def clean_up_unused_data_containers(self):
         with self.data_container_lock:
@@ -189,4 +151,4 @@ class Cluster:
 
                 description = 'Container removed. Not in use by any application container.'
                 self.state_handler.transition('data_containers', data_container_id, 'success', description)
-                self.cluster_provider.remove_container(data_container_id)
+                self.cluster_provider.remove_container(data_container_id, 'data_containers')

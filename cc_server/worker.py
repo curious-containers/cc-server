@@ -35,21 +35,34 @@ class Worker:
 
     def update_images(self):
         print('Pulling application container images...')
-        application_containers = self.mongo.db['application_containers'].find(
+        application_containers = list(self.mongo.db['application_containers'].find(
             {'state': state_to_index('created')},
-            {'task_id': 1}
-        )
-        task_ids = [ac['task_id'][0] for ac in application_containers]
-        tasks = self.mongo.db['tasks'].find({'_id': {'$in': task_ids}})
-        images = {
-            task['application_container_description']['image']:
-            task['application_container_description'].get('registry_auth')
-            for task in tasks}
+            {'task_id': 1, 'cluster_node': 1}
+        ))
+        nodes = {}
+        for application_container in application_containers:
+            node_name = application_container['cluster_node']
+            nodes[node_name] = set()
+        for application_container in application_containers:
+            node_name = application_container['cluster_node']
+            task_id = application_container['task_id']
+            task = self.mongo.db['tasks'].find_one({'_id': task_id[0]})
+            registry_auth = None
+            if task['application_container_description'].get('registry_auth'):
+                ra = task['application_container_description']['registry_auth']
+                registry_auth = (ra['username'], ra['password'])
+            nodes[node_name].update([(
+                task['application_container_description']['image'],
+                registry_auth
+            )])
         threads = []
-        for image, registry_auth in images.items():
-            t = Thread(target=self.cluster.update_application_container_image, args=(image, registry_auth))
-            threads.append(t)
-            t.start()
+        for node_name, node in nodes.items():
+            for image, registry_auth in node:
+                t = Thread(target=self.cluster.update_application_container_image, args=(
+                    node_name, image, {'username': registry_auth[0], 'password': registry_auth[1]}
+                ))
+                threads.append(t)
+                t.start()
         for t in threads:
             t.join()
 
@@ -126,15 +139,15 @@ class Worker:
             {'_id': 1}
         )
         if application_container:
-            self.cluster.start_application_container(application_container_id)
+            self.cluster.start_container(application_container_id, 'application_containers')
 
     def _cluster_create_application_container(self, application_container_id):
-        self.cluster.create_application_container(application_container_id)
+        self.cluster.create_container(application_container_id, 'application_containers')
         Thread(target=self._cluster_start_application_container, args=(application_container_id,)).start()
 
     def _cluster_create_data_container(self, data_container_id):
-        self.cluster.create_data_container(data_container_id)
-        Thread(target=self.cluster.start_data_container, args=(data_container_id,)).start()
+        self.cluster.create_container(data_container_id, 'data_containers')
+        Thread(target=self.cluster.start_container, args=(data_container_id, 'data_containers')).start()
 
     def post_data_container_callback(self):
         clean_up = False

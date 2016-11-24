@@ -583,7 +583,11 @@ def main():
     elif config.defaults['scheduling_strategies']['container_allocation'] == 'binpack':
         container_allocation = binpack
     task_selection = FIFO(mongo=mongo)
-    caching = OneCachePerTaskNoDuplicates(mongo=mongo, cluster=cluster)
+    caching = OneCachePerTaskNoDuplicates(
+        mongo=mongo,
+        cluster=cluster,
+        config=config
+    )
 
     scheduler = Scheduler(
         mongo=mongo,

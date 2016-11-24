@@ -1,7 +1,7 @@
 from cc_server.helper import generate_secret
 
 
-def application_container_prototype():
+def application_container_prototype(container_ram):
     return {
         'state': -1,
         'created_at': None,
@@ -12,7 +12,8 @@ def application_container_prototype():
         'callbacks': [],
         'callback_key': generate_secret(),
         'telemetry': None,
-        'cluster_node': None
+        'cluster_node': None,
+        'container_ram': container_ram
     }
 
 
@@ -42,7 +43,7 @@ class Scheduler:
                 self.state_handler.transition('tasks', task['_id'], 'failed', description)
                 continue
 
-            application_container = application_container_prototype()
+            application_container = application_container_prototype(ac_ram)
             application_container['task_id'] = [task['_id']]
             application_container['username'] = task['username']
             application_container_id = self.mongo.db['application_containers'].insert_one(application_container).inserted_id
