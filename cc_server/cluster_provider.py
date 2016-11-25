@@ -226,7 +226,7 @@ class DockerProvider:
                     {'$set': {'name': node_name, 'description': formatted_exception}},
                     upsert=True
                 )
-                print('DEAD NODE: {}'.format(node_name))
+                print('Dead node: {}'.format(node_name))
 
     def _docker_client_proxy(self, node_name, node_config, q):
         try:
@@ -297,6 +297,7 @@ class DockerProvider:
     def update_node_status(self, node_name):
         if not self.config.defaults['error_handling'].get('dead_node_invalidation'):
             return
+        print('Update status of node: {}'.format(node_name))
         if node_name not in self.clients:
             self.clients[node_name] = DockerClientProxy(node_name, self.mongo, self.config)
         node = self.clients[node_name].node_status()
@@ -308,7 +309,7 @@ class DockerProvider:
             )
             if node_name in self.clients:
                 del self.clients[node_name]
-            print('DEAD NODE: {}'.format(node_name))
+            print('Dead node: {}'.format(node_name))
         else:
             dead_nodes = self.mongo.db['dead_nodes'].find({'name': node['name']}, {'_id': 1})
             for dead_node in dead_nodes:
@@ -350,18 +351,31 @@ class DockerProvider:
         try:
             self.clients[node_name].update_image(image, registry_auth)
         except:
-            print('Error on image update for node {}: {}'.format(node_name, format_exc()))
+            print('Error on image update for node: {}'.format(node_name))
             self.update_node_status(node_name)
 
     def update_data_container_image(self, image, registry_auth):
         nodes = self.nodes()
         threads = []
         for node in nodes:
-            t = Thread(target=self.update_image, args=(node['name'], image, registry_auth))
+            t = Thread(target=self._update_data_container_image, args=(node['name'], image, registry_auth))
             t.start()
             threads.append(t)
         for t in threads:
             t.join()
+
+    def _update_data_container_image(self, node_name, image, registry_auth):
+        try:
+            self.clients[node_name].update_image(image, registry_auth)
+        except:
+            print('Error on image update for node: {}'.format(node_name))
+            del self.clients[node_name]
+            self.mongo.db['dead_nodes'].update_one(
+                {'name': node_name},
+                {'$set': {'name': node_name, 'description': format_exc()}},
+                upsert=True
+            )
+            print('Dead node: {}'.format(node_name))
 
     def _create_application_container(self, application_container_id):
         application_container = self.mongo.db['application_containers'].find_one({'_id': application_container_id})
@@ -478,7 +492,7 @@ class DockerProvider:
         try:
             q.put(self.clients[node_name].info())
         except:
-            print('Error on info request for node {}: {}'.format(node_name, format_exc()))
+            print('Error on info request for node: {}'.format(node_name))
             self.update_node_status(node_name)
 
     def list_containers(self):
@@ -499,7 +513,7 @@ class DockerProvider:
         try:
             q.put(self.clients[node_name].list_containers())
         except:
-            print('Error on container list for node {}: {}'.format(node_name, format_exc()))
+            print('Error on container list for node: {}'.format(node_name))
             self.update_node_status(node_name)
 
 
