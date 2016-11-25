@@ -39,12 +39,12 @@ class DockerClientProxy:
         self.client = None
         self.thread_limit = Semaphore(self.config.docker['thread_limit'])
 
-        self.client = docker.Client(
-            base_url=self.node_config['base_url'],
-            tls=tls,
-            timeout=self.config.docker.get('api_timeout')
-        )
         try:
+            self.client = docker.Client(
+                base_url=self.node_config['base_url'],
+                tls=tls,
+                timeout=self.config.docker.get('api_timeout')
+            )
             self.list_containers()
             self.connected = True
         except:
