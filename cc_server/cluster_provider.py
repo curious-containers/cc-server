@@ -1,3 +1,4 @@
+import os
 import docker
 import json
 from threading import Semaphore, Thread
@@ -24,23 +25,30 @@ def handle_api_errors():
 
 
 class DockerClientProxy:
-    def __init__(self, node_name, mongo, config):
+    def __init__(self, node_name, node_config, mongo, config):
         self.node_name = node_name
+        self.node_config = node_config
         self.mongo = mongo
         self.config = config
-        self.node_config = config.docker['nodes'][node_name]
 
         tls = False
         if self.node_config.get('tls'):
             tls = docker.tls.TLSConfig(**self.node_config['tls'])
 
-        self.client = docker.Client(
-            base_url=self.node_config['base_url'],
-            tls=tls,
-            timeout=self.config.docker.get('api_timeout')
-        )
-
+        self.connected = False
+        self.client = None
         self.thread_limit = Semaphore(self.config.docker['thread_limit'])
+
+        try:
+            self.client = docker.Client(
+                base_url=self.node_config['base_url'],
+                tls=tls,
+                timeout=self.config.docker.get('api_timeout')
+            )
+            self.list_containers()
+            self.connected = True
+        except:
+            print(format_exc())
 
     def info(self):
         with self.thread_limit:
@@ -162,6 +170,7 @@ class DockerClientProxy:
         return container['NetworkSettings']['Networks']['bridge']['IPAddress']
 
     def update_image(self, image, registry_auth):
+        print('Pull image {} on node {}.'.format(image, self.node_name))
         with self.thread_limit:
             for line in self.client.pull(image, stream=True, auth_config=registry_auth):
                 line = str(line)
@@ -204,10 +213,53 @@ class DockerProvider:
         self.mongo = mongo
         self.config = config
 
-        nodes = self.config.docker['nodes']
+        node_configs = self._node_configs()
         self.clients = {}
-        for node_name in nodes:
-            self.clients[node_name] = DockerClientProxy(node_name, mongo, config)
+        for node_name, node_config in node_configs.items():
+            client_proxy = DockerClientProxy(node_name, node_config, mongo, config)
+            if client_proxy.connected:
+                self.clients[node_name] = client_proxy
+            else:
+                print('Could not connect to node: {}'.format(node_name))
+
+    def _node_configs(self):
+        node_configs = {}
+        if self.config.docker.get('machines_dir'):
+            machines_dir = os.path.expanduser(self.config.docker['machines_dir'])
+            for machine_dir in os.listdir(machines_dir):
+                with open(os.path.join(machines_dir, machine_dir, 'config.json')) as f:
+                    machine_config = json.load(f)
+                node_name = machine_config['Driver']['MachineName']
+                if not machine_config['HostOptions']['EngineOptions'].get('ArbitraryFlags'):
+                    if self.config.server.get('debug'):
+                        print('Node {} does not have HostOptions -- EngineOptions -- ArbitraryFlags'.format(node_name))
+                    continue
+                port = None
+                try:
+                    for flag in machine_config['HostOptions']['EngineOptions']['ArbitraryFlags']:
+                        key, val = flag.split('=')
+                        if key == 'cluster-advertise':
+                            port = int(val.split(':')[-1])
+                except:
+                    if self.config.server.get('debug'):
+                        print('Node {} does not have port specified as cluster-advertise'.format(node_name))
+                    continue
+                node_config = {
+                    'base_url': '{}:{}'.format(machine_config['Driver']['IPAddress'], port),
+                    'tls': {
+                        'verify': machine_config['HostOptions']['AuthOptions']['CaCertPath'],
+                        'client_cert': [
+                            machine_config['HostOptions']['AuthOptions']['ClientCertPath'],
+                            machine_config['HostOptions']['AuthOptions']['ClientKeyPath']
+                        ],
+                        'assert_hostname': False
+                    }
+                }
+                node_configs[node_name] = node_config
+        if self.config.docker.get('nodes'):
+            for node_name, node_config in self.config.docker['nodes'].items():
+                node_configs[node_name] = node_config
+        return node_configs
 
     def update_nodes_status(self):
         if not self.config.defaults['error_handling'].get('dead_node_invalidation'):
@@ -446,5 +498,4 @@ def _to_mib(val, unit):
         return val
     elif unit == 'GiB':
         return val * 1000
-
     raise Exception("Unit '{}' not supported.".format(unit))

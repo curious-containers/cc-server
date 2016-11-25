@@ -34,7 +34,6 @@ class Worker:
         self.post_task()
 
     def update_images(self):
-        print('Pulling application container images...')
         application_containers = list(self.mongo.db['application_containers'].find(
             {'state': state_to_index('created')},
             {'task_id': 1, 'cluster_node': 1}
@@ -67,7 +66,6 @@ class Worker:
             t.join()
 
     def create_containers(self):
-        print('Create containers...')
         application_containers = self.mongo.db['application_containers'].find(
             {'state': state_to_index('created')},
             {'_id': 1}
@@ -95,22 +93,17 @@ class Worker:
 
     def startup(self):
         sleep(1)
-        # -------- load data container image --------
+
         print('Pulling data container image...')
         self.cluster.update_data_container_image(self.config.defaults['data_container_description']['image'])
-        # -------------------------------------------
 
-        # --------------- information ---------------
-        print('Healthy nodes:')
+        print('Cluster nodes:')
         pprint(self.cluster.nodes())
 
         print('Containers:')
         pprint(self.cluster.list_containers())
-        # -------------------------------------------
 
-        # ------ run tasks already in database ------
         self.post_task()
-        # -------------------------------------------
 
     def post_task(self):
         if not self._check_thread_count():
