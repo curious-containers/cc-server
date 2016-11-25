@@ -87,11 +87,14 @@ class Cluster:
                        exception=format_exc())
             self.cluster_provider.remove_container(container_id, collection)
 
+    def list_containers(self):
+        return self.cluster_provider.list_containers()
+
     def clean_up_finished_containers(self):
         container_ids = []
         for container in self.cluster_provider.list_containers():
             try:
-                container_ids.append(ObjectId(container['Names'][0].split('/')[-1]))
+                container_ids.append(ObjectId(container['name']))
             except:
                 pass
         if container_ids:
@@ -99,23 +102,22 @@ class Cluster:
                 containers = self.mongo.db[collection].find({
                     '_id': {'$in': container_ids},
                     'state': {'$in': end_states()}
-                }, {'_id': 1}),
+                }, {'_id': 1})
                 for container in containers:
                     self.cluster_provider.remove_container(container['_id'], collection)
 
     def clean_up_exited_containers(self):
-        containers = {}
+        container_names = {}
         for container in self.cluster_provider.list_containers():
             try:
-                status = container['Status'].split()
-                if status[0].lower() == 'exited':
-                    container_id = container['Names'][0].split('/')[-1]
-                    containers[container_id] = container['Status']
+                if container['exit_status'] is not None:
+                    container_id = container['name']
+                    container_names[container_id] = container['reason']
             except:
                 pass
 
         container_ids = []
-        for _id, status in containers.items():
+        for _id, status in container_names.items():
             try:
                 container_ids.append(ObjectId(_id))
             except:
@@ -129,8 +131,8 @@ class Cluster:
                 )
                 for container in containers:
                     if container['state'] in end_states():
-                        status = containers[str(container['_id'])]
-                        description = 'Container exited unexpectedly: {}'.format(status)
+                        reason = container_names[str(container['_id'])]
+                        description = 'Container exited unexpectedly: {}'.format(reason)
                         self.state_handler.transition(collection, container['_id'], 'failed', description)
                     self.cluster_provider.remove_container(container['_id'], collection)
 

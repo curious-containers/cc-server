@@ -17,7 +17,7 @@ def handle_api_errors():
             try:
                 return func(self, container_id, collection)
             except (ReadTimeout, APIError):
-                self._update_node_status_by_container(container_id, collection)
+                self.update_node_status_by_container(container_id, collection)
                 raise
         return wrapper
     return dec
@@ -60,7 +60,10 @@ class DockerClientProxy:
             'container_ram': 1
         }))
 
-        reserved_ram = sum([c['container_ram'] for c in data_containers + application_containers])
+        dc_ram = [c['container_ram'] for c in data_containers]
+        ac_ram = [c['container_ram'] for c in application_containers]
+
+        reserved_ram = sum(dc_ram + ac_ram)
 
         return {
             'name': self.node_name,
@@ -68,14 +71,11 @@ class DockerClientProxy:
             'reserved_ram': reserved_ram,
             'total_cpus': info['NCPU'],
             'reserved_cpus': None,
-            'active_application_containers': len(application_containers),
-            'active_data_containers': len(data_containers)
+            'active_application_containers': ac_ram,
+            'active_data_containers': dc_ram
         }
 
     def node_status(self):
-        if not self.config.defaults['error_handling'].get('dead_node_invalidation'):
-            return
-
         is_dead = False
         container_name = 'inspect-{}'.format(self.node_name)
         reason = None
@@ -91,8 +91,8 @@ class DockerClientProxy:
         if not is_dead:
             containers = self.list_containers()
             for container in containers:
-                if container['Names'][0].split('/')[1] == container_name:
-                    if '0' not in container['Status']:
+                if container['name'] == container_name:
+                    if container['exit_status'] != 0:
                         is_dead = True
                         reason = container['Status']
                     break
@@ -104,7 +104,19 @@ class DockerClientProxy:
     def list_containers(self):
         with self.thread_limit:
             containers = self.client.containers(quiet=False, all=True, limit=-1)
-        return containers
+        result = []
+        for container in containers:
+            exit_status = None
+            reason = None
+            if container['Status'].split()[0].lower() == 'exited':
+                exit_status = int(container['Status'].split('(')[-1].split(')')[0])
+                reason = container['Status']
+            result.append({
+                'name': container['Names'][0].split('/')[-1],
+                'exit_status': exit_status,
+                'reason': reason
+            })
+        return result
 
     def remove_container(self, container_name):
         try:
@@ -202,17 +214,14 @@ class DockerProvider:
             return
         print('Update nodes status...')
         threads = []
-        for node_name in self.clients:
+        for node_name in self.config.docker['nodes']:
             t = Thread(target=self.update_node_status, args=(node_name,))
             t.start()
             threads.append(t)
         for t in threads:
             t.join()
 
-        print('Dead nodes:')
-        pprint(list(self.mongo.db['dead_nodes'].find({}, {'name': 1})))
-
-    def _update_node_status_by_container(self, container_id, collection):
+    def update_node_status_by_container(self, container_id, collection):
         container = self.mongo.db[collection].find_one(
             {'_id': container_id},
             {'cluster_node': 1}
@@ -220,6 +229,10 @@ class DockerProvider:
         self.update_node_status(container['cluster_node'])
 
     def update_node_status(self, node_name):
+        if not self.config.defaults['error_handling'].get('dead_node_invalidation'):
+            return
+        if node_name not in self.clients:
+            self.clients[node_name] = DockerClientProxy(node_name, self.mongo, self.config)
         node = self.clients[node_name].node_status()
         if node['is_dead']:
             self.mongo.db['dead_nodes'].update_one(
@@ -227,6 +240,9 @@ class DockerProvider:
                 {'$set': {'name': node['name'], 'reason': node['reason']}},
                 upsert=True
             )
+            if node_name in self.clients:
+                del self.clients[node_name]
+            print('DEAD NODE: {}'.format(node_name))
         else:
             dead_nodes = self.mongo.db['dead_nodes'].find({'name': node['name']}, {'_id': 1})
             for dead_node in dead_nodes:
@@ -253,7 +269,7 @@ class DockerProvider:
 
     @handle_api_errors()
     def remove_container(self, container_id, collection):
-        self._client(container_id, collection).start_container(container_id)
+        self._client(container_id, collection).remove_container(container_id)
 
     @handle_api_errors()
     def create_container(self, container_id, collection):
@@ -269,6 +285,7 @@ class DockerProvider:
             self.clients[node_name].update_image(image, registry_auth)
         except:
             print('Error on image update for node {}: {}'.format(node_name, format_exc()))
+            self.update_node_status(node_name)
 
     def update_data_container_image(self, image, registry_auth):
         nodes = self.nodes()
@@ -378,16 +395,12 @@ class DockerProvider:
             )
 
     def nodes(self):
-        dead_nodes = self.mongo.db['dead_nodes'].find({}, {'name': 1})
-        dead_node_names = set()
-        dead_node_names.update([dead_node['name'] for dead_node in dead_nodes])
         threads = []
         q = Queue()
         for node_name in self.clients:
-            if node_name not in dead_node_names:
-                t = Thread(target=self._client_info, args=(node_name, q))
-                t.start()
-                threads.append(t)
+            t = Thread(target=self._client_info, args=(node_name, q))
+            t.start()
+            threads.append(t)
         for t in threads:
             t.join()
         nodes = []
@@ -400,6 +413,7 @@ class DockerProvider:
             q.put(self.clients[node_name].info())
         except:
             print('Error on info request for node {}: {}'.format(node_name, format_exc()))
+            self.update_node_status(node_name)
 
     def list_containers(self):
         threads = []
@@ -417,10 +431,10 @@ class DockerProvider:
 
     def _list_containers(self, node_name, q):
         try:
-            q.put(self.clients[node_name].info())
+            q.put(self.clients[node_name].list_containers())
         except:
             print('Error on container list for node {}: {}'.format(node_name, format_exc()))
-
+            self.update_node_status(node_name)
 
 
 def _to_mib(val, unit):

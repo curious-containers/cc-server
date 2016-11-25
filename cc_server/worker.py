@@ -95,19 +95,9 @@ class Worker:
 
     def startup(self):
         sleep(1)
-        dead_node_invalidation = True
         # -------- load data container image --------
-        try:
-            print('Pulling data container image...')
-            self.cluster.update_data_container_image(self.config.defaults['data_container_description']['image'])
-        except:
-            print('Pulling data container image caused error.')
-            dead_node_invalidation = False
-        # -------------------------------------------
-
-        # ----------- update nodes status -----------
-        if dead_node_invalidation:
-            self.cluster.update_nodes_status()
+        print('Pulling data container image...')
+        self.cluster.update_data_container_image(self.config.defaults['data_container_description']['image'])
         # -------------------------------------------
 
         # --------------- docker info ---------------
