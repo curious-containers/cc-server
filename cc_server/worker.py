@@ -100,8 +100,8 @@ class Worker:
         print('Cluster nodes:')
         pprint(self.cluster.nodes())
 
-        print('Containers:')
-        pprint(self.cluster.list_containers())
+        #print('Containers:')
+        #pprint(self.cluster.list_containers())
 
         self.post_task()
 

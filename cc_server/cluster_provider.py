@@ -3,10 +3,9 @@ import docker
 import json
 from threading import Semaphore, Thread
 from queue import Queue
-from requests.exceptions import ReadTimeout
+from requests.exceptions import ReadTimeout, ConnectionError
 from docker.errors import APIError
 from traceback import format_exc
-from pprint import pprint
 
 from cc_server.states import end_states
 
@@ -17,7 +16,7 @@ def handle_api_errors():
         def wrapper(self, container_id, collection):
             try:
                 return func(self, container_id, collection)
-            except (ReadTimeout, APIError):
+            except (ReadTimeout, APIError, ConnectionError):
                 self.update_node_status_by_container(container_id, collection)
                 raise
         return wrapper
@@ -30,25 +29,17 @@ class DockerClientProxy:
         self.node_config = node_config
         self.mongo = mongo
         self.config = config
+        self.thread_limit = Semaphore(self.config.docker['thread_limit'])
 
         tls = False
         if self.node_config.get('tls'):
             tls = docker.tls.TLSConfig(**self.node_config['tls'])
 
-        self.connected = False
-        self.client = None
-        self.thread_limit = Semaphore(self.config.docker['thread_limit'])
-
-        try:
-            self.client = docker.Client(
-                base_url=self.node_config['base_url'],
-                tls=tls,
-                timeout=self.config.docker.get('api_timeout')
-            )
-            self.list_containers()
-            self.connected = True
-        except:
-            pass
+        self.client = docker.Client(
+            base_url=self.node_config['base_url'],
+            tls=tls,
+            timeout=self.config.docker.get('api_timeout')
+        )
 
     def info(self):
         with self.thread_limit:
@@ -92,7 +83,7 @@ class DockerClientProxy:
             self._create_inspection_container(container_name)
             self.start_container(container_name)
             self.wait_for_container(container_name)
-        except (ReadTimeout, APIError):
+        except (ReadTimeout, APIError, ConnectionError):
             is_dead = True
             description = format_exc()
 
@@ -215,10 +206,35 @@ class DockerProvider:
 
         node_configs = self._node_configs()
         self.clients = {}
+
+        threads = []
+        q = Queue()
         for node_name, node_config in node_configs.items():
-            self.clients[node_name] = DockerClientProxy(node_name, node_config, mongo, config)
-            if not self.clients[node_name].connected:
-                self.update_node_status(node_name)
+            t = Thread(target=self._docker_client_proxy, args=(node_name, node_config, q))
+            t.start()
+            threads.append(t)
+        for t in threads:
+            t.join()
+        while not q.empty():
+            client = q.get()
+            if isinstance(client, DockerClientProxy):
+                self.clients[client.node_name] = client
+            else:
+                node_name, formatted_exception = client
+                self.mongo.db['dead_nodes'].update_one(
+                    {'name': node_name},
+                    {'$set': {'name': node_name, 'description': formatted_exception}},
+                    upsert=True
+                )
+                print('DEAD NODE: {}'.format(node_name))
+
+    def _docker_client_proxy(self, node_name, node_config, q):
+        try:
+            client = DockerClientProxy(node_name, node_config, self.mongo, self.config)
+            client.list_containers()
+            q.put(client)
+        except:
+            q.put((node_name, format_exc()))
 
     def _node_configs(self):
         node_configs = {}
