@@ -39,16 +39,16 @@ class DockerClientProxy:
         self.client = None
         self.thread_limit = Semaphore(self.config.docker['thread_limit'])
 
+        self.client = docker.Client(
+            base_url=self.node_config['base_url'],
+            tls=tls,
+            timeout=self.config.docker.get('api_timeout')
+        )
         try:
-            self.client = docker.Client(
-                base_url=self.node_config['base_url'],
-                tls=tls,
-                timeout=self.config.docker.get('api_timeout')
-            )
             self.list_containers()
             self.connected = True
         except:
-            print(format_exc())
+            pass
 
     def info(self):
         with self.thread_limit:
@@ -216,11 +216,9 @@ class DockerProvider:
         node_configs = self._node_configs()
         self.clients = {}
         for node_name, node_config in node_configs.items():
-            client_proxy = DockerClientProxy(node_name, node_config, mongo, config)
-            if client_proxy.connected:
-                self.clients[node_name] = client_proxy
-            else:
-                print('Could not connect to node: {}'.format(node_name))
+            self.clients[node_name] = DockerClientProxy(node_name, node_config, mongo, config)
+            if not self.clients[node_name].connected:
+                self.update_node_status(node_name)
 
     def _node_configs(self):
         node_configs = {}
