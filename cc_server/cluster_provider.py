@@ -78,7 +78,7 @@ class DockerClientProxy:
     def node_status(self):
         is_dead = False
         container_name = 'inspect-{}'.format(self.node_name)
-        reason = None
+        description = None
         try:
             self.remove_container(container_name)
             self._create_inspection_container(container_name)
@@ -86,7 +86,7 @@ class DockerClientProxy:
             self.wait_for_container(container_name)
         except (ReadTimeout, APIError):
             is_dead = True
-            reason = format_exc()
+            description = format_exc()
 
         if not is_dead:
             containers = self.list_containers()
@@ -94,12 +94,12 @@ class DockerClientProxy:
                 if container['name'] == container_name:
                     if container['exit_status'] != 0:
                         is_dead = True
-                        reason = container['Status']
+                        description = container['description']
                     break
 
         self.remove_container(container_name)
 
-        return {'name': self.node_name, 'is_dead': is_dead, 'reason': reason}
+        return {'name': self.node_name, 'is_dead': is_dead, 'description': description}
 
     def list_containers(self):
         with self.thread_limit:
@@ -107,14 +107,14 @@ class DockerClientProxy:
         result = []
         for container in containers:
             exit_status = None
-            reason = None
+            description = None
             if container['Status'].split()[0].lower() == 'exited':
                 exit_status = int(container['Status'].split('(')[-1].split(')')[0])
-                reason = container['Status']
+                description = container['Status']
             result.append({
                 'name': container['Names'][0].split('/')[-1],
                 'exit_status': exit_status,
-                'reason': reason
+                'description': description
             })
         return result
 
@@ -237,7 +237,7 @@ class DockerProvider:
         if node['is_dead']:
             self.mongo.db['dead_nodes'].update_one(
                 {'name': node['name']},
-                {'$set': {'name': node['name'], 'reason': node['reason']}},
+                {'$set': {'name': node['name'], 'description': node['description']}},
                 upsert=True
             )
             if node_name in self.clients:

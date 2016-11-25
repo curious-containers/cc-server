@@ -112,7 +112,7 @@ class Cluster:
             try:
                 if container['exit_status'] is not None:
                     container_id = container['name']
-                    container_names[container_id] = container['reason']
+                    container_names[container_id] = container['description']
             except:
                 pass
 
@@ -131,8 +131,7 @@ class Cluster:
                 )
                 for container in containers:
                     if container['state'] in end_states():
-                        reason = container_names[str(container['_id'])]
-                        description = 'Container exited unexpectedly: {}'.format(reason)
+                        description = 'Container exited unexpectedly: {}'.format(container_names[str(container['_id'])])
                         self.state_handler.transition(collection, container['_id'], 'failed', description)
                     self.cluster_provider.remove_container(container['_id'], collection)
 

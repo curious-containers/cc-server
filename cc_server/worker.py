@@ -100,9 +100,12 @@ class Worker:
         self.cluster.update_data_container_image(self.config.defaults['data_container_description']['image'])
         # -------------------------------------------
 
-        # --------------- docker info ---------------
+        # --------------- information ---------------
         print('Healthy nodes:')
         pprint(self.cluster.nodes())
+
+        print('Containers:')
+        pprint(self.cluster.list_containers())
         # -------------------------------------------
 
         # ------ run tasks already in database ------
