@@ -320,7 +320,9 @@ class DockerProvider:
             {'_id': container_id},
             {'cluster_node': 1}
         )
-        return self.clients[container['cluster_node']]
+        if not container:
+            return None
+        return self.clients.get(container['cluster_node'])
 
     @handle_api_errors()
     def get_ip(self, container_id, collection):
@@ -334,9 +336,10 @@ class DockerProvider:
     def start_container(self, container_id, collection):
         self._client(container_id, collection).start_container(container_id)
 
-    @handle_api_errors()
     def remove_container(self, container_id, collection):
-        self._client(container_id, collection).remove_container(container_id)
+        client = self._client(container_id, collection)
+        if client:
+            client.remove_container(container_id)
 
     @handle_api_errors()
     def create_container(self, container_id, collection):

@@ -15,7 +15,15 @@ class Cluster:
         self.data_container_lock = Lock()
 
     def get_ip(self, container_id, collection):
-        return self.cluster_provider.get_ip(container_id, collection)
+        ip = None
+        try:
+            ip = self.cluster_provider.get_ip(container_id, collection)
+        except:
+            description = 'Could not get container ip.'
+            self.state_handler.transition(collection, container_id, 'failed', description,
+                                          exception=format_exc())
+            self.cluster_provider.remove_container(container_id, collection)
+        return ip
 
     def update_nodes_status(self):
         self.cluster_provider.update_nodes_status()
@@ -28,7 +36,10 @@ class Cluster:
         self.cluster_provider.update_data_container_image(image, registry_auth)
 
     def update_application_container_image(self, node_name, image, registry_auth):
-        self.cluster_provider.update_image(node_name, image, registry_auth)
+        try:
+            self.cluster_provider.update_image(node_name, image, registry_auth)
+        except:
+            pass
 
     def start_container(self, container_id, collection):
         try:
