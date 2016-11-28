@@ -36,10 +36,7 @@ class Cluster:
         self.cluster_provider.update_data_container_image(image, registry_auth)
 
     def update_application_container_image(self, node_name, image, registry_auth):
-        try:
-            self.cluster_provider.update_image(node_name, image, registry_auth)
-        except:
-            pass
+        self.cluster_provider.update_image(node_name, image, registry_auth)
 
     def start_container(self, container_id, collection):
         try:
