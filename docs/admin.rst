@@ -60,6 +60,15 @@ machines with the correct settings. A minimal working setup can be achieved by r
    docker-machine ls
 
 
+The following figure shows a possible setup of Curious Containers with Docker Swarm.
+
+|
+
+.. image:: _static/images/cluster.*
+
+|
+
+
 CC-Server Installation
 ----------------------
 
