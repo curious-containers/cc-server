@@ -108,7 +108,7 @@ Clone a specific version from the Github repository:
 
 .. code-block:: bash
 
-   git clone -b 0.6 --depth 1 https://github.com/curious-containers/cc-server
+   git clone -b 0.7 --depth 1 https://github.com/curious-containers/cc-server
    cd cc-server
 
 
@@ -293,7 +293,7 @@ at */opt/container_worker*. The appropriate command to start the worker is given
 .. code-block:: toml
 
    [defaults.data_container_description]
-   image = 'docker.io/curiouscontainers/cc-image-ubuntu:0.6'
+   image = 'docker.io/curiouscontainers/cc-image-ubuntu:0.7'
    entry_point = 'python3 /opt/container_worker'
    container_ram = 512
 
