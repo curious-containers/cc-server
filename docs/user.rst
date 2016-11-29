@@ -4,11 +4,15 @@ User Documentation
 This user documentation contains information about how to schedule a task with CC-Server to run the CC-Sample-App and
 how to build a custom Docker images containing arbitrary applications.
 
+Docker Installation
+-------------------
+
+Please follow the official `Docker documenation <https://docs.docker.com/engine/installation/linux/ubuntulinux/>`__ for
+installation instructions. Please always install the **latest version** (currently version 12) and do not use
+outdated packages from your Linux distribution. Docker provides third-party repositories for all major platforms.
+
 CC-Sample-App
 -------------
-
-*The following commands assume that docker-engine is installed on the users machine. Take a look at the*
-`Administrator documentation <admin.html#docker-installation>`__ *for more information.*
 
 The CC-Sample-App is a containerized application, which is compatible with CC-Server because it is based on
 CC-Image-Ubuntu. There are several CC-Image flavors, that can be used as a base image for application containers.
@@ -43,29 +47,25 @@ The second command takes the CLI arguments *${@}* and writes them to the *parame
 The algorithm assumes to find one input file at a specific location in the local file system of the container image.
 In addition both result files are written to the file system at specific locations. Since the *algorithm.sh* script will
 be executed by CC-Container-Worker it is necessary to inform the worker about the locations of the
-input file and the result files by creating a *config.toml* file as shown below. The field **application_command** defines
+input file and the result files by creating a *config.json* file as shown below. The field **application_command** defines
 that the script will be executed with *bash* and that it is located in the system users home directory.
-The **local_input_files** and **local_result_files** fields each contain a list with dictionaries describing the file
-locations. It is not necessary that the given directories already exist, because they will be created by the
-CC-Container-Worker. The worker software will throw an error, if a specified result file is not created by the
-application. Result files can be marked as **optional**, in order to avoid this behaviour.
+The **local_input_files** field contains a list with dictionaries describing the file locations.
+The **local_result_files** contains a dictionary, where the keys in the dictionary are identifiers for the files, which
+can be chosen freely. The value for each key is a dictionary describing the file location. The worker software will
+throw an error, if a specified result file is not created by the application. Result files can be marked as **optional**,
+in order to avoid this behaviour.
 
-.. code-block:: toml
+.. code-block:: json
 
-   [main]
-   application_command = 'bash /home/ubuntu/algorithm.sh'
-   local_input_files = [{
-       'dir' = '/home/ubuntu/input_files',
-       'name' = 'data.txt'
-   }]
-   local_result_files = [{
-       'dir' = '/home/ubuntu/result_files',
-       'name' = 'data.txt',
-       'optional' = true
-   }, {
-       'dir' = '/home/ubuntu/result_files',
-       'name' = 'parameters.txt'
-   }]
+   {
+      "application_command": "bash /home/ubuntu/algorithm.sh",
+      "local_input_files": [
+          {"dir": "/home/ubuntu/input_files", "name": "data.txt"}
+      ],
+      local_result_files = {
+          "file_a": {"dir": "/home/ubuntu/result_files", "name": "data.txt", "optional": true},
+          "file_b": {"dir": "/home/ubuntu/result_files", "name": "parameters.txt"}
+      }
 
 
 In order to create the CC-Sample-App it is necessary to build a Docker image, containing *algorithm.sh* and *config.toml*.
@@ -78,7 +78,7 @@ via **application_command**.
 .. code-block:: docker
 
    FROM docker.io/curiouscontainers/cc-image-ubuntu:0.6
-   COPY config.toml /opt/config.toml
+   COPY config.json /opt/config.json
 
    COPY algorithm.sh /home/ubuntu/algorithm.sh
 
@@ -151,6 +151,7 @@ Modify and run the following Python 3 code:
            }
        }],
        "result_files": [{
+           "local_result_file": "file_a",
            "connector_type": "ssh",
            "connector_access": {
                "host": "my-domain.tld",
@@ -160,6 +161,7 @@ Modify and run the following Python 3 code:
                "file_name": "some_data.csv"
            }
        }, {
+           "local_result_file": "file_b",
            "connector_type": "ssh",
            "connector_access": {
                "host": "my-domain.tld",
@@ -174,17 +176,20 @@ Modify and run the following Python 3 code:
    requests.post('https://my-domain.tld/cc/tasks', json=task, auth=(username, password))
 
 
-In the *config.toml* file of the CC-Sample-App one input file and two result files have been defined. The purpose of Curious
+In the *config.json* file of the CC-Sample-App one input file and two result files have been defined. The purpose of Curious
 Containers is, to run applications with arbitrary inputs and outputs. Therefore the task JSON object must contain
 information about input file sources and result file destinations. The input file downloads and result file uploads are
 executed by the CC-Container-Worker in a running container.
 
 The worker connects to the remote data archive, downloads the input files and stores them at the location defined in
-*config.toml* in the containers file system. The first element in the **input_files** list of the task maps to the first
+*config.json* in the containers file system. The first element in the **input_files** list of the task maps to the first
 element of the **local_input_files** list of the *config.toml* file. The same holds for all other elements in
-the list, as well as for the **result_files** and **local_result_files** lists. Since this describes a *one-to-one*
-element mapping of two lists, it is required that as many **input_files** and **result_files** are defined in the task,
-as defined in the respective **local_input_files** and **local_result_files** lists.
+the list. Since this describes a *one-to-one* element mapping of two lists, it is required that as many **input_files**
+are defined in the task, as defined in the **local_input_files** list.
+
+The **local_result_files** are defined as a dictionary. The keys in this dictionary are file identifiers, which must be
+referenced in the **result_files** of a task. Since there is no *one-to-one* mapping for the **result_files**, it is not
+necessary to define a destination for every file or to define multiple destinations for one file.
 
 Data Connectors for Input Files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -463,9 +468,9 @@ The following steps guide you through the customizing process:
 1. Change the **REGISTRY_URL** in the *build.sh* file. The URL should point to a registry and group you have access to.
 2. If the application should be based on a CC-Image other than CC-Image-Ubuntu, the appropriate URL must be given in *build.sh* and in the *Dockerfile*.
 3. Instead of copying *algorithm.sh* to the container, modify the Dockerfile to include all necessary scripts, binaries and dependencies of your own application.
-4. Modify the *config.toml* file to include only input files required by the application and only result files that will be uploaded to a remote data archive as soon as the application terminates. Temporary or intermediate result files must not be included in this list.
-5. Modify the **application_command** in *config.toml* to point at the application that will be invoked by CC-Container-Worker.
-6. Make sure that the *config.toml* will be copied to the */opt* directory in the *Dockerfile*.
+4. Modify the *config.json* file to include only input files required by the application and only result files that will be uploaded to a remote data archive as soon as the application terminates.
+5. Modify the **application_command** in *config.json* to point at the application that will be invoked by CC-Container-Worker.
+6. Make sure that the *config.json* will be copied to the */opt* directory in the *Dockerfile*.
 
 The **application_command** syntax might not be sufficient for all use cases. For example the application might
 handle CLI arguments in a certain way not provided by the CC-Container-Worker, the application might use pipes for the

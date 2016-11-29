@@ -172,11 +172,15 @@ _task_schema = {
                 'image': {'type': 'string'},
                 'entry_point': {'type': 'string'},
                 'registry_auth': {
-                    'type': 'object',
-                    'properties': {
-                        'username': {'type': 'string'},
-                        'password': {'type': 'string'}
-                    },
+                    'anyOf': [{
+                        'type': 'object',
+                        'properties': {
+                            'username': {'type': 'string'},
+                            'password': {'type': 'string'}
+                        }
+                    }, {
+                        'type': 'null'
+                    }],
                     'required': ['username', 'password'],
                     'additionalProperties': False
                 },

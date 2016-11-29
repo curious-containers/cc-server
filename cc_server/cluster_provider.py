@@ -254,7 +254,10 @@ class DockerProvider:
                         key, val = flag.split('=')
                         if key == 'cluster-advertise':
                             port = int(val.split(':')[-1])
+                            break
                 except:
+                    pass
+                if not port:
                     if self.config.server.get('debug'):
                         print('Node {} does not have port specified as cluster-advertise'.format(node_name))
                     continue

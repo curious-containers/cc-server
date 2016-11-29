@@ -16,15 +16,27 @@ db = 'ccdb'
 [docker]
 thread_limit = 8
 api_timeout = 30
-pull_timeout = 120
-base_url = '192.168.99.99:3376'
 net = 'cc-overlay-network'
 
-[docker.tls]
-verify = '/home/USER/.docker/machine/machines/cc-manager/ca.pem'
+[docker.nodes.cc-node1]
+base_url = 'tcp://192.168.99.101:2376'
+
+[docker.nodes.cc-node1.tls]
+verify = '/home/christoph/.docker/machine/machines/cc-node1/ca.pem'
 client_cert = [
-    '/home/USER/.docker/machine/machines/cc-manager/cert.pem',
-    '/home/USER/.docker/machine/machines/cc-manager/key.pem'
+    '/home/christoph/.docker/machine/machines/cc-node1/cert.pem',
+    '/home/christoph/.docker/machine/machines/cc-node1/key.pem'
+]
+assert_hostname = false
+
+[docker.nodes.cc-node2]
+base_url = 'tcp://192.168.99.102:2376'
+
+[docker.nodes.cc-node2.tls]
+verify = '/home/christoph/.docker/machine/machines/cc-node2/ca.pem'
+client_cert = [
+    '/home/christoph/.docker/machine/machines/cc-node2/cert.pem',
+    '/home/christoph/.docker/machine/machines/cc-node2/key.pem'
 ]
 assert_hostname = false
 

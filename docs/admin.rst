@@ -23,50 +23,42 @@ Please follow the official `Docker documenation <https://docs.docker.com/engine/
 installation instructions. Please always install the **latest version** (currently version 12) and do not use
 outdated packages from your Linux distribution. Docker provides third-party repositories for all major platforms.
 
-Docker Swarm (Optional)
-^^^^^^^^^^^^^^^^^^^^^^^
+Docker Cluster (Optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*Please note, that the following information is only valid for the standalone Docker Swarm software.
-The new* `swarm mode <https://docs.docker.com/engine/swarm/>`__ *of the docker-engine is NOT supported.*
+A Docker cluster consists of multiple hosts, where each computer has a docker-engine installed. These hosts are called
+**nodes** in the context of Curious Containers and can be physical computers, virtual machines or docker containers
+running `docker-in-docker <https://github.com/jpetazzo/dind>`__.
 
-CC-Server supports Docker Swarm for cluster computing. The instructions for setting up Docker Swarm vary depending on 
-the underlying infrastructure. It is advised to read the official
-`Docker Swarm documentation <https://docs.docker.com/swarm/overview/>`__.
+The docker cluster must fullfill three requirements. First of all a cluster store
+(e.g. `consul <https://www.consul.io/>`__) must be available to the cluster on a separate host. For each docker-engine
+in the cluster, set the **cluster-store** as engine option. As a second requirement, the engine option
+**cluster-advertise** must be specified in order to make the docker-engines listen on a TCP port (e.g.
+*cluster-advertise=eth1:2376*). All firewalls on the nodes must also be configured to expose this port in a way,
+that it is reachable by CC-Server. The third requirement is to enable a communication channel for containers running in
+the cluster accross all nodes. This is achieved by connecting a Docker client to one of the nodes' docker-engines and to
+create an `Overlay Network <https://docs.docker.com/engine/userguide/networking/get-started-overlay/>`__ for the
+cluster. Please note, that this step needs to be done only once and that it is only possible if the **cluster-store**
+has been configured correctly.
 
-In addition it is necessary to setup a Docker
-Overlay network on top of Docker Swarm, in order to enable inter-container communication across multiple hosts. 
-Installation instructions can be found in the official
-`Docker Overlay Network documentation <https://docs.docker.com/engine/userguide/networking/get-started-overlay/>`__.
-
-Setting up a small Docker Swarm on a local machine for testing purposes can be achieved with
+It is recommended to use `Docker Machine <https://docs.docker.com/machine/install-machine/>`__ in order to setup virtual
+machines with the correct settings. A minimal working setup can be achieved by running the *setup.sh* script in the
+`Docker-Cluster-Setup <https://github.com/curious-containers/docker-cluster-setup>`__ repository. Please set up
 `Docker Machine <https://docs.docker.com/machine/install-machine/>`__ and
-`Virtualbox <https://www.virtualbox.org/wiki/Linux_Downloads>`__. After setting up Docker Machine and Virtualbox the bash
-scripts from the `CC-Swarm-Setup repository <https://github.com/curious-containers/cc-swarm-setup>`__ can be used.
+`Virtualbox <https://www.virtualbox.org/wiki/Linux_Downloads>`__ correctly before running this script.
 
 .. code-block:: bash
 
-   git clone https://github.com/curious-containers/cc-swarm-setup.git
-   cd cc-swarm-setup
+   git clone https://github.com/curious-containers/docker-cluster-setup.git
+   cd docker-cluster-setup
 
    # Customize the variables at the top of the setup.sh script or use the defaults
-   # Run the script to set up a Docker Swarm and a Overlay Network with the name cc-overlay-network.
-   # IP and PORT of the Swarm Manager will be printed by the script after the installation is done.
+   # Run the script to set up a Docker cluster and a Overlay Network with the name cc-overlay-network
    bash setup.sh
 
-   # Source the variables of connect.sh to connect the Docker client to the Swarm Manager
-   source connect.sh
+   # Take a look at the Docker cluster installation
+   docker-machine ls
 
-   # Take a look at the Swarm installation
-   docker info
-
-
-The following figure shows a possible setup of Curious Containers with Docker Swarm.
-
-|
-
-.. image:: _static/images/cluster.*
-
-|
 
 CC-Server Installation
 ----------------------
@@ -134,11 +126,18 @@ CC-Server to a local docker-engine:
    cp sample_local_docker_config.toml config.toml
 
 
-Else, if you are connecting CC-Server to a Swarm Manager:
+Else, if you are connecting CC-Server to a Docker cluster:
 
 .. code-block:: bash
 
-   cp sample_docker_swarm_config.toml config.toml
+   cp sample_docker_cluster_config.toml config.toml
+
+
+Else, if you are connection CC-Server to a Docker cluster created with **docker-machine**:
+
+.. code-block:: bash
+
+   cp sample_docker_machine_config.toml config.toml
 
 
 server
@@ -198,41 +197,74 @@ same machine as CC-Server, the **host** is specified as localhost and the standa
 docker
 """"""
 
-CC-Server can use a local docker-engine or a Docker Swarm in order to run Docker containers. If the local
+CC-Server can use a local docker-engine or a Docker cluster in order to run Docker containers. If the local
 docker-engine is used, **base_url** is set to *unix://var/run/docker.sock*. CC-Server is a highly parallelized
-application, which spawns hundrets of threads. The number of threads, accessing the Docker API in parallel, must be
+application, which spawns hundrets of threads. The number of threads, accessing the docker-engine in parallel, must be
 limited by setting **thread_limit** in order to avoid severe Docker bugs (currently version 12). The default value *8*
-is a reasonable choice, but higher values could speed up the processing times.
+is a reasonable choice, but higher values could speed up the processing times. In addition an optional **api_timeout**
+parameter can be set, to limit the time of requests to a Docker engine. Shorter values can speed up error detection but
+can on the other hand increase the likelihood of false positives.
 
 .. code-block:: toml
 
    [docker]
    thread_limit = 8
+   api_timeout = 30
+
+   [docker.nodes.local]
    base_url = 'unix://var/run/docker.sock'
 
 
-If using Docker Swarm, the configuration becomes more complex. The **base_url** is changed to the IP and PORT of the
-Swarm Manager. A Docker Overlay Network must be created beforehand and the name of the network is given as **net**.
+If using a Docker cluster, the configuration becomes more complex. The **base_url** is changed to the IP and PORT of the
+specific docker-engine. A Docker Overlay Network must be created beforehand and the name of the network is given as **net**.
 The API of a Docker Manager is usually protected by a TLS encryption. When using Docker Machine for the Swarm setup, the
 certificate files can be found in the system users home directory at *~/.docker/machine/machines*. CC-Server is using
 the docker-py Python package. Take a look at the official
 `docker-py documentation <http://docker-py.readthedocs.io/en/stable/tls/>`__ for more information about TLS options. Delete
-the **docker.tls** section from the configuration file if not required.
+the **docker.nodes.<node_name>.tls** sections from the configuration file if not required.
 
 .. code-block:: toml
 
    [docker]
    thread_limit = 8
-   base_url = '192.168.99.99:3376'
+   api_timeout = 30
    net = 'cc-overlay-network'
 
-   [docker.tls]
-   verify = '/home/USER/.docker/machine/machines/cc-manager/ca.pem'
+   [docker.nodes.cc-node1]
+   base_url = '192.168.99.101:2376'
+
+   [docker.nodes.cc-node1.tls]
+   verify = '/home/USER/.docker/machine/machines/cc-node1/ca.pem'
    client_cert = [
-       '/home/USER/.docker/machine/machines/cc-manager/cert.pem',
-       '/home/USER/.docker/machine/machines/cc-manager/key.pem'
+       '/home/USER/.docker/machine/machines/cc-node1/cert.pem',
+       '/home/USER/.docker/machine/machines/cc-node1/key.pem'
    ]
    assert_hostname = false
+
+   [docker.nodes.cc-node2]
+   base_url = '192.168.99.102:2376'
+
+   [docker.nodes.cc-node2.tls]
+   verify = '/home/USER/.docker/machine/machines/cc-node2/ca.pem'
+   client_cert = [
+       '/home/USER/.docker/machine/machines/cc-node2/cert.pem',
+       '/home/USER/.docker/machine/machines/cc-node2/key.pem'
+   ]
+   assert_hostname = false
+
+
+If **docker-machine** has been used to setup the cluster, the following shorthand configuration can be used. The
+**machines_dir** parameter should point to a directory automatically created by docker-machine, containing subdirectories
+for all cluster nodes. CC-Server will read all necessary information from the corresponding node directories and the
+resuling cluster configuration should be identical to what has been specified above.
+
+.. code-block:: toml
+
+   [docker]
+   thread_limit = 8
+   api_timeout = 30
+   net = 'cc-overlay-network'
+   machines_dir = '~/.docker/machine/machines'
 
 
 defaults
@@ -292,11 +324,16 @@ the container.
 CC-Server is fault tolerant, in the sense that faulty tasks are automatically restarted. Sometimes a restart will not fix
 the problem, because the task configuration is wrong or a resource is not available. In order to avoid infite restart
 loops, the number of restarts must be limited by setting the **max_task_trials** value in the **error_handling** subsection.
+The **dead_node_validation** field should be set to *true* for improved error handling. If a node in the Docker cluster
+is not responding or behaving incorrect, these errors will be detected and the node will be ignored by the CC-Server
+scheduler.
+
 
 .. code-block:: toml
 
    [defaults.error_handling]
    max_task_trials = 3
+   dead_node_invalidation = true
 
 
 The authorization module of CC-Server provides mechanism to avoid API exploitation. After a certain number of login attemps

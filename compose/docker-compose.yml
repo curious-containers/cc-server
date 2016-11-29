@@ -2,7 +2,7 @@ version: "2"
 services:
   cc-server:
     build: ./cc-server
-    command: "python3 /root/.config/curious-containers/cc-server/init.py"
+    command: "python3 -u /root/.config/curious-containers/cc-server/init.py"
     ports:
       - "5000:5000"
     volumes:

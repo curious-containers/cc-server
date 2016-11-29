@@ -1,21 +1,23 @@
+# see documentation for configuration instructions
+# ------------------------------------------------
+
 [server]
-host = 'http://172.18.0.1:5000'
+host = 'https://cc.my-domain.tld'
 internal_port = 5000
 log_dir = '~/.cc_server/'
 
 [mongo]
 username = 'ccdbAdmin'
 password = 'PASSWORD'
-host = 'mongo'
+host = 'localhost'
 port = 27017
-db = 'db'
+db = 'ccdb'
 
 [docker]
 thread_limit = 8
 api_timeout = 30
-
-[docker.nodes.dind]
-base_url = 'dind:2375'
+net = 'cc-overlay-network'
+machines_dir = '~/.docker/machine/machines'
 
 [defaults.application_container_description]
 entry_point = 'python3 /opt/container_worker'
@@ -24,6 +26,11 @@ entry_point = 'python3 /opt/container_worker'
 image = 'docker.io/curiouscontainers/cc-image-ubuntu'
 entry_point = 'python3 /opt/container_worker'
 container_ram = 512
+
+# only necessary if data container image is in private registry
+# [defaults.data_container_description.registry_auth]
+# username = 'REGISTRY_USER'
+# password = 'PASSWORD'
 
 [defaults.scheduling_strategies]
 container_allocation = 'spread'

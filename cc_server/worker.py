@@ -57,8 +57,11 @@ class Worker:
         threads = []
         for node_name, node in nodes.items():
             for image, registry_auth in node:
+                ra = None
+                if registry_auth:
+                    ra = {'username': registry_auth[0], 'password': registry_auth[1]}
                 t = Thread(target=self.cluster.update_application_container_image, args=(
-                    node_name, image, {'username': registry_auth[0], 'password': registry_auth[1]}
+                    node_name, image, ra
                 ))
                 threads.append(t)
                 t.start()

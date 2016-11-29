@@ -72,7 +72,7 @@ In the function signature of the downloaders two arguments, **connector_access**
 For the uploaders a three arguments, **connector_access**, **local_result_file** and **meta_data**, are specified. The
 argument **connector_access** will be filled with a dictionary of the **connector_access** information for a certain
 file, specified by a user in a task description. The **local_input_file** / **local_result_file** arguments will be
-will be filled with the respective information from the *config.toml* of the CC-Container-Worker, which contains
+will be filled with the respective information from the *config.json* of the CC-Container-Worker, which contains
 information, where the file can be found or should be placed in the local file system of the Docker container. The
 **meta_data** argument must be in the function signature of the uploader, but is entirely optional to be used in the
 code. The existing data connectors give a good example how these arguments are used.
@@ -108,16 +108,17 @@ Sample implementation of a multi-file uploader
                r.raise_for_status()
 
 
-**config.toml** of CC-Container-Worker:
+**config.json** of CC-Container-Worker:
 
-.. code-block:: toml
+.. code-block:: json
 
-   [main]
-   application_command = 'bash /root/wrapper_sn_edfScan2edfData.sh'
-   local_input_files = []
-   local_result_files = [
-       {'dir' = '/home/ubuntu/result_files', 'names' = '*.csv'} # file name pattern
-   ]
+   {
+       "application_command": "bash /root/algorithm.sh",
+       "local_input_files": [],
+       "local_result_files": {
+           "csv_data": {"dir": "/home/ubuntu/result_files", "names": "*.csv"}
+       }
+   }
 
 
 **Dockerfile**:
@@ -125,7 +126,7 @@ Sample implementation of a multi-file uploader
 .. code-block:: docker
 
    FROM docker.io/curiouscontainers/cc-image-ubuntu
-   COPY config.toml /opt/config.toml
+   COPY config.json /opt/config.json
 
    COPY custom_uploaders.py /opt/container_worker/custom_uploaders.py
 
@@ -138,6 +139,7 @@ Excerpt from a sample **task**:
 
    {
        "result_files": [{
+           "local_result_file": "csv_data",
            "connector_type": "http_multi_file",
            "connector_access": {
                "url": "my-domain.tld/multi-file-endpoint",

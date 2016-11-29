@@ -31,7 +31,8 @@ Change Log
 Version 0.7
 ^^^^^^^^^^^
 
-- Changed config format for CC-Images from TOML to JSON. Result files are now specified as dict instead of list
+- Dropped Docker Swarm support in favor of connecting to the different docker-engines directly. This is a necessary change to improve fault tolerance with dead node invalidation in CC-Server.
+- Changed config format for CC-Images from TOML to JSON. Result files are now specified as dict instead of list.
 - The result files specification for tasks changed. All result files must now have a field **local_result_file** to reference the dict key of the CC-Image config.json.
 - It is now possible to upload a result files multiple times to different remote locations.
 

@@ -16,7 +16,8 @@ db = 'ccdb'
 [docker]
 thread_limit = 8
 api_timeout = 30
-pull_timeout = 120
+
+[docker.nodes.local]
 base_url = 'unix://var/run/docker.sock'
 
 [defaults.application_container_description]
