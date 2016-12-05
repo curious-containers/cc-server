@@ -2,7 +2,7 @@ Introduction
 ============
 
 **Curious Containers** is an application management service that is able to execute thousands of short-lived applications
-in an distributed cluster environment by employing Docker Swarm.
+in a distributed cluster by employing `Docker <https://www.docker.com/>`__ container engines.
 
 In this context applications are atomic entities taking files and parameters as input and producing new files as output.
 They are short-lived in a sense that they calculate something and terminate as soon as all results have been produced.
@@ -20,7 +20,7 @@ The Curious Containers software consists of two main components.
 CC-Server
 ^^^^^^^^^
 
-CC-Server is a web service connecting to a *docker-engine* or a *Docker Swarm*. Tasks containing application
+CC-Server is a web service connecting to one or more *docker-engines*. Tasks containing application
 descriptions can be registered via a REST interface and the service takes care of scheduling the execution of these
 tasks.
 
@@ -48,8 +48,8 @@ separating applications from the host operating system.
 Fault Tolerant
 ^^^^^^^^^^^^^^
 
-It aims to be fault tolerant by restarting cancelled tasks and works around bugs in Docker Swarm (e.g. Swarm
-errors caused by highly parallelized API calls).
+It aims to be fault tolerant by restarting cancelled tasks and works around bugs in Docker and by automatically
+detecting dead cluster nodes.
 
 Telemetry and Meta Data
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -61,7 +61,7 @@ Connecting to Data Archives
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The CC-Container-Worker is able to connect to remote data archives for downloading input files and uploading result
-files via multiple data transfer protocols (e.g. sftp, http).
+files via multiple data transfer protocols (e.g. sftp, http, mongodb).
 
 Caching
 ^^^^^^^
@@ -102,4 +102,5 @@ is not directly comparable to projects like `Docker Compose <https://docs.docker
 Questions?
 ----------
 
-Feel free to post questions in the `issues area of CC-Server on Github <https://github.com/curious-containers/cc-server/issues>`__.
+Feel free to post questions in the
+`issues area of CC-Server on Github <https://github.com/curious-containers/cc-server/issues>`__.

@@ -3,7 +3,7 @@
 Visit the [project website](http://www.curious-containers.cc/).
 
 ## Introduction
-**Curious Containers** is an application management service that is able to execute thousands of short-lived applications in an distributed cluster environment by employing Docker Swarm.
+**Curious Containers** is an application management service that is able to execute thousands of short-lived applications in a distributed cluster by employing [Docker](https://www.docker.com/) container engines.
 
 In this context applications are atomic entities taking files and parameters as input and producing new files as output. They are short-lived in a sense that they calculate something and terminate as soon as all results have been produced.
 
