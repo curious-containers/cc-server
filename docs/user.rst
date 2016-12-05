@@ -62,7 +62,7 @@ in order to avoid this behaviour.
       "local_input_files": [
           {"dir": "/home/ubuntu/input_files", "name": "data.txt"}
       ],
-      local_result_files = {
+      "local_result_files": {
           "file_a": {"dir": "/home/ubuntu/result_files", "name": "data.txt", "optional": true},
           "file_b": {"dir": "/home/ubuntu/result_files", "name": "parameters.txt"}
       }
