@@ -26,6 +26,9 @@ outdated packages from your Linux distribution. Docker provides third-party repo
 Docker Cluster (Optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+*As of version 0.7, connecting to a Docker Swarm manager is not supported anymore. CC-Server is now able to connect to
+multiple docker-engines.*
+
 A Docker cluster consists of multiple hosts, where each computer has a docker-engine installed. These hosts are called
 **nodes** in the context of Curious Containers and can be physical computers, virtual machines or docker containers
 running `docker-in-docker <https://github.com/jpetazzo/dind>`__.
@@ -53,7 +56,7 @@ machines with the correct settings. A minimal working setup can be achieved by r
    cd docker-cluster-setup
 
    # Customize the variables at the top of the setup.sh script or use the defaults
-   # Run the script to set up a Docker cluster and a Overlay Network with the name cc-overlay-network
+   # Run the script to set up a Docker cluster and an Overlay Network with the name cc-overlay-network
    bash setup.sh
 
    # Take a look at the Docker cluster installation
