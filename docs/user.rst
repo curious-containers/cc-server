@@ -66,6 +66,7 @@ in order to avoid this behaviour.
           "file_a": {"dir": "/home/ubuntu/result_files", "name": "data.txt", "optional": true},
           "file_b": {"dir": "/home/ubuntu/result_files", "name": "parameters.txt"}
       }
+   }
 
 
 In order to create the CC-Sample-App it is necessary to build a Docker image, containing *algorithm.sh* and *config.toml*.
