@@ -162,6 +162,7 @@ def post_tasks():
 
             }],
             "result_files": [{
+                "local_result_file": "file_a",
                 "connector_type": "ssh",
                 "connector_access": {
                     "host": "my-domain.tld",
@@ -171,6 +172,7 @@ def post_tasks():
                     "file_name": "some_data.csv"
                 }
             }, {
+                "local_result_file": "file_b",
                 "connector_type": "ssh",
                 "connector_access": {
                     "host": "my-domain.tld",
@@ -219,12 +221,14 @@ def post_tasks():
 
                 }],
                 "result_files": [{
+                    "local_result_file": "file_a",
                     "connector_type": "http",
                     "connector_access": {
                         "url": "https://my-domain.tld/result_files/A/1/",
                         "method": "POST"
                     }
                 }, {
+                    "local_result_file": "file_b",
                     "connector_type": "http",
                     "connector_access": {
                         "url": "https://my-domain.tld/result_files/A/2/",
@@ -244,12 +248,14 @@ def post_tasks():
 
                 }],
                 "result_files": [{
+                    "local_result_file": "file_a",
                     "connector_type": "http",
                     "connector_access": {
                         "url": "https://my-domain.tld/result_files/B/1/",
                         "method": "POST"
                     }
                 }, {
+                    "local_result_file": "file_b",
                     "connector_type": "http",
                     "connector_access": {
                         "url": "https://my-domain.tld/result_files/B/2/",
