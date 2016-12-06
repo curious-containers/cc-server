@@ -66,7 +66,7 @@ class RequestHandler:
     def get_nodes(self):
         return jsonify(prepare_response({
             'healthy_nodes': self.cluster.nodes(),
-            'dead_nodes': list(self.mongo.db['dead_nodes'].find({}, {'_id': -1}))
+            'dead_nodes': list(self.mongo.db['dead_nodes'].find({}))
         }))
 
     @auth(require_credentials=False)
