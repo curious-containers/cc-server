@@ -6,7 +6,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from cc_server.helper import prepare_response, prepare_input
 from cc_server.states import is_state
-from cc_server.schemas import query_schema, tasks_schema, callback_schema, cancel_schema
+from cc_server.schemas import query_schema, tasks_schema, callback_schema, cancel_schema, nodes_schema
 
 
 def task_group_prototype():
@@ -55,7 +55,21 @@ class RequestHandler:
         self.config = config
         self.state_handler = state_handler
 
+    @auth(require_credentials=False)
+    @validation(nodes_schema)
+    def post_nodes(self, json_input):
+        for node in json_input['nodes']:
+            self.cluster.update_node_status(node['name'])
+        return jsonify({})
+
     @auth(require_admin=False, require_credentials=False)
+    def get_nodes(self):
+        return jsonify(prepare_response({
+            'healthy_nodes': self.cluster.nodes(),
+            'dead_nodes': list(self.mongo.db['dead_nodes'].find({}))
+        }))
+
+    @auth(require_credentials=False)
     def put_worker(self):
         Thread(target=self.worker.post_task).start()
         return jsonify({})

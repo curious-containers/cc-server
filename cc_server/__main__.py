@@ -31,14 +31,99 @@ def get_root():
         {
             "version": 0.7
         }
+
     """
     return jsonify({'version': 0.7})
+
+
+@app.route('/nodes', methods=['GET'])
+def get_nodes():
+    """
+    .. :quickref: User API; Query cluster nodes
+
+    Query the status of all nodes in the cluster. Dead nodes will appear in a separate list.
+
+    **Example request**
+
+    .. sourcecode:: http
+
+        GET /nodes HTTP/1.1
+
+    **Example response**
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Vary: Accept
+        Content-Type: application/json
+
+        {
+            "dead_nodes": [],
+            "healthy_nodes": [{
+                "active_application_containers": [],
+                "active_data_containers": [],
+                "name": "cc-node2",
+                "reserved_cpus": null,
+                "reserved_ram": 0,
+                "total_cpus": 2,
+                "total_ram": 2002
+            }, {
+                "active_application_containers": [],
+                "active_data_containers": [],
+                "name": "cc-node1",
+                "reserved_cpus": null,
+                "reserved_ram": 0,
+                "total_cpus": 2,
+                "total_ram": 2002
+            }]
+        }
+
+    """
+    return request_handler.get_nodes()
+
+
+@app.route('/nodes', methods=['POST'])
+def post_nodes():
+    """
+    .. :quickref: Dev API; Update cluster nodes
+
+    *Requires admin user.*
+
+    Update the status of cluster nodes specified in the request. The endpoint can be used to notify CC-Server after a
+    dead cluster node has been repaired.
+
+    **Example request**
+
+    .. sourcecode:: http
+
+        POST /nodes HTTP/1.1
+
+        {
+            "nodes": [{
+                "name": "cc-node2"
+            }]
+        }
+
+    **Example response**
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Vary: Accept
+        Content-Type: application/json
+
+        {}
+
+    """
+    return request_handler.post_nodes(request.get_json())
 
 
 @app.route('/worker', methods=['PUT'])
 def put_worker():
     """
     .. :quickref: Dev API; Spawn worker thread
+
+    *Requires admin user.*
 
     If CC-Server is stuck in an undefined state, a new worker thread can be spawned to pick up unfinished tasks. The
     same behaviour can be triggered by restarting CC-Server. This endpoint should be used for debugging purposes only.
@@ -58,6 +143,7 @@ def put_worker():
         Content-Type: application/json
 
         {}
+
     """
     return request_handler.put_worker()
 
@@ -66,6 +152,7 @@ def put_worker():
 def post_tasks_query():
     """
     .. :quickref: User API; Query tasks
+
     Send JSON object with a query, in order to retrieve a list of tasks.
     Admin users can retrieve tasks from every other user, while standard users can only retrieve their own tasks.
 
@@ -107,6 +194,7 @@ def post_tasks_query():
                 {"_id": "57f63f73e004231a26ed187e", "state": 2}
             ]
         }
+
     """
     return request_handler.post_tasks_query(request.get_json())
 
@@ -115,6 +203,7 @@ def post_tasks_query():
 def post_tasks():
     """
     .. :quickref: User API; Schedule tasks
+
     Send JSON object with one or more task descriptions, in order to schedule them with the server.
 
     **JSON fields**
@@ -281,6 +370,7 @@ def post_tasks():
                 "_id": "57fbf45df62690000101afa6"
             }]
         }
+
     """
     return request_handler.post_tasks(request.get_json())
 
@@ -289,6 +379,7 @@ def post_tasks():
 def post_tasks_cancel():
     """
     .. :quickref: User API; Cancel tasks
+
     Send JSON object with one or more task IDs, in order to cancel their execution if they are still running.
     Admin users can cancel tasks from every other user, while standard users can only cancel their own tasks.
 
@@ -352,6 +443,7 @@ def post_tasks_cancel():
                 "state": 5
             }]
         }
+
     """
     return request_handler.post_tasks_cancel(request.get_json())
 
@@ -385,6 +477,7 @@ def get_token():
             "token": "7e2950f21e3f0afd77253b8e13e2ee4da923e545389d424b",
             "valid_for_seconds": 172800
         }
+
     """
     return request_handler.get_token()
 
@@ -473,6 +566,7 @@ def post_application_container_callback():
         Content-Type: application/json
 
         {}
+
     """
     return request_handler.post_application_container_callback(request.get_json())
 
@@ -519,6 +613,7 @@ def post_data_container_callback():
         Content-Type: application/json
 
         {}
+
     """
     return request_handler.post_data_container_callback(request.get_json())
 
@@ -632,7 +727,7 @@ def main():
 
     Thread(target=worker.startup).start()
 
-    app.run(host='0.0.0.0', port=config.server['internal_port'])
+    app.run(host='0.0.0.0', port=config.server['internal_port'], threaded=True)
 
 if __name__ == '__main__':
     main()

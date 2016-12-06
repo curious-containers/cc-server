@@ -28,6 +28,9 @@ class Cluster:
     def update_nodes_status(self):
         self.cluster_provider.update_nodes_status()
 
+    def update_node_status(self, node_name):
+        self.cluster_provider.update_node_status(node_name)
+
     def nodes(self):
         return self.cluster_provider.nodes()
 

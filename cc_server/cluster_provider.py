@@ -204,13 +204,13 @@ class DockerProvider:
         self.mongo = mongo
         self.config = config
 
-        node_configs = self._node_configs()
+        self.node_configs = self._node_configs()
         self.clients = {}
 
         threads = []
         q = Queue()
-        for node_name, node_config in node_configs.items():
-            t = Thread(target=self._docker_client_proxy, args=(node_name, node_config, q))
+        for node_name in self.node_configs:
+            t = Thread(target=self._docker_client_proxy, args=(node_name, q))
             t.start()
             threads.append(t)
         for t in threads:
@@ -228,9 +228,9 @@ class DockerProvider:
                 )
                 print('Dead node: {}'.format(node_name))
 
-    def _docker_client_proxy(self, node_name, node_config, q):
+    def _docker_client_proxy(self, node_name, q):
         try:
-            client = DockerClientProxy(node_name, node_config, self.mongo, self.config)
+            client = DockerClientProxy(node_name, self.node_configs[node_name], self.mongo, self.config)
             client.list_containers()
             q.put(client)
         except:
@@ -300,9 +300,13 @@ class DockerProvider:
     def update_node_status(self, node_name):
         if not self.config.defaults['error_handling'].get('dead_node_invalidation'):
             return
+        if node_name not in self.node_configs:
+            print('Could not find config for updating node: {}'.format(node_name))
+            return
         print('Update status of node: {}'.format(node_name))
         if node_name not in self.clients:
-            self.clients[node_name] = DockerClientProxy(node_name, self.mongo, self.config)
+            node_config = self.node_configs[node_name]
+            self.clients[node_name] = DockerClientProxy(node_name, node_config, self.mongo, self.config)
         node = self.clients[node_name].node_status()
         if node['is_dead']:
             self.mongo.db['dead_nodes'].update_one(

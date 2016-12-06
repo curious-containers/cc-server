@@ -242,6 +242,27 @@ tasks_schema = {
     ]
 }
 
+nodes_schema = {
+    'type': 'object',
+    'properties': {
+        'nodes': {
+            'type': 'array',
+            'items': {
+                'anyOf': [{
+                    'type': 'object',
+                    'properties': {
+                        'name': {'type': 'string'}
+                    },
+                    'required': ['name'],
+                    'additionalProperties': False
+                }]
+            }
+        }
+    },
+    'required': ['nodes'],
+    'additionalProperties': False
+}
+
 cancel_schema = {
     'type': 'object',
     'oneOf': [{
