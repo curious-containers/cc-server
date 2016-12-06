@@ -92,6 +92,12 @@ Sample implementation of a multi-file uploader
 
 .. code-block:: python
 
+   import os
+   import glob
+   import requests
+
+   from container_worker import helper
+
    def http_multi_file(connector_access, local_result_file, meta_data):
        local_file_paths = glob.glob(os.path.join(
            local_result_file['dir'],
