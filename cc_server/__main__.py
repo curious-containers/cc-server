@@ -659,10 +659,17 @@ def main():
         logging.getLogger('werkzeug').addHandler(debug_log)
     # -------------------------------------------
 
-    # ---------- initialize singletons ----------
+    # ----------- initialize database -----------
     mongo = Mongo(
         config=config
     )
+    # -------------------------------------------
+
+    # ------- Reset dead nodes collection -------
+    mongo.db['dead_nodes'].drop()
+    # -------------------------------------------
+
+    # ---------- initialize singletons ----------
     state_handler = StateHandler(
         mongo=mongo,
         config=config
@@ -719,10 +726,6 @@ def main():
         config=config,
         state_handler=state_handler,
     )
-    # -------------------------------------------
-
-    # ------- Reset dead nodes collection -------
-    mongo.db['dead_nodes'].drop()
     # -------------------------------------------
 
     Thread(target=worker.startup).start()
