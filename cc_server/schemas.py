@@ -73,7 +73,12 @@ _tracing_schema = {
         'syscall': {
             'enum': ['none', 'short', 'full']
         },
-        'tracing_file': _tracing_connector_schema
+        'tracing_file': {
+            'anyOf': [
+                _tracing_connector_schema,
+                {'type': 'null'}
+            ]
+        }
     },
     'required': ['enabled'],
     'additionalProperties': False
