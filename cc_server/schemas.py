@@ -16,7 +16,7 @@ _result_connector_schema = {
         'connector_access': {'type': 'object'},
         'add_meta_data': {'type': 'boolean'}
     },
-    'required': ['connector_type', 'connector_access'],
+    'required': ['connector_type', 'connector_access', 'local_result_file'],
     'additionalProperties': False
 }
 
