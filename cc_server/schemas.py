@@ -34,12 +34,10 @@ _tracing_connector_schema = {
 _notification_connector_schema = {
     'type': 'object',
     'properties': {
-        'connector_type': {'type': 'string'},
         'connector_access': {
             'type': 'object',
             'properties': {
                 'url': {'type': 'string'},
-                'method': {'enum': ['PUT', 'POST', 'put', 'post', 'Put', 'Post']},
                 'json_data': {'type': 'object'},
                 'ssl_verify': {'type': 'boolean'},
                 'auth': {
@@ -53,9 +51,10 @@ _notification_connector_schema = {
                     'additionalProperties': False
                 }
             },
-            'required': ['url', 'method'],
+            'required': ['url'],
             'additionalProperties': False
-        }
+        },
+        'add_meta_data': {'type': 'boolean'}
     },
     'required': ['connector_access'],
     'additionalProperties': False

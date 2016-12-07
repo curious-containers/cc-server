@@ -340,12 +340,23 @@ The **dead_node_validation** field should be set to *true* for improved error ha
 is not responding or behaving incorrect, these errors will be detected and the node will be ignored by the CC-Server
 scheduler.
 
-
 .. code-block:: toml
 
    [defaults.error_handling]
    max_task_trials = 3
    dead_node_invalidation = true
+
+
+If **dead_node_invalidation** is set to *true*, an entirely optional notification mechanism can be activated. This
+**dead_node_notification** will send an HTTP POST request, containing a JSON object with the **name** of the
+corresponding cluster node, to the specified **url**. Setting authentication information in the **auth** field is
+optional. Remove the complete **dead_node_invalidation** section from the config file if not required.
+
+.. code-block:: toml
+
+   [defaults.error_handling.dead_node_notification]
+   url = 'https://my-domain.tld/cluster'
+   auth = {'auth_type' = 'basic', 'username' = 'admin', 'password' = 'PASSWORD'}
 
 
 The authorization module of CC-Server provides mechanism to avoid API exploitation. After a certain number of login attemps

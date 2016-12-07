@@ -87,6 +87,8 @@ def post_nodes():
     """
     .. :quickref: Dev API; Update cluster nodes
 
+    **Developer documentation**
+
     *Requires admin user.*
 
     Update the status of cluster nodes specified in the request. The endpoint can be used to notify CC-Server after a

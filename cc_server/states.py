@@ -184,7 +184,8 @@ class StateHandler:
 
         if state_to_index(state) in end_states():
             if task.get('notifications'):
-                notify(task['notifications'])
+                meta_data = {'task_id': task_id}
+                notify(task['notifications'], meta_data)
 
     def update_task_groups(self):
         task_groups = self.mongo.db['task_groups'].find(

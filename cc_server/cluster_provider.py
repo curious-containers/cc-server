@@ -8,6 +8,7 @@ from docker.errors import APIError
 from traceback import format_exc
 
 from cc_server.states import end_states
+from cc_server.notification import notify
 
 
 def handle_api_errors():
@@ -259,7 +260,7 @@ class DockerProvider:
                     pass
                 if not port:
                     if self.config.server.get('debug'):
-                        print('Node {} does not have port specified as cluster-advertise'.format(node_name))
+                        print('Node {} does not have port specified as cluster-advertise.'.format(node_name))
                     continue
                 node_config = {
                     'base_url': '{}:{}'.format(machine_config['Driver']['IPAddress'], port),
@@ -304,20 +305,30 @@ class DockerProvider:
             print('Could not find config for updating node: {}'.format(node_name))
             return
         print('Update status of node: {}'.format(node_name))
-        if node_name not in self.clients:
-            node_config = self.node_configs[node_name]
-            self.clients[node_name] = DockerClientProxy(node_name, node_config, self.mongo, self.config)
-        node = self.clients[node_name].node_status()
-        if node['is_dead']:
-            self.mongo.db['dead_nodes'].update_one(
-                {'name': node['name']},
-                {'$set': {'name': node['name'], 'description': node['description']}},
-                upsert=True
-            )
+        node = self.clients.get(node_name)
+        if not node:
+            node = DockerClientProxy(node_name, self.node_configs[node_name], self.mongo, self.config)
+        node_status = node.node_status()
+
+        if node_status['is_dead']:
             if node_name in self.clients:
                 del self.clients[node_name]
+
+            self.mongo.db['dead_nodes'].update_one(
+                {'name': node_status['name']},
+                {'$set': {'name': node_status['name'], 'description': node_status['description']}},
+                upsert=True
+            )
             print('Dead node: {}'.format(node_name))
+            if self.config.defaults['error_handling'].get('dead_node_notification'):
+                connector_access = self.config.defaults['error_handling']['dead_node_notification']
+                connector_access['add_meta_data'] = True
+                meta_data = {'name': node_name}
+                notify([connector_access], meta_data)
         else:
+            if node_name not in self.clients:
+                self.clients[node_name] = node
+
             dead_nodes = self.mongo.db['dead_nodes'].find({'name': node['name']}, {'_id': 1})
             for dead_node in dead_nodes:
                 self.mongo.db['dead_nodes'].delete_one({'_id': dead_node['_id']})
