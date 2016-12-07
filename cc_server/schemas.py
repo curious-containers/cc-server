@@ -181,12 +181,12 @@ _task_schema = {
                         'properties': {
                             'username': {'type': 'string'},
                             'password': {'type': 'string'}
-                        }
+                        },
+                        'required': ['username', 'password'],
+                        'additionalProperties': False
                     }, {
                         'type': 'null'
                     }],
-                    'required': ['username', 'password'],
-                    'additionalProperties': False
                 },
                 'container_ram': {'type': 'number'},
                 'tracing': _tracing_schema,
