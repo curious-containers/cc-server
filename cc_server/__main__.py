@@ -2,7 +2,7 @@ import os
 import sys
 from flask import Flask, request, jsonify
 
-sys.path.insert(0, os.path.abspath('.'))
+# sys.path.insert(0, os.path.abspath('.'))
 
 request_handler = None
 app = Flask('cc_server')
@@ -620,12 +620,9 @@ def post_data_container_callback():
     return request_handler.post_data_container_callback(request.get_json())
 
 
-def main():
-    import sys
+def prepare():
     import logging
     from logging.handlers import RotatingFileHandler
-    from os import makedirs
-    from os.path import expanduser, join, exists
     from threading import Thread
 
     from cc_server.configuration import Config
@@ -652,11 +649,11 @@ def main():
 
     # ------------ initialize logger ------------
     if config.server.get('log_dir'):
-        log_dir = expanduser(config.server['log_dir'])
-        if not exists(log_dir):
-            makedirs(log_dir)
+        log_dir = os.path.expanduser(config.server['log_dir'])
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
 
-        debug_log = RotatingFileHandler(join(log_dir, 'debug.log'), maxBytes=1024*1024*100, backupCount=20)
+        debug_log = RotatingFileHandler(os.path.join(log_dir, 'debug.log'), maxBytes=1024*1024*100, backupCount=20)
         debug_log.setLevel(logging.DEBUG)
         logging.getLogger('werkzeug').addHandler(debug_log)
     # -------------------------------------------
@@ -731,8 +728,12 @@ def main():
     # -------------------------------------------
 
     Thread(target=worker.startup).start()
+    return config
 
-    app.run(host='0.0.0.0', port=config.server['internal_port'], threaded=True)
+
+def main():
+    config = prepare()
+    app.run(host='0.0.0.0', port=config.server['internal_port'])
 
 if __name__ == '__main__':
     main()
