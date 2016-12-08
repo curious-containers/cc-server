@@ -24,7 +24,7 @@ class Config:
             try:
                 with open(conf_file_path) as f:
                     config = loads(f.read())
-                    print('Loaded TOML config from {}'.format(conf_file_path))
+                    self.conf_file_path = conf_file_path
                     break
             except:
                 pass

@@ -21,7 +21,7 @@ def _auth(http_auth):
     raise Exception('Authorization information is not valid.')
 
 
-def notify(servers, meta_data):
+def notify(tee, servers, meta_data):
     for connector_access in servers:
         try:
             json_data = connector_access.get('json_data')
@@ -38,4 +38,4 @@ def notify(servers, meta_data):
             )
             r.raise_for_status()
         except:
-            print('Could not notify server: {}'.format(connector_access))
+            tee('Could not notify server: {}'.format(connector_access))

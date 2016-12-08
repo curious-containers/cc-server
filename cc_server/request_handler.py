@@ -39,7 +39,7 @@ def validation(schema):
                 json_input = prepare_input(json_input)
             except:
                 if self.config.server.get('debug'):
-                    print(format_exc())
+                    self.tee(format_exc())
                 raise BadRequest('JSON input not valid: {}'.format(format_exc()))
             return func(self, json_input, *args, **kwargs)
         return wrapper
@@ -47,7 +47,8 @@ def validation(schema):
 
 
 class RequestHandler:
-    def __init__(self, mongo, cluster, worker, authorize, config, state_handler):
+    def __init__(self, tee, mongo, cluster, worker, authorize, config, state_handler):
+        self.tee = tee
         self.cluster = cluster
         self.mongo = mongo
         self.worker = worker

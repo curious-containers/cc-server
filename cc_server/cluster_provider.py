@@ -25,7 +25,8 @@ def handle_api_errors():
 
 
 class DockerClientProxy:
-    def __init__(self, node_name, node_config, mongo, config):
+    def __init__(self, tee, node_name, node_config, mongo, config):
+        self.tee = tee
         self.node_name = node_name
         self.node_config = node_config
         self.mongo = mongo
@@ -162,12 +163,12 @@ class DockerClientProxy:
         return container['NetworkSettings']['Networks']['bridge']['IPAddress']
 
     def update_image(self, image, registry_auth):
-        print('Pull image {} on node {}.'.format(image, self.node_name))
+        self.tee('Pull image {} on node {}.'.format(image, self.node_name))
         with self.thread_limit:
             for line in self.client.pull(image, stream=True, auth_config=registry_auth):
                 line = str(line)
                 if self.config.server.get('debug'):
-                    print(line)
+                    self.tee(line)
                 if 'error' in line.lower():
                     raise Exception(line)
 
@@ -185,7 +186,7 @@ class DockerClientProxy:
         )
 
         if self.config.server.get('debug'):
-            print('inspection_container', command)
+            self.tee('inspection_container', command)
 
         self.create_container(
             name=container_name,
@@ -201,7 +202,8 @@ class DockerClientProxy:
 
 
 class DockerProvider:
-    def __init__(self, mongo, config):
+    def __init__(self, tee, mongo, config):
+        self.tee = tee
         self.mongo = mongo
         self.config = config
 
@@ -227,11 +229,11 @@ class DockerProvider:
                     {'$set': {'name': node_name, 'description': formatted_exception}},
                     upsert=True
                 )
-                print('Dead node: {}'.format(node_name))
+                self.tee('Dead node: {}'.format(node_name))
 
     def _docker_client_proxy(self, node_name, q):
         try:
-            client = DockerClientProxy(node_name, self.node_configs[node_name], self.mongo, self.config)
+            client = DockerClientProxy(self.tee, node_name, self.node_configs[node_name], self.mongo, self.config)
             client.list_containers()
             q.put(client)
         except:
@@ -247,7 +249,9 @@ class DockerProvider:
                 node_name = machine_config['Driver']['MachineName']
                 if not machine_config['HostOptions']['EngineOptions'].get('ArbitraryFlags'):
                     if self.config.server.get('debug'):
-                        print('Node {} does not have HostOptions -- EngineOptions -- ArbitraryFlags'.format(node_name))
+                        self.tee(
+                            'Node {} does not have HostOptions -- EngineOptions -- ArbitraryFlags'.format(node_name)
+                        )
                     continue
                 port = None
                 try:
@@ -260,7 +264,7 @@ class DockerProvider:
                     pass
                 if not port:
                     if self.config.server.get('debug'):
-                        print('Node {} does not have port specified as cluster-advertise.'.format(node_name))
+                        self.tee('Node {} does not have port specified as cluster-advertise.'.format(node_name))
                     continue
                 node_config = {
                     'base_url': '{}:{}'.format(machine_config['Driver']['IPAddress'], port),
@@ -282,7 +286,7 @@ class DockerProvider:
     def update_nodes_status(self):
         if not self.config.defaults['error_handling'].get('dead_node_invalidation'):
             return
-        print('Update nodes status...')
+        self.tee('Update nodes status...')
         threads = []
         for node_name in self.config.docker['nodes']:
             t = Thread(target=self.update_node_status, args=(node_name,))
@@ -302,12 +306,12 @@ class DockerProvider:
         if not self.config.defaults['error_handling'].get('dead_node_invalidation'):
             return
         if node_name not in self.node_configs:
-            print('Could not find config for updating node: {}'.format(node_name))
+            self.tee('Could not find config for updating node: {}'.format(node_name))
             return
-        print('Update status of node: {}'.format(node_name))
+        self.tee('Update status of node: {}'.format(node_name))
         node = self.clients.get(node_name)
         if not node:
-            node = DockerClientProxy(node_name, self.node_configs[node_name], self.mongo, self.config)
+            node = DockerClientProxy(self.tee, node_name, self.node_configs[node_name], self.mongo, self.config)
         node_status = node.node_status()
 
         if node_status['is_dead']:
@@ -319,12 +323,12 @@ class DockerProvider:
                 {'$set': {'name': node_status['name'], 'description': node_status['description']}},
                 upsert=True
             )
-            print('Dead node: {}'.format(node_name))
+            self.tee('Dead node: {}'.format(node_name))
             if self.config.defaults['error_handling'].get('dead_node_notification'):
                 connector_access = self.config.defaults['error_handling']['dead_node_notification']
                 connector_access['add_meta_data'] = True
                 meta_data = {'name': node_name}
-                notify([connector_access], meta_data)
+                notify(self.tee, [connector_access], meta_data)
         else:
             if node_name not in self.clients:
                 self.clients[node_name] = node
@@ -372,7 +376,7 @@ class DockerProvider:
         try:
             self.clients[node_name].update_image(image, registry_auth)
         except:
-            print('Error on image update for node: {}'.format(node_name))
+            self.tee('Error on image update for node: {}'.format(node_name))
             self.update_node_status(node_name)
 
     def update_data_container_image(self, image, registry_auth):
@@ -389,14 +393,14 @@ class DockerProvider:
         try:
             self.clients[node_name].update_image(image, registry_auth)
         except:
-            print('Error on image update for node: {}'.format(node_name))
+            self.tee('Error on image update for node: {}'.format(node_name))
             del self.clients[node_name]
             self.mongo.db['dead_nodes'].update_one(
                 {'name': node_name},
                 {'$set': {'name': node_name, 'description': format_exc()}},
                 upsert=True
             )
-            print('Dead node: {}'.format(node_name))
+            self.tee('Dead node: {}'.format(node_name))
 
     def _create_application_container(self, application_container_id):
         application_container = self.mongo.db['application_containers'].find_one({'_id': application_container_id})
@@ -420,7 +424,7 @@ class DockerProvider:
         )
 
         if self.config.server.get('debug'):
-            print('application_container', command)
+            self.tee('application_container', command)
 
         mem_limit = '{}MB'.format(task['application_container_description']['container_ram'])
 
@@ -470,7 +474,7 @@ class DockerProvider:
         )
 
         if self.config.server.get('debug'):
-            print('data_container', command)
+            self.tee('data_container', command)
 
         mem_limit = '{}MB'.format(self.config.defaults['data_container_description']['container_ram'])
 
@@ -513,7 +517,7 @@ class DockerProvider:
         try:
             q.put(self.clients[node_name].info())
         except:
-            print('Error on info request for node: {}'.format(node_name))
+            self.tee('Error on info request for node: {}'.format(node_name))
             self.update_node_status(node_name)
 
     def list_containers(self):
@@ -534,7 +538,7 @@ class DockerProvider:
         try:
             q.put(self.clients[node_name].list_containers())
         except:
-            print('Error on container list for node: {}'.format(node_name))
+            self.tee('Error on container list for node: {}'.format(node_name))
             self.update_node_status(node_name)
 
 

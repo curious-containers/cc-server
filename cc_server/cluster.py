@@ -6,7 +6,8 @@ from cc_server.states import state_to_index, end_states
 
 
 class Cluster:
-    def __init__(self, mongo, cluster_provider, config, state_handler):
+    def __init__(self, tee, mongo, cluster_provider, config, state_handler):
+        self.tee = tee
         self.mongo = mongo
         self.cluster_provider = cluster_provider
         self.config = config
@@ -47,7 +48,7 @@ class Cluster:
             if self.config.server.get('debug'):
                 self.cluster_provider.wait_for_container(container_id, collection)
                 logs = self.cluster_provider.logs_from_container(container_id, collection)
-                print(logs)
+                self.tee(logs)
         except:
             description = 'Container start failed.'
             self.state_handler.transition(collection, container_id, 'failed', description,

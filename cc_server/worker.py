@@ -1,12 +1,13 @@
+import json
 from threading import Lock, Thread
-from pprint import pprint
 from time import sleep
 
 from cc_server.states import state_to_index
 
 
 class Worker:
-    def __init__(self, mongo, cluster, config, scheduler, state_handler):
+    def __init__(self, tee, mongo, cluster, config, scheduler, state_handler):
+        self.tee = tee
         self.cluster = cluster
         self.mongo = mongo
         self.config = config
@@ -92,19 +93,16 @@ class Worker:
             j += 1
         for t in threads:
             t.join()
-        print('-------- Scheduled --------\n{}\tApplication Containers\n{}\tData Containers'.format(i, j))
+        self.tee('Scheduled:\n{}\tApplication Containers\n{}\tData Containers'.format(i, j))
 
     def startup(self):
         sleep(1)
 
-        print('Pulling data container image...')
+        self.tee('Pulling data container image...')
         self.cluster.update_data_container_image(self.config.defaults['data_container_description']['image'])
 
-        print('Cluster nodes:')
-        pprint(self.cluster.nodes())
-
-        #print('Containers:')
-        #pprint(self.cluster.list_containers())
+        self.tee('Cluster nodes:')
+        self.tee(json.dumps(self.cluster.nodes(), indent=4))
 
         self.post_task()
 
@@ -178,4 +176,3 @@ class Worker:
 
         description = 'All data containers for application container ready.'
         self.state_handler.transition('application_containers', application_container_id, 'processing', description)
-

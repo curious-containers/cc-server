@@ -637,6 +637,7 @@ def prepare():
     from cc_server.cluster_provider import DockerProvider
     from cc_server.authorization import Authorize
     from cc_server.states import StateHandler
+    from cc_server.tee import construct_function
 
     # --------------- load config ---------------
     conf_file_path = None
@@ -653,9 +654,12 @@ def prepare():
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
 
-        debug_log = RotatingFileHandler(os.path.join(log_dir, 'debug.log'), maxBytes=1024*1024*100, backupCount=20)
+        debug_log = RotatingFileHandler(os.path.join(log_dir, 'flask.log'), maxBytes=1024*1024*100, backupCount=20)
         debug_log.setLevel(logging.DEBUG)
         logging.getLogger('werkzeug').addHandler(debug_log)
+
+    tee = construct_function(config)
+    tee('Loaded TOML config from {}'.format(config.conf_file_path))
     # -------------------------------------------
 
     # ----------- initialize database -----------
@@ -670,14 +674,17 @@ def prepare():
 
     # ---------- initialize singletons ----------
     state_handler = StateHandler(
+        tee=tee,
         mongo=mongo,
         config=config
     )
     cluster_provider = DockerProvider(
+        tee=tee,
         mongo=mongo,
         config=config
     )
     cluster = Cluster(
+        tee=tee,
         mongo=mongo,
         cluster_provider=cluster_provider,
         config=config,
@@ -706,6 +713,7 @@ def prepare():
         caching=caching
     )
     worker = Worker(
+        tee=tee,
         mongo=mongo,
         cluster=cluster,
         config=config,
@@ -713,11 +721,13 @@ def prepare():
         state_handler=state_handler
     )
     authorize = Authorize(
+        tee=tee,
         mongo=mongo,
         config=config
     )
     global request_handler
     request_handler = RequestHandler(
+        tee=tee,
         mongo=mongo,
         cluster=cluster,
         worker=worker,

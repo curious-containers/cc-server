@@ -17,12 +17,12 @@ def _get_ip():
             break
     if not ip:
         ip = '127.0.0.1'
-    print('IP:', ip)
     return ip
 
 
 class Authorize:
-    def __init__(self, mongo, config):
+    def __init__(self, tee, mongo, config):
+        self.tee = tee
         self.mongo = mongo
         self.config = config
 
@@ -58,6 +58,7 @@ class Authorize:
         result = False
 
         ip = _get_ip()
+        self.tee('IP:', ip)
         if not require_credentials:
             result = self._verify_user_by_token(user, password, ip)
 
@@ -101,7 +102,7 @@ class Authorize:
             'username': username,
             'timestamp': time()
         })
-        print('Unverified login attempt: added block entry!')
+        self.tee('Unverified login attempt: added block entry!')
 
     def issue_token(self):
         token = generate_secret()

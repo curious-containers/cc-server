@@ -49,7 +49,8 @@ def _transition(state, description, exception, caused_by):
 
 
 class StateHandler:
-    def __init__(self, mongo, config):
+    def __init__(self, tee, mongo, config):
+        self.tee = tee
         self.mongo = mongo
         self.config = config
 
@@ -111,9 +112,9 @@ class StateHandler:
 
     def _append_transition(self, collection, _id, t):
         if is_state(t['state'], 'failed'):
-            print(collection, _id, index_to_state(t['state']), t['description'], t.get('exception'))
+            self.tee(collection, _id, index_to_state(t['state']), t['description'], t.get('exception'))
         else:
-            print(collection, _id, index_to_state(t['state']))
+            self.tee(collection, _id, index_to_state(t['state']))
 
         if is_state(t['state'], 'created'):
             self.mongo.db[collection].update({'_id': _id}, {
@@ -185,7 +186,7 @@ class StateHandler:
         if state_to_index(state) in end_states():
             if task.get('notifications'):
                 meta_data = {'task_id': task_id}
-                notify(task['notifications'], meta_data)
+                notify(self.tee, task['notifications'], meta_data)
 
     def update_task_groups(self):
         task_groups = self.mongo.db['task_groups'].find(
