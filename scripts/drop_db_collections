@@ -16,6 +16,7 @@ except:
     pass
 
 config = Config(conf_file_path)
+
 mongo = Mongo(
     config=config
 )

@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 from cc_server.authorization import Authorize
 from cc_server.configuration import Config
+from cc_server.tee import construct_function
 from cc_server.database import Mongo
 
 conf_file_path = None
@@ -18,10 +19,14 @@ except:
     pass
 
 config = Config(conf_file_path)
+
+tee = construct_function
+
 mongo = Mongo(
     config=config
 )
 auth_handler = Authorize(
+    tee=tee,
     mongo=mongo,
     config=config
 )
