@@ -1,8 +1,7 @@
 import os
 import sys
 
-# Specify path to cc-server here, if not already in PYTHONPATH
-# sys.path.insert(0, '/path/to/cc-server')
+sys.path.insert(0, os.path.split(os.path.abspath(__file__))[0])
 
 from cc_server.__main__ import app as application
 from cc_server.__main__ import prepare
