@@ -8,6 +8,8 @@ def tee_loop(q):
     log_path = None
     if config.server.get('log_dir'):
         log_dir = os.path.expanduser(config.server['log_dir'])
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
         log_path = os.path.join(log_dir, 'server.log')
     suppress_stdout = config.server.get('suppress_stdout')
 
