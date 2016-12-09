@@ -1,6 +1,4 @@
-import json
 from threading import Lock, Thread
-from time import sleep
 
 from cc_server.states import state_to_index
 
@@ -93,17 +91,6 @@ class Worker:
         for t in threads:
             t.join()
         self.tee('Scheduled:\n{}\tApplication Containers\n{}\tData Containers'.format(i, j))
-
-    def startup(self):
-        sleep(1)
-
-        self.tee('Pulling data container image...')
-        self.cluster.update_data_container_image(self.config.defaults['data_container_description']['image'])
-
-        self.tee('Cluster nodes:')
-        self.tee(json.dumps(self.cluster.nodes(), indent=4))
-
-        self.post_task()
 
     def post_task(self):
         if not self._check_thread_count():

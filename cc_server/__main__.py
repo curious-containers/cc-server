@@ -630,8 +630,7 @@ def prepare():
     tee_daemon.daemon = True
     tee_daemon.start()
 
-    from threading import Thread
-
+    import json
     from cc_server.configuration import Config
     from cc_server.database import Mongo
     from cc_server.worker import Worker
@@ -725,12 +724,19 @@ def prepare():
     )
     # -------------------------------------------
 
-    Thread(target=worker.startup).start()
-    return config
+    tee('Pulling data container image...')
+    cluster.update_data_container_image(config.defaults['data_container_description']['image'])
+
+    tee('Cluster nodes:')
+    tee(json.dumps(cluster.nodes(), indent=4))
+
+    return config, worker
 
 
 def main():
-    config = prepare()
+    from threading import Thread
+    config, worker = prepare()
+    Thread(target=worker.post_task).start()
     app.run(host='0.0.0.0', port=config.server['internal_port'])
 
 if __name__ == '__main__':
