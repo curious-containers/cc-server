@@ -1,12 +1,15 @@
 import os
+import sys
 from toml import loads
 
 
 class Config:
-    def __init__(self, file_path):
-        possible_conf_file_paths = [
-            file_path
-        ]
+    def __init__(self):
+        possible_conf_file_paths = []
+        try:
+            possible_conf_file_paths.append(sys.argv[1])
+        except:
+            pass
 
         try:
             possible_conf_file_paths.append(

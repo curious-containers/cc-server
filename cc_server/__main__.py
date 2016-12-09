@@ -621,8 +621,15 @@ def post_data_container_callback():
 
 
 def prepare():
-    import logging
-    from logging.handlers import RotatingFileHandler
+    from multiprocessing import Process, Queue
+
+    from cc_server.tee import tee_loop
+    tee_q = Queue()
+    tee = tee_q.put
+    tee_daemon = Process(target=tee_loop, args=(tee_q,))
+    tee_daemon.daemon = True
+    tee_daemon.start()
+
     from threading import Thread
 
     from cc_server.configuration import Config
@@ -637,28 +644,9 @@ def prepare():
     from cc_server.cluster_provider import DockerProvider
     from cc_server.authorization import Authorize
     from cc_server.states import StateHandler
-    from cc_server.tee import construct_function
 
     # --------------- load config ---------------
-    conf_file_path = None
-    try:
-        conf_file_path = sys.argv[1]
-    except:
-        pass
-    config = Config(conf_file_path)
-    # -------------------------------------------
-
-    # ------------ initialize logger ------------
-    if config.server.get('log_dir'):
-        log_dir = os.path.expanduser(config.server['log_dir'])
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
-
-        debug_log = RotatingFileHandler(os.path.join(log_dir, 'flask.log'), maxBytes=1024*1024*100, backupCount=20)
-        debug_log.setLevel(logging.DEBUG)
-        logging.getLogger('werkzeug').addHandler(debug_log)
-
-    tee = construct_function(config)
+    config = Config()
     tee('Loaded TOML config from {}'.format(config.conf_file_path))
     # -------------------------------------------
 

@@ -30,7 +30,6 @@ class Worker:
             self.scheduling_thread_count -= 1
 
     def post_container_callback(self):
-        self.cluster.clean_up_finished_containers()
         self.cluster.clean_up_unused_data_containers()
         self.post_task()
 
@@ -111,7 +110,7 @@ class Worker:
             return
         with self.post_task_lock:
 
-            self.cluster.clean_up_exited_containers()
+            self.cluster.clean_up_containers()
             self.state_handler.update_task_groups()
             self.scheduler.schedule()
             self.update_images()

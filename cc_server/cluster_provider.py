@@ -102,21 +102,22 @@ class DockerClientProxy:
 
         return {'name': self.node_name, 'is_dead': is_dead, 'description': description}
 
-    def list_containers(self):
+    def containers(self):
         with self.thread_limit:
             containers = self.client.containers(quiet=False, all=True, limit=-1)
-        result = []
+        result = {}
         for container in containers:
             exit_status = None
             description = None
+            name = container['Names'][0].split('/')[-1]
             if container['Status'].split()[0].lower() == 'exited':
                 exit_status = int(container['Status'].split('(')[-1].split(')')[0])
                 description = container['Status']
-            result.append({
-                'name': container['Names'][0].split('/')[-1],
+            result[name] = {
                 'exit_status': exit_status,
-                'description': description
-            })
+                'description': description,
+                'node': self.node_name
+            }
         return result
 
     def remove_container(self, container_name):
@@ -167,8 +168,6 @@ class DockerClientProxy:
         with self.thread_limit:
             for line in self.client.pull(image, stream=True, auth_config=registry_auth):
                 line = str(line)
-                if self.config.server.get('debug'):
-                    self.tee(line)
                 if 'error' in line.lower():
                     raise Exception(line)
 
@@ -184,9 +183,6 @@ class DockerClientProxy:
             entry_point,
             json.dumps(settings)
         )
-
-        if self.config.server.get('debug'):
-            self.tee('inspection_container', command)
 
         self.create_container(
             name=container_name,
@@ -234,7 +230,7 @@ class DockerProvider:
     def _docker_client_proxy(self, node_name, q):
         try:
             client = DockerClientProxy(self.tee, node_name, self.node_configs[node_name], self.mongo, self.config)
-            client.list_containers()
+            client.containers()
             q.put(client)
         except:
             q.put((node_name, format_exc()))
@@ -248,10 +244,6 @@ class DockerProvider:
                     machine_config = json.load(f)
                 node_name = machine_config['Driver']['MachineName']
                 if not machine_config['HostOptions']['EngineOptions'].get('ArbitraryFlags'):
-                    if self.config.server.get('debug'):
-                        self.tee(
-                            'Node {} does not have HostOptions -- EngineOptions -- ArbitraryFlags'.format(node_name)
-                        )
                     continue
                 port = None
                 try:
@@ -263,8 +255,6 @@ class DockerProvider:
                 except:
                     pass
                 if not port:
-                    if self.config.server.get('debug'):
-                        self.tee('Node {} does not have port specified as cluster-advertise.'.format(node_name))
                     continue
                 node_config = {
                     'base_url': '{}:{}'.format(machine_config['Driver']['IPAddress'], port),
@@ -423,9 +413,6 @@ class DockerProvider:
             json.dumps(settings)
         )
 
-        if self.config.server.get('debug'):
-            self.tee('application_container', command)
-
         mem_limit = '{}MB'.format(task['application_container_description']['container_ram'])
 
         security_opt = None
@@ -473,9 +460,6 @@ class DockerProvider:
             json.dumps(settings)
         )
 
-        if self.config.server.get('debug'):
-            self.tee('data_container', command)
-
         mem_limit = '{}MB'.format(self.config.defaults['data_container_description']['container_ram'])
 
         node_name = data_container['cluster_node']
@@ -520,23 +504,23 @@ class DockerProvider:
             self.tee('Error on info request for node: {}'.format(node_name))
             self.update_node_status(node_name)
 
-    def list_containers(self):
+    def containers(self):
         threads = []
         q = Queue()
         for node_name in self.clients:
-            t = Thread(target=self._list_containers, args=(node_name, q))
+            t = Thread(target=self._containers, args=(node_name, q))
             t.start()
             threads.append(t)
         for t in threads:
             t.join()
-        container_list = []
+        containers = {}
         while not q.empty():
-            container_list += q.get()
-        return container_list
+            containers.update(q.get())
+        return containers
 
-    def _list_containers(self, node_name, q):
+    def _containers(self, node_name, q):
         try:
-            q.put(self.clients[node_name].list_containers())
+            q.put(self.clients[node_name].containers())
         except:
             self.tee('Error on container list for node: {}'.format(node_name))
             self.update_node_status(node_name)

@@ -112,9 +112,11 @@ class StateHandler:
 
     def _append_transition(self, collection, _id, t):
         if is_state(t['state'], 'failed'):
-            self.tee(collection, _id, index_to_state(t['state']), t['description'], t.get('exception'))
+            self.tee('{} {} {} {} {}'.format(
+                collection, _id, index_to_state(t['state']), t['description'], t.get('exception'))
+            )
         else:
-            self.tee(collection, _id, index_to_state(t['state']))
+            self.tee('{} {} {}'.format(collection, _id, index_to_state(t['state'])))
 
         if is_state(t['state'], 'created'):
             self.mongo.db[collection].update({'_id': _id}, {

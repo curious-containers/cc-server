@@ -1,30 +1,28 @@
 import os
 import datetime
-from threading import Lock
+from cc_server.configuration import Config
 
 
-def construct_function(config):
-    config = config
-    lock = Lock()
+def tee_loop(q):
+    config = Config()
     log_path = None
     if config.server.get('log_dir'):
         log_dir = os.path.expanduser(config.server['log_dir'])
-        log_path = os.path.join(log_dir, 'cc-server.log')
+        log_path = os.path.join(log_dir, 'server.log')
     suppress_stdout = config.server.get('suppress_stdout')
 
-    def stdout_func(*args):
-        print(*args)
+    def stdout_func(message):
+        print(message)
 
-    def file_func(*args):
-        with lock:
-            with open(log_path, 'a') as f:
-                print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S |"), *args, file=f)
+    def file_func(message):
+        with open(log_path, 'a') as f:
+            print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S |"), message, file=f)
 
-    def both_func(*args):
-        print(*args)
-        file_func(*args)
+    def both_func(message):
+        print(message)
+        file_func(message)
 
-    def neither_func(*args):
+    def neither_func(_):
         pass
 
     tee = stdout_func
@@ -35,4 +33,5 @@ def construct_function(config):
     elif log_path:
         tee = both_func
 
-    return tee
+    while True:
+        tee(q.get())

@@ -1,3 +1,4 @@
+import json
 from threading import Lock
 from traceback import format_exc
 from bson.objectid import ObjectId
@@ -45,10 +46,6 @@ class Cluster:
     def start_container(self, container_id, collection):
         try:
             self.cluster_provider.start_container(container_id, collection)
-            if self.config.server.get('debug'):
-                self.cluster_provider.wait_for_container(container_id, collection)
-                logs = self.cluster_provider.logs_from_container(container_id, collection)
-                self.tee(logs)
         except:
             description = 'Container start failed.'
             self.state_handler.transition(collection, container_id, 'failed', description,
@@ -102,50 +99,37 @@ class Cluster:
     def list_containers(self):
         return self.cluster_provider.list_containers()
 
-    def clean_up_finished_containers(self):
-        container_ids = []
-        for container in self.cluster_provider.list_containers():
+    def clean_up_containers(self):
+        containers = self.cluster_provider.containers()
+        for key in containers:
             try:
-                container_ids.append(ObjectId(container['name']))
+                ObjectId(key)
             except:
-                pass
-        if container_ids:
-            for collection in ['application_containers', 'data_containers']:
-                containers = self.mongo.db[collection].find({
-                    '_id': {'$in': container_ids},
-                    'state': {'$in': end_states()}
-                }, {'_id': 1})
-                for container in containers:
-                    self.cluster_provider.remove_container(container['_id'], collection)
+                del containers[key]
 
-    def clean_up_exited_containers(self):
-        container_names = {}
-        for container in self.cluster_provider.list_containers():
-            try:
-                if container['exit_status'] is not None:
-                    container_id = container['name']
-                    container_names[container_id] = container['description']
-            except:
-                pass
+        for collection in ['application_containers', 'data_containers']:
+            cursor = self.mongo.db[collection].find({
+                '_id': {'$in': [ObjectId(key) for key in containers]}
+            }, {'state': 1})
+            for c in cursor:
+                name = str(c['_id'])
+                container = containers[name]
+                if c['state'] in end_states():
+                    self.cluster_provider.remove_container(c['_id'], collection)
+                elif container.get('exit_status') and container['exit_status'] != 0:
+                    description = 'Container exited unexpectedly: {}'.format(container['description'])
+                    self.state_handler.transition(collection, c['_id'], 'failed', description)
+                    self.cluster_provider.remove_container(c['_id'], collection)
 
-        container_ids = []
-        for _id, status in container_names.items():
-            try:
-                container_ids.append(ObjectId(_id))
-            except:
-                pass
-
-        if container_ids:
-            for collection in ['application_containers', 'data_containers']:
-                containers = self.mongo.db[collection].find(
-                    {'_id': {'$in': container_ids}},
-                    {'_id': 1, 'state': 1}
-                )
-                for container in containers:
-                    if container['state'] in end_states():
-                        description = 'Container exited unexpectedly: {}'.format(container_names[str(container['_id'])])
-                        self.state_handler.transition(collection, container['_id'], 'failed', description)
-                    self.cluster_provider.remove_container(container['_id'], collection)
+        for collection in ['application_containers', 'data_containers']:
+            cursor = self.mongo.db[collection].find({
+                'state': {'$nin': end_states()}
+            }, {'_id': 1})
+            for c in cursor:
+                name = str(c['_id'])
+                if name not in containers:
+                    description = 'Container vanished.'
+                    self.state_handler.transition(collection, c['_id'], 'failed', description)
 
     def clean_up_unused_data_containers(self):
         with self.data_container_lock:

@@ -5,19 +5,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from time import time
 from flask import request
 
-from cc_server.helper import generate_secret, equal_keys
-
-
-def _get_ip():
-    headers = ['HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR']
-    ip = None
-    for header in headers:
-        ip = request.environ.get(header)
-        if ip:
-            break
-    if not ip:
-        ip = '127.0.0.1'
-    return ip
+from cc_server.helper import generate_secret, equal_keys, get_ip
 
 
 class Authorize:
@@ -57,8 +45,7 @@ class Authorize:
 
         result = False
 
-        ip = _get_ip()
-        self.tee('IP:', ip)
+        ip = get_ip()
         if not require_credentials:
             result = self._verify_user_by_token(user, password, ip)
 
@@ -107,7 +94,7 @@ class Authorize:
     def issue_token(self):
         token = generate_secret()
         username = request.authorization.username
-        ip = _get_ip()
+        ip = get_ip()
         self.mongo.db['tokens'].insert_one({
             'username': username,
             'ip': ip,

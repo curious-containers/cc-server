@@ -4,7 +4,7 @@ from traceback import format_exc
 from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, Unauthorized
 
-from cc_server.helper import prepare_response, prepare_input
+from cc_server.helper import prepare_response, prepare_input, get_ip
 from cc_server.states import is_state
 from cc_server.schemas import query_schema, tasks_schema, callback_schema, cancel_schema, nodes_schema
 
@@ -17,6 +17,34 @@ def task_group_prototype():
         'username': None,
         'task_ids': []
     }
+
+
+def log(func):
+    """function decorator"""
+    def wrapper(self, *args, **kwargs):
+        info = ['REQUEST:', request.method, request.url, 'from', get_ip()]
+        try:
+            info.append(request.authorization.username)
+        except:
+            pass
+        try:
+            result = func(self, *args, **kwargs)
+        except Unauthorized:
+            info.insert(1, '401')
+            self.tee(' '.join(info))
+            raise
+        except BadRequest:
+            info.insert(1, '400')
+            self.tee(' '.join(info))
+            raise
+        except:
+            info.insert(1, '500')
+            self.tee(' '.join(info))
+            raise
+        info.insert(1, '200')
+        self.tee(' '.join(info))
+        return result
+    return wrapper
 
 
 def auth(require_admin=True, require_credentials=True):
@@ -38,8 +66,6 @@ def validation(schema):
                 jsonschema.validate(json_input, schema)
                 json_input = prepare_input(json_input)
             except:
-                if self.config.server.get('debug'):
-                    self.tee(format_exc())
                 raise BadRequest('JSON input not valid: {}'.format(format_exc()))
             return func(self, json_input, *args, **kwargs)
         return wrapper
@@ -56,6 +82,7 @@ class RequestHandler:
         self.config = config
         self.state_handler = state_handler
 
+    @log
     @auth(require_credentials=False)
     @validation(nodes_schema)
     def post_nodes(self, json_input):
@@ -63,6 +90,7 @@ class RequestHandler:
             self.cluster.update_node_status(node['name'])
         return jsonify({})
 
+    @log
     @auth(require_admin=False, require_credentials=False)
     def get_nodes(self):
         return jsonify(prepare_response({
@@ -70,11 +98,13 @@ class RequestHandler:
             'dead_nodes': list(self.mongo.db['dead_nodes'].find({}))
         }))
 
+    @log
     @auth(require_credentials=False)
     def put_worker(self):
         Thread(target=self.worker.post_task).start()
         return jsonify({})
 
+    @log
     @auth(require_admin=False)
     def get_token(self):
         token = self.authorize.issue_token()
@@ -120,6 +150,7 @@ class RequestHandler:
         if not task:
             raise BadRequest('Task not found: {}'.format(json_input['_id']))
 
+    @log
     @auth(require_admin=False, require_credentials=False)
     @validation(cancel_schema)
     def post_tasks_cancel(self, json_input):
@@ -161,6 +192,7 @@ class RequestHandler:
             responses.append(self._register_task(json_task, task_group_id))
         return {'tasks': responses, 'task_group_id': task_group_id}
 
+    @log
     @auth(require_admin=False, require_credentials=False)
     @validation(tasks_schema)
     def post_tasks(self, json_input):
@@ -190,26 +222,31 @@ class RequestHandler:
         result = list(cursor)
         return {collection: result}
 
+    @log
     @auth(require_admin=False, require_credentials=False)
     @validation(query_schema)
     def post_application_containers_query(self, json_input):
         return jsonify(prepare_response(self._aggregate(json_input, 'application_containers')))
 
+    @log
     @auth(require_admin=False, require_credentials=False)
     @validation(query_schema)
     def post_data_containers_query(self, json_input):
         return jsonify(prepare_response(self._aggregate(json_input, 'data_containers')))
 
+    @log
     @auth(require_admin=False, require_credentials=False)
     @validation(query_schema)
     def post_tasks_query(self, json_input):
         return jsonify(prepare_response(self._aggregate(json_input, 'tasks')))
 
+    @log
     @auth(require_admin=False, require_credentials=False)
     @validation(query_schema)
     def post_task_groups_query(self, json_input):
         return jsonify(prepare_response(self._aggregate(json_input, 'task_groups')))
 
+    @log
     @validation(callback_schema)
     def post_application_container_callback(self, json_input):
         if not self.authorize.verify_callback(json_input, 'application_containers'):
@@ -274,6 +311,7 @@ class RequestHandler:
 
         return jsonify({})
 
+    @log
     @validation(callback_schema)
     def post_data_container_callback(self, json_input):
         if not self.authorize.verify_callback(json_input, 'data_containers'):
