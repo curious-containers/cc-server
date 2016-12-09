@@ -1,19 +1,23 @@
-from os.path import expanduser, join
-from os import getcwd
+import os
 from toml import loads
 
 
 class Config:
     def __init__(self, file_path):
         possible_conf_file_paths = [
-            file_path,
-            join(getcwd(), 'config.toml'),
-            join(getcwd(), '..', 'config.toml')
+            file_path
         ]
 
         try:
             possible_conf_file_paths.append(
-                expanduser('~/.config/curious-containers/config.toml')
+                os.path.expanduser('~/.config/curious-containers/config.toml')
+            )
+        except:
+            pass
+
+        try:
+            possible_conf_file_paths.append(
+                os.path.join(os.path.split(os.path.split(os.path.abspath(__file__))[0])[0], 'config.toml')
             )
         except:
             pass
