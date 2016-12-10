@@ -1,9 +1,19 @@
 import os
 import datetime
+from multiprocessing import Process, Queue
+
 from cc_server.configuration import Config
 
 
-def tee_loop(q):
+def tee_func():
+    q = Queue()
+    d = Process(target=_loop, args=(q,))
+    d.daemon = True
+    d.start()
+    return q.put
+
+
+def _loop(q):
     config = Config()
     log_path = None
     if config.server.get('log_dir'):

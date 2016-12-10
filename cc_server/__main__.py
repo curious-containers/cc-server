@@ -621,14 +621,8 @@ def post_data_container_callback():
 
 
 def prepare():
-    from multiprocessing import Process, Queue
-
-    from cc_server.tee import tee_loop
-    tee_q = Queue()
-    tee = tee_q.put
-    tee_daemon = Process(target=tee_loop, args=(tee_q,))
-    tee_daemon.daemon = True
-    tee_daemon.start()
+    from cc_server.tee import tee_func
+    tee = tee_func()
 
     import json
     from cc_server.configuration import Config
