@@ -101,7 +101,7 @@ class Cluster:
 
     def clean_up_containers(self):
         containers = self.cluster_provider.containers()
-        for key in containers:
+        for key in list(containers):
             try:
                 ObjectId(key)
             except:
