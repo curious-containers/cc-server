@@ -1,4 +1,3 @@
-import json
 from threading import Lock
 from traceback import format_exc
 from bson.objectid import ObjectId
@@ -21,7 +20,7 @@ class Cluster:
         try:
             ip = self.cluster_provider.get_ip(container_id, collection)
         except:
-            description = 'Could not get container ip.'
+            description = 'Could not get container IP.'
             self.state_handler.transition(collection, container_id, 'failed', description,
                                           exception=format_exc())
             self.cluster_provider.remove_container(container_id, collection)
@@ -123,7 +122,7 @@ class Cluster:
 
         for collection in ['application_containers', 'data_containers']:
             cursor = self.mongo.db[collection].find({
-                'state': {'$nin': end_states()}
+                'state': {'$in': [1, 2]}
             }, {'_id': 1})
             for c in cursor:
                 name = str(c['_id'])
