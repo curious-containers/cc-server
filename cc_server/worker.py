@@ -1,6 +1,7 @@
 import os
 import json
 import signal
+from queue import Queue
 from threading import Lock, Thread
 from multiprocessing.managers import BaseManager
 
@@ -61,10 +62,8 @@ class Worker:
         self.state_handler = None
         self.cluster = None
         self.scheduler = None
-        self.post_task_lock = None
+        self.scheduling_q = None
         self.post_data_container_callback_lock = None
-        self.scheduling_thread_count_lock = None
-        self.scheduling_thread_count = None
 
     def late_init(self):
         self.tee = get_tee(self.config)
@@ -95,10 +94,8 @@ class Worker:
             state_handler=self.state_handler,
             cluster=self.cluster
         )
-        self.post_task_lock = Lock()
         self.post_data_container_callback_lock = Lock()
-        self.scheduling_thread_count_lock = Lock()
-        self.scheduling_thread_count = 0
+        self.scheduling_q = Queue(maxsize=1)
 
         self.tee('Pulling data container image...')
         self.cluster.update_data_container_image(self.config.defaults['data_container_description']['image'])
@@ -106,25 +103,21 @@ class Worker:
         self.tee('Cluster nodes:')
         self.tee(json.dumps(self.cluster.nodes(), indent=4))
 
-        Thread(target=self.post_task).start()
+        Thread(target=self._scheduling_loop).start()
+        self._put_scheduling_q()
 
     def get_pid(self):
         return os.getpid()
 
-    def _check_thread_count(self):
-        with self.scheduling_thread_count_lock:
-            if self.scheduling_thread_count < 2:
-                self.scheduling_thread_count += 1
-                return True
-            return False
-
-    def _decrement_thread_count(self):
-        with self.scheduling_thread_count_lock:
-            self.scheduling_thread_count -= 1
+    def _put_scheduling_q(self):
+        try:
+            self.scheduling_q.put_nowait(None)
+        except:
+            pass
 
     def post_container_callback(self):
         self.cluster.clean_up_unused_data_containers()
-        self.post_task()
+        self._put_scheduling_q()
 
     def update_node_status(self, node_name):
         self.cluster.update_node_status(node_name)
@@ -196,10 +189,9 @@ class Worker:
             t.join()
         self.tee('Scheduled:\n{}\tApplication Containers\n{}\tData Containers'.format(i, j))
 
-    def post_task(self):
-        if not self._check_thread_count():
-            return
-        with self.post_task_lock:
+    def _scheduling_loop(self):
+        while True:
+            self.scheduling_q.get()
 
             self.cluster.clean_up_containers()
             self.state_handler.update_task_groups()
@@ -207,7 +199,8 @@ class Worker:
             self.update_images()
             self.create_containers()
 
-            self._decrement_thread_count()
+    def schedule(self):
+        self._put_scheduling_q()
 
     def _cluster_start_application_container(self, application_container_id):
         self._check_data_container_dependencies(application_container_id)

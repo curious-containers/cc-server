@@ -102,7 +102,7 @@ class RequestHandler:
         return jsonify({})
 
     @log
-    #@auth(require_admin=False, require_credentials=False)
+    @auth(require_admin=False, require_credentials=False)
     def get_nodes(self):
         return jsonify(prepare_response({
             'healthy_nodes': self.worker.nodes(),
@@ -112,7 +112,7 @@ class RequestHandler:
     @log
     @auth(require_credentials=False)
     def put_worker(self):
-        Thread(target=self.worker.post_task).start()
+        self.worker.schedule()
         return jsonify({})
 
     @log
@@ -217,7 +217,7 @@ class RequestHandler:
         else:
             result = self._create_task(json_input, task_group_id)
         self.state_handler.transition('task_groups', task_group_id, 'waiting', 'Task group waiting.')
-        Thread(target=self.worker.post_task).start()
+        self.worker.schedule()
         return jsonify(prepare_response(result))
 
     def _aggregate(self, json_input, collection):
