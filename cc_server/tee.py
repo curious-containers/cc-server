@@ -1,32 +1,46 @@
 import os
-import signal
 import datetime
+import signal
 from threading import Thread
 from queue import Queue
 from multiprocessing.managers import BaseManager
 
 
-def create_tee(config):
-    try:
-        TeeManager.register('get_tee')
-        m = TeeManager(address=('', config.ipc['tee_port']), authkey=config.ipc['secret'].encode('utf-8'))
-        m.connect()
-        tee = m.get_tee()
-        print('Connected to TEE with PID: ', tee.get_pid())
-    except:
-        tee = Tee(config)
-        TeeManager.register('get_tee', callable=lambda: tee)
-        m = TeeManager(address=('', config.ipc['tee_port']), authkey=config.ipc['secret'].encode('utf-8'))
-        m.start()
-        tee = m.get_tee()
-        tee.late_init()
+def connect(config):
+    TeeManager.register('get_tee')
+    m = TeeManager(address=('', config.ipc['tee_port']), authkey=config.ipc['secret'].encode('utf-8'))
+    m.connect()
+    return m.get_tee()
 
-        def exit_gracefully(signum, frame):
-            print('Shutdown TEE with PID: ', tee.get_pid())
-            m.shutdown()
-        signal.signal(signal.SIGINT, exit_gracefully)
-        signal.signal(signal.SIGTERM, exit_gracefully)
-        print('Spawned new TEE with PID: ', tee.get_pid())
+
+def start(config):
+    tee = Tee(
+        config=config
+    )
+    TeeManager.register('get_tee', callable=lambda: tee)
+    m = TeeManager(address=('', config.ipc['tee_port']), authkey=config.ipc['secret'].encode('utf-8'))
+    m.start()
+    tee = m.get_tee()
+    tee.late_init()
+    return tee
+
+
+def stop(config):
+    TeeManager.register('get_tee')
+    m = TeeManager(address=('', config.ipc['tee_port']), authkey=config.ipc['secret'].encode('utf-8'))
+    m.connect()
+    tee = m.get_tee()
+    pid = tee.get_pid()
+    os.kill(pid, signal.SIGTERM)
+
+
+def get_tee(config):
+    try:
+        tee = connect(config=config)
+        print('tee | PID: {} | CONNECTED'.format(tee.get_pid()))
+    except:
+        tee = start(config=config)
+        print('tee | PID: {} | STARTED'.format(tee.get_pid()))
     return tee.tee
 
 

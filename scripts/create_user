@@ -8,7 +8,6 @@ sys.path.insert(0, os.path.split(os.path.split(os.path.abspath(__file__))[0])[0]
 
 from cc_server.authorization import Authorize
 from cc_server.configuration import Config
-from cc_server.tee import construct_function
 from cc_server.database import Mongo
 
 conf_file_path = None
@@ -19,15 +18,13 @@ except:
 
 config = Config(conf_file_path)
 
-tee = construct_function
-
 mongo = Mongo(
     config=config
 )
 auth_handler = Authorize(
-    tee=tee,
-    mongo=mongo,
-    config=config
+    config=config,
+    tee=print,
+    mongo=mongo
 )
 
 print('You are in the process of creating a user account.')

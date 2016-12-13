@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 sys.path.insert(0, os.path.split(os.path.abspath(__file__))[0])
 
 request_handler = None
-app = Flask('cc_server')
+app = Flask('cc-server')
 
 
 @app.route('/', methods=['GET'])
@@ -624,13 +624,13 @@ def prepare():
     from cc_server.configuration import Config
     config = Config()
 
-    from cc_server.tee import create_tee
-    tee = create_tee(
+    from cc_server.tee import get_tee
+    tee = get_tee(
         config=config
     )
 
-    from cc_server.worker import create_worker
-    worker = create_worker(
+    from cc_server.worker import get_worker
+    worker = get_worker(
         config=config
     )
 

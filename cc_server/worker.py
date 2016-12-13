@@ -4,36 +4,48 @@ import signal
 from threading import Lock, Thread
 from multiprocessing.managers import BaseManager
 
-from cc_server.tee import create_tee
+from cc_server.tee import get_tee
 from cc_server.database import Mongo
 from cc_server.cluster import Cluster
 from cc_server.states import StateHandler, state_to_index
 from cc_server.scheduling import Scheduler
 
 
-def create_worker(config):
-    try:
-        WorkerManager.register('get_worker')
-        m = WorkerManager(address=('', config.ipc['worker_port']), authkey=config.ipc['secret'].encode('utf-8'))
-        m.connect()
-        worker = m.get_worker()
-        print('Connected to WORKER with PID: ', worker.get_pid())
-    except:
-        worker = Worker(
-            config=config
-        )
-        WorkerManager.register('get_worker', callable=lambda: worker)
-        m = WorkerManager(address=('', config.ipc['worker_port']), authkey=config.ipc['secret'].encode('utf-8'))
-        m.start()
-        worker = m.get_worker()
-        worker.late_init()
+def connect(config):
+    WorkerManager.register('get_worker')
+    m = WorkerManager(address=('', config.ipc['worker_port']), authkey=config.ipc['secret'].encode('utf-8'))
+    m.connect()
+    return m.get_worker()
 
-        def exit_gracefully(signum, frame):
-            print('Shutdown WORKER with PID: ', worker.get_pid())
-            m.shutdown()
-        signal.signal(signal.SIGINT, exit_gracefully)
-        signal.signal(signal.SIGTERM, exit_gracefully)
-        print('Spawned new WORKER with PID: ', worker.get_pid())
+
+def start(config):
+    worker = Worker(
+        config=config
+    )
+    WorkerManager.register('get_worker', callable=lambda: worker)
+    m = WorkerManager(address=('', config.ipc['worker_port']), authkey=config.ipc['secret'].encode('utf-8'))
+    m.start()
+    worker = m.get_worker()
+    worker.late_init()
+    return worker
+
+
+def stop(config):
+    WorkerManager.register('get_worker')
+    m = WorkerManager(address=('', config.ipc['worker_port']), authkey=config.ipc['secret'].encode('utf-8'))
+    m.connect()
+    worker = m.get_worker()
+    pid = worker.get_pid()
+    os.kill(pid, signal.SIGTERM)
+
+
+def get_worker(config):
+    try:
+        worker = connect(config=config)
+        print('worker | PID: {} | CONNECTED'.format(worker.get_pid()))
+    except:
+        worker = start(config=config)
+        print('worker | PID: {} | STARTED'.format(worker.get_pid()))
     return worker
 
 
@@ -55,7 +67,7 @@ class Worker:
         self.scheduling_thread_count = None
 
     def late_init(self):
-        self.tee = create_tee(self.config)
+        self.tee = get_tee(self.config)
 
         self.tee('Loaded TOML config from {}'.format(self.config.conf_file_path))
 
