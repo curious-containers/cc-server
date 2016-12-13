@@ -9,7 +9,7 @@ from cc_server.helper import generate_secret, equal_keys, get_ip
 
 
 class Authorize:
-    def __init__(self, tee, mongo, config):
+    def __init__(self, config, tee, mongo):
         self.tee = tee
         self.mongo = mongo
         self.config = config

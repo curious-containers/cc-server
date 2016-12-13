@@ -49,10 +49,10 @@ def _transition(state, description, exception, caused_by):
 
 
 class StateHandler:
-    def __init__(self, tee, mongo, config):
+    def __init__(self, config, tee, mongo):
+        self.config = config
         self.tee = tee
         self.mongo = mongo
-        self.config = config
 
     def transition(self, collection, _id, state, description, exception=None):
         if collection == 'tasks':

@@ -198,7 +198,7 @@ class DockerClientProxy:
 
 
 class DockerProvider:
-    def __init__(self, tee, mongo, config):
+    def __init__(self, config, tee, mongo):
         self.tee = tee
         self.mongo = mongo
         self.config = config

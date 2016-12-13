@@ -2,16 +2,21 @@ from threading import Lock
 from traceback import format_exc
 from bson.objectid import ObjectId
 
+from cc_server.cluster_provider import DockerProvider
 from cc_server.states import state_to_index, end_states
 
 
 class Cluster:
-    def __init__(self, tee, mongo, cluster_provider, config, state_handler):
+    def __init__(self, config, tee, mongo, state_handler):
+        self.config = config
         self.tee = tee
         self.mongo = mongo
-        self.cluster_provider = cluster_provider
-        self.config = config
         self.state_handler = state_handler
+        self.cluster_provider = DockerProvider(
+            config=self.config,
+            tee=self.tee,
+            mongo=self.mongo
+        )
 
         self.data_container_lock = Lock()
 

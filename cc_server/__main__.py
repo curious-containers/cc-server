@@ -621,116 +621,32 @@ def post_data_container_callback():
 
 
 def prepare():
-    from cc_server.tee import tee_func
-    tee = tee_func()
-
-    import json
     from cc_server.configuration import Config
-    from cc_server.database import Mongo
-    from cc_server.worker import Worker
-    from cc_server.request_handler import RequestHandler
-    from cc_server.scheduling import Scheduler
-    from cc_server.scheduling_strategies.container_allocation import spread, binpack
-    from cc_server.scheduling_strategies.caching import OneCachePerTaskNoDuplicates
-    from cc_server.scheduling_strategies.task_selection import FIFO
-    from cc_server.cluster import Cluster
-    from cc_server.cluster_provider import DockerProvider
-    from cc_server.authorization import Authorize
-    from cc_server.states import StateHandler
-
-    # --------------- load config ---------------
     config = Config()
-    tee('Loaded TOML config from {}'.format(config.conf_file_path))
-    # -------------------------------------------
 
-    # ----------- initialize database -----------
-    mongo = Mongo(
-        config=config
-    )
-    # -------------------------------------------
-
-    # ------- Reset dead nodes collection -------
-    mongo.db['dead_nodes'].drop()
-    # -------------------------------------------
-
-    # ---------- initialize singletons ----------
-    state_handler = StateHandler(
-        tee=tee,
-        mongo=mongo,
-        config=config
-    )
-    cluster_provider = DockerProvider(
-        tee=tee,
-        mongo=mongo,
-        config=config
-    )
-    cluster = Cluster(
-        tee=tee,
-        mongo=mongo,
-        cluster_provider=cluster_provider,
-        config=config,
-        state_handler=state_handler
-    )
-
-    # select scheduling strategies
-    if config.defaults['scheduling_strategies']['container_allocation'] == 'spread':
-        container_allocation = spread
-    elif config.defaults['scheduling_strategies']['container_allocation'] == 'binpack':
-        container_allocation = binpack
-    task_selection = FIFO(mongo=mongo)
-    caching = OneCachePerTaskNoDuplicates(
-        mongo=mongo,
-        cluster=cluster,
+    from cc_server.tee import create_tee
+    tee = create_tee(
         config=config
     )
 
-    scheduler = Scheduler(
-        mongo=mongo,
-        cluster=cluster,
-        config=config,
-        state_handler=state_handler,
-        container_allocation=container_allocation,
-        task_selection=task_selection,
-        caching=caching
-    )
-    worker = Worker(
-        tee=tee,
-        mongo=mongo,
-        cluster=cluster,
-        config=config,
-        scheduler=scheduler,
-        state_handler=state_handler
-    )
-    authorize = Authorize(
-        tee=tee,
-        mongo=mongo,
+    from cc_server.worker import create_worker
+    worker = create_worker(
         config=config
     )
+
+    from cc_server.request_handler import RequestHandler
     global request_handler
     request_handler = RequestHandler(
-        tee=tee,
-        mongo=mongo,
-        cluster=cluster,
-        worker=worker,
-        authorize=authorize,
         config=config,
-        state_handler=state_handler,
+        tee=tee,
+        worker=worker
     )
-    # -------------------------------------------
 
-    tee('Pulling data container image...')
-    cluster.update_data_container_image(config.defaults['data_container_description']['image'])
-
-    tee('Cluster nodes:')
-    tee(json.dumps(cluster.nodes(), indent=4))
-
-    return config, worker
+    return config
 
 
 def main():
-    from threading import Thread
-    config, worker = prepare()
-    Thread(target=worker.post_task).start()
+    config = prepare()
     app.run(host='0.0.0.0', port=config.server['internal_port'])
 
 if __name__ == '__main__':

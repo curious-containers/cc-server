@@ -40,6 +40,7 @@ class Config:
             raise Exception('No valid TOML file found. Try specifying a file path as first CLI argument.')
 
         self.server = config['server']
+        self.ipc = config['ipc']
         self.mongo = config['mongo']
         self.docker = config['docker']
         self.defaults = config['defaults']

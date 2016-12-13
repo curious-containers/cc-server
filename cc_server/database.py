@@ -1,16 +1,16 @@
 import pymongo
 
-
 class Mongo:
     def __init__(self, config):
+        self.config = config
         self.client = pymongo.MongoClient('mongodb://{}:{}@{}:{}/{}'.format(
-            config.mongo['username'],
-            config.mongo['password'],
-            config.mongo['host'],
-            config.mongo['port'],
-            config.mongo['db']
+            self.config.mongo['username'],
+            self.config.mongo['password'],
+            self.config.mongo['host'],
+            self.config.mongo['port'],
+            self.config.mongo['db']
         ))
-        self.db = self.client[config.mongo['db']]
+        self.db = self.client[self.config.mongo['db']]
 
     def drop_db_collections(self, collections):
         for c in collections:

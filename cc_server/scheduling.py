@@ -1,3 +1,6 @@
+from cc_server.scheduling_strategies.container_allocation import binpack, spread
+from cc_server.scheduling_strategies.task_selection import FIFO
+from cc_server.scheduling_strategies.caching import OneCachePerTaskNoDuplicates
 from cc_server.helper import generate_secret
 
 
@@ -18,16 +21,26 @@ def application_container_prototype(container_ram):
 
 
 class Scheduler:
-    def __init__(self, mongo, cluster, config, state_handler, container_allocation, task_selection, caching):
-        self.mongo = mongo
-        self.cluster = cluster
+    def __init__(self, config, tee, mongo, state_handler, cluster):
         self.config = config
+        self.tee = tee
+        self.mongo = mongo
         self.state_handler = state_handler
+        self.cluster = cluster
 
         # scheduling strategies
+        if config.defaults['scheduling_strategies']['container_allocation'] == 'spread':
+            container_allocation = spread
+        elif config.defaults['scheduling_strategies']['container_allocation'] == 'binpack':
+            container_allocation = binpack
         self.container_allocation = container_allocation
-        self.task_selection = task_selection
-        self.caching = caching
+        self.task_selection = FIFO(mongo=self.mongo)
+        self.caching = OneCachePerTaskNoDuplicates(
+            config=config,
+            tee=tee,
+            mongo=mongo,
+            cluster=cluster
+        )
 
     def schedule(self):
         dc_ram = self.config.defaults['data_container_description']['container_ram']

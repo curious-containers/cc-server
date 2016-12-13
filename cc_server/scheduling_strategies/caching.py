@@ -17,10 +17,11 @@ def data_container_prototype(username, input_files, container_ram):
 
 
 class OneCachePerTaskNoDuplicates:
-    def __init__(self, mongo, cluster, config):
+    def __init__(self, config, tee, mongo, cluster):
+        self.config = config
+        self.tee = tee
         self.mongo = mongo
         self.cluster = cluster
-        self.config = config
 
     def apply(self, application_container_id):
         self.cluster.assign_existing_data_containers(application_container_id)

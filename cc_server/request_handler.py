@@ -1,11 +1,13 @@
 import jsonschema
-from threading import Thread
 from traceback import format_exc
 from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, Unauthorized
+from threading import Thread
 
+from cc_server.database import Mongo
+from cc_server.authorization import Authorize
 from cc_server.helper import prepare_response, prepare_input, get_ip
-from cc_server.states import is_state
+from cc_server.states import StateHandler, is_state
 from cc_server.schemas import query_schema, tasks_schema, callback_schema, cancel_schema, nodes_schema
 
 
@@ -73,28 +75,37 @@ def validation(schema):
 
 
 class RequestHandler:
-    def __init__(self, tee, mongo, cluster, worker, authorize, config, state_handler):
-        self.tee = tee
-        self.cluster = cluster
-        self.mongo = mongo
-        self.worker = worker
-        self.authorize = authorize
+    def __init__(self, config, tee, worker):
         self.config = config
-        self.state_handler = state_handler
+        self.worker = worker
+        self.tee = tee
+        self.mongo = Mongo(
+            config=self.config
+        )
+        self.state_handler = StateHandler(
+            config=self.config,
+            tee=self.tee,
+            mongo=self.mongo
+        )
+        self.authorize = Authorize(
+            config=self.config,
+            tee=self.tee,
+            mongo=self.mongo
+        )
 
     @log
     @auth(require_credentials=False)
     @validation(nodes_schema)
     def post_nodes(self, json_input):
         for node in json_input['nodes']:
-            self.cluster.update_node_status(node['name'])
+            self.worker.update_node_status(node['name'])
         return jsonify({})
 
     @log
-    @auth(require_admin=False, require_credentials=False)
+    #@auth(require_admin=False, require_credentials=False)
     def get_nodes(self):
         return jsonify(prepare_response({
-            'healthy_nodes': self.cluster.nodes(),
+            'healthy_nodes': self.worker.nodes(),
             'dead_nodes': list(self.mongo.db['dead_nodes'].find({}))
         }))
 
@@ -291,7 +302,7 @@ class RequestHandler:
                         {'input_files': 1, 'input_file_keys': 1}
                     )
 
-                    ip = self.cluster.get_ip(data_container_id, 'data_containers')
+                    ip = self.worker.get_ip(data_container_id, 'data_containers')
 
                     for f, k in zip(data_container['input_files'], data_container['input_file_keys']):
                         if f == input_file:
