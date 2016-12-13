@@ -19,7 +19,7 @@ def name(daemon):
     return daemon.__name__.split('.')[-1]
 
 
-def list(daemon):
+def show_list(daemon):
     info = 'ONLINE'
     pid = None
     try:
@@ -61,7 +61,7 @@ args = parser.parse_args()
 
 if args.action == 'list':
     for d in daemons:
-        list(d)
+        show_list(d)
 
 elif args.action == 'stop':
     for d in daemons[::-1]:
