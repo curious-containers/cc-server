@@ -8,61 +8,61 @@ from cc_server.states import state_to_index, end_states
 
 class Cluster:
     def __init__(self, config, tee, mongo, state_handler):
-        self.config = config
-        self.tee = tee
-        self.mongo = mongo
-        self.state_handler = state_handler
-        self.cluster_provider = DockerProvider(
-            config=self.config,
-            tee=self.tee,
-            mongo=self.mongo
+        self._config = config
+        self._tee = tee
+        self._mongo = mongo
+        self._state_handler = state_handler
+        self._cluster_provider = DockerProvider(
+            config=self._config,
+            tee=self._tee,
+            mongo=self._mongo
         )
 
-        self.data_container_lock = Lock()
+        self._data_container_lock = Lock()
 
     def get_ip(self, container_id, collection):
         ip = None
         try:
-            ip = self.cluster_provider.get_ip(container_id, collection)
+            ip = self._cluster_provider.get_ip(container_id, collection)
         except:
             description = 'Could not get container IP.'
-            self.state_handler.transition(collection, container_id, 'failed', description,
-                                          exception=format_exc())
-            self.cluster_provider.remove_container(container_id, collection)
+            self._state_handler.transition(collection, container_id, 'failed', description,
+                                           exception=format_exc())
+            self._cluster_provider.remove_container(container_id, collection)
         return ip
 
     def update_nodes_status(self):
-        self.cluster_provider.update_nodes_status()
+        self._cluster_provider.update_nodes_status()
 
     def update_node_status(self, node_name):
-        self.cluster_provider.update_node_status(node_name)
+        self._cluster_provider.update_node_status(node_name)
 
     def nodes(self):
-        return self.cluster_provider.nodes()
+        return self._cluster_provider.nodes()
 
     def update_data_container_image(self, image):
-        registry_auth = self.config.defaults['data_container_description'].get('registry_auth')
-        self.cluster_provider.update_data_container_image(image, registry_auth)
+        registry_auth = self._config.defaults['data_container_description'].get('registry_auth')
+        self._cluster_provider.update_data_container_image(image, registry_auth)
 
     def update_application_container_image(self, node_name, image, registry_auth):
-        self.cluster_provider.update_image(node_name, image, registry_auth)
+        self._cluster_provider.update_image(node_name, image, registry_auth)
 
     def start_container(self, container_id, collection):
         try:
-            self.cluster_provider.start_container(container_id, collection)
+            self._cluster_provider.start_container(container_id, collection)
         except:
             description = 'Container start failed.'
-            self.state_handler.transition(collection, container_id, 'failed', description,
-                       exception=format_exc())
-            self.cluster_provider.remove_container(container_id, collection)
+            self._state_handler.transition(collection, container_id, 'failed', description,
+                                           exception=format_exc())
+            self._cluster_provider.remove_container(container_id, collection)
 
     def assign_existing_data_containers(self, application_container_id):
-        with self.data_container_lock:
-            application_container = self.mongo.db['application_containers'].find_one(
+        with self._data_container_lock:
+            application_container = self._mongo.db['application_containers'].find_one(
                 {'_id': application_container_id},
                 {'task_id': 1}
             )
-            task = self.mongo.db['tasks'].find_one(
+            task = self._mongo.db['tasks'].find_one(
                 {'_id': application_container['task_id'][0]},
                 {'input_files': 1}
             )
@@ -70,7 +70,7 @@ class Cluster:
             files = task['input_files']
             data_container_ids = []
             for f in files:
-                data_container = self.mongo.db['data_containers'].find_one(
+                data_container = self._mongo.db['data_containers'].find_one(
                     {
                         'state': {'$in': [
                             state_to_index('created'),
@@ -85,26 +85,26 @@ class Cluster:
                 else:
                     data_container_ids.append(None)
 
-            self.mongo.db['application_containers'].update({'_id': application_container_id}, {
+            self._mongo.db['application_containers'].update({'_id': application_container_id}, {
                 '$set': {'data_container_ids': data_container_ids}
             })
 
     def create_container(self, container_id, collection):
         try:
-            self.cluster_provider.create_container(container_id, collection)
+            self._cluster_provider.create_container(container_id, collection)
             description = 'Container waiting.'
-            self.state_handler.transition(collection, container_id, 'waiting', description)
+            self._state_handler.transition(collection, container_id, 'waiting', description)
         except:
             description = 'Container creation failed.'
-            self.state_handler.transition(collection, container_id, 'failed', description,
-                       exception=format_exc())
-            self.cluster_provider.remove_container(container_id, collection)
+            self._state_handler.transition(collection, container_id, 'failed', description,
+                                           exception=format_exc())
+            self._cluster_provider.remove_container(container_id, collection)
 
-    def list_containers(self):
-        return self.cluster_provider.list_containers()
+    def containers(self):
+        return self._cluster_provider.containers()
 
     def clean_up_containers(self):
-        containers = self.cluster_provider.containers()
+        containers = self._cluster_provider.containers()
         for key in list(containers):
             try:
                 ObjectId(key)
@@ -112,38 +112,38 @@ class Cluster:
                 del containers[key]
 
         for collection in ['application_containers', 'data_containers']:
-            cursor = self.mongo.db[collection].find({
+            cursor = self._mongo.db[collection].find({
                 '_id': {'$in': [ObjectId(key) for key in containers]}
             }, {'state': 1})
             for c in cursor:
                 name = str(c['_id'])
                 container = containers[name]
                 if c['state'] in end_states():
-                    self.cluster_provider.remove_container(c['_id'], collection)
+                    self._cluster_provider.remove_container(c['_id'], collection)
                 elif container.get('exit_status') and container['exit_status'] != 0:
                     description = 'Container exited unexpectedly: {}'.format(container['description'])
-                    self.state_handler.transition(collection, c['_id'], 'failed', description)
-                    self.cluster_provider.remove_container(c['_id'], collection)
+                    self._state_handler.transition(collection, c['_id'], 'failed', description)
+                    self._cluster_provider.remove_container(c['_id'], collection)
 
         for collection in ['application_containers', 'data_containers']:
-            cursor = self.mongo.db[collection].find({
+            cursor = self._mongo.db[collection].find({
                 'state': {'$in': [1, 2]}
             }, {'_id': 1})
             for c in cursor:
                 name = str(c['_id'])
                 if name not in containers:
                     description = 'Container vanished.'
-                    self.state_handler.transition(collection, c['_id'], 'failed', description)
+                    self._state_handler.transition(collection, c['_id'], 'failed', description)
 
     def clean_up_unused_data_containers(self):
-        with self.data_container_lock:
-            cursor = self.mongo.db['data_containers'].find(
+        with self._data_container_lock:
+            cursor = self._mongo.db['data_containers'].find(
                 {'state': state_to_index('processing')},
                 {'_id': 1}
             )
             for data_container in cursor:
                 data_container_id = data_container['_id']
-                application_container = self.mongo.db['application_containers'].find_one({
+                application_container = self._mongo.db['application_containers'].find_one({
                     'state': {'$nin': end_states()},
                     'data_container_ids': data_container_id
                 }, {'_id': 1})
@@ -151,5 +151,5 @@ class Cluster:
                     continue
 
                 description = 'Container removed. Not in use by any application container.'
-                self.state_handler.transition('data_containers', data_container_id, 'success', description)
-                self.cluster_provider.remove_container(data_container_id, 'data_containers')
+                self._state_handler.transition('data_containers', data_container_id, 'success', description)
+                self._cluster_provider.remove_container(data_container_id, 'data_containers')

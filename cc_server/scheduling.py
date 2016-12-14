@@ -22,49 +22,49 @@ def application_container_prototype(container_ram):
 
 class Scheduler:
     def __init__(self, config, tee, mongo, state_handler, cluster):
-        self.config = config
-        self.tee = tee
-        self.mongo = mongo
-        self.state_handler = state_handler
-        self.cluster = cluster
+        self._config = config
+        self._tee = tee
+        self._mongo = mongo
+        self._state_handler = state_handler
+        self._cluster = cluster
 
         # scheduling strategies
         if config.defaults['scheduling_strategies']['container_allocation'] == 'spread':
             container_allocation = spread
         elif config.defaults['scheduling_strategies']['container_allocation'] == 'binpack':
             container_allocation = binpack
-        self.container_allocation = container_allocation
-        self.task_selection = FIFO(mongo=self.mongo)
-        self.caching = OneCachePerTaskNoDuplicates(
-            config=config,
-            tee=tee,
-            mongo=mongo,
-            cluster=cluster
+        self._container_allocation = container_allocation
+        self._task_selection = FIFO(mongo=self._mongo)
+        self._caching = OneCachePerTaskNoDuplicates(
+            config=self._config,
+            tee=self._tee,
+            mongo=self._mongo,
+            cluster=self._cluster
         )
 
     def schedule(self):
-        dc_ram = self.config.defaults['data_container_description']['container_ram']
+        dc_ram = self._config.defaults['data_container_description']['container_ram']
 
-        nodes = {node['name']: node for node in self.cluster.nodes()}
+        nodes = {node['name']: node for node in self._cluster.nodes()}
         for name, node in nodes.items():
             node['free_ram'] = node['total_ram'] - node['reserved_ram']
 
-        for task in self.task_selection:
+        for task in self._task_selection:
             ac_ram = task['application_container_description']['container_ram']
             if not _is_task_fitting(nodes, ac_ram, dc_ram):
                 description = 'Task is too large for cluster.'
-                self.state_handler.transition('tasks', task['_id'], 'failed', description)
+                self._state_handler.transition('tasks', task['_id'], 'failed', description)
                 continue
 
             application_container = application_container_prototype(ac_ram)
             application_container['task_id'] = [task['_id']]
             application_container['username'] = task['username']
-            application_container_id = self.mongo.db['application_containers'].insert_one(application_container).inserted_id
+            application_container_id = self._mongo.db['application_containers'].insert_one(application_container).inserted_id
 
             if not task.get('no_cache'):
-                self.caching.apply(application_container_id)
+                self._caching.apply(application_container_id)
 
-            data_containers = self.mongo.db['data_containers'].find(
+            data_containers = self._mongo.db['data_containers'].find(
                 {'state': -1},
                 {'_id': 1, 'cluster_node': 1}
             )
@@ -79,11 +79,11 @@ class Scheduler:
             failed = False
 
             for ram, _id, collection in assign_to_node:
-                cluster_node = self.container_allocation(nodes, ram)
+                cluster_node = self._container_allocation(nodes, ram)
                 if not cluster_node:
                     failed = True
                     break
-                self.mongo.db[collection].update_one(
+                self._mongo.db[collection].update_one(
                     {'_id': _id},
                     {'$set': {'cluster_node': cluster_node}}
                 )
@@ -91,12 +91,12 @@ class Scheduler:
 
             if failed:
                 for ram, _id, collection in assign_to_node:
-                    self.mongo.db[collection].delete_one({'_id': _id})
+                    self._mongo.db[collection].delete_one({'_id': _id})
                 break
 
             for ram, _id, collection in assign_to_node:
                 description = 'Container created.'
-                self.state_handler.transition(collection, _id, 'created', description)
+                self._state_handler.transition(collection, _id, 'created', description)
 
 
 def _is_task_fitting(nodes, ac_ram, dc_ram):

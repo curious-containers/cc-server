@@ -76,21 +76,21 @@ def validation(schema):
 
 class RequestHandler:
     def __init__(self, config, tee, worker):
-        self.config = config
-        self.worker = worker
-        self.tee = tee
-        self.mongo = Mongo(
-            config=self.config
+        self._config = config
+        self._worker = worker
+        self._tee = tee
+        self._mongo = Mongo(
+            config=self._config
         )
-        self.state_handler = StateHandler(
-            config=self.config,
-            tee=self.tee,
-            mongo=self.mongo
+        self._state_handler = StateHandler(
+            config=self._config,
+            tee=self._tee,
+            mongo=self._mongo
         )
-        self.authorize = Authorize(
-            config=self.config,
-            tee=self.tee,
-            mongo=self.mongo
+        self._authorize = Authorize(
+            config=self._config,
+            tee=self._tee,
+            mongo=self._mongo
         )
 
     @log
@@ -98,36 +98,36 @@ class RequestHandler:
     @validation(nodes_schema)
     def post_nodes(self, json_input):
         for node in json_input['nodes']:
-            self.worker.update_node_status(node['name'])
+            self._worker.update_node_status(node['name'])
         return jsonify({})
 
     @log
     @auth(require_admin=False, require_credentials=False)
     def get_nodes(self):
         return jsonify(prepare_response({
-            'healthy_nodes': self.worker.nodes(),
-            'dead_nodes': list(self.mongo.db['dead_nodes'].find({}))
+            'healthy_nodes': self._worker.nodes(),
+            'dead_nodes': list(self._mongo.db['dead_nodes'].find({}))
         }))
 
     @log
     @auth(require_credentials=False)
     def put_worker(self):
-        self.worker.schedule()
+        self._worker.schedule()
         return jsonify({})
 
     @log
     @auth(require_admin=False)
     def get_token(self):
-        token = self.authorize.issue_token()
+        token = self._authorize.issue_token()
         return jsonify({
             'token': token,
-            'valid_for_seconds': self.config.defaults['authorization'].get('tokens_valid_for_seconds')
+            'valid_for_seconds': self._config.defaults['authorization'].get('tokens_valid_for_seconds')
         })
 
     def _cancel(self, json_input):
         description = 'Task cancelled.'
-        self.state_handler.transition('tasks', json_input['_id'], 'cancelled', description)
-        task = self.mongo.db['tasks'].find_one({
+        self._state_handler.transition('tasks', json_input['_id'], 'cancelled', description)
+        task = self._mongo.db['tasks'].find_one({
             '_id': json_input['_id']
         }, {
             '_id': 1,
@@ -149,12 +149,12 @@ class RequestHandler:
 
     def _is_task(self, json_input, username):
         if username:
-            task = self.mongo.db['tasks'].find_one(
+            task = self._mongo.db['tasks'].find_one(
                 {'username': username, '_id': json_input['_id']},
                 {'_id': 1}
             )
         else:
-            task = self.mongo.db['tasks'].find_one(
+            task = self._mongo.db['tasks'].find_one(
                 {'_id': json_input['_id']},
                 {'_id': 1}
             )
@@ -166,14 +166,14 @@ class RequestHandler:
     @validation(cancel_schema)
     def post_tasks_cancel(self, json_input):
         username = None
-        if not self.authorize.verify_user(require_credentials=False):
+        if not self._authorize.verify_user(require_credentials=False):
             username = request.authorization.username
 
         if json_input.get('tasks'):
             response = self._cancel_tasks(json_input, username)
         else:
             response = self._cancel_task(json_input, username)
-        Thread(target=self.worker.post_container_callback).start()
+        self._worker.container_callback()
         return jsonify(prepare_response(response))
 
     def _register_task(self, json_input, task_group_id):
@@ -183,12 +183,12 @@ class RequestHandler:
         json_input['trials'] = 0
         json_input['transitions'] = []
         json_input['task_group_id'] = [task_group_id]
-        task_id = self.mongo.db['tasks'].insert_one(json_input).inserted_id
+        task_id = self._mongo.db['tasks'].insert_one(json_input).inserted_id
 
-        self.state_handler.transition('tasks', task_id, 'created', 'Task created.')
-        self.state_handler.transition('tasks', task_id, 'waiting', 'Task waiting.')
+        self._state_handler.transition('tasks', task_id, 'created', 'Task created.')
+        self._state_handler.transition('tasks', task_id, 'waiting', 'Task waiting.')
 
-        self.mongo.db['task_groups'].update({'_id': task_group_id}, {
+        self._mongo.db['task_groups'].update({'_id': task_group_id}, {
             '$push': {'task_ids': task_id},
         })
 
@@ -210,23 +210,23 @@ class RequestHandler:
         task_group = task_group_prototype()
         task_group['username'] = request.authorization.username
         task_group['tasks_count'] = len(json_input.get('tasks', [0]))
-        task_group_id = self.mongo.db['task_groups'].insert_one(task_group).inserted_id
-        self.state_handler.transition('task_groups', task_group_id, 'created', 'Task group created.')
+        task_group_id = self._mongo.db['task_groups'].insert_one(task_group).inserted_id
+        self._state_handler.transition('task_groups', task_group_id, 'created', 'Task group created.')
         if json_input.get('tasks'):
             result = self._create_tasks(json_input, task_group_id)
         else:
             result = self._create_task(json_input, task_group_id)
-        self.state_handler.transition('task_groups', task_group_id, 'waiting', 'Task group waiting.')
-        self.worker.schedule()
+        self._state_handler.transition('task_groups', task_group_id, 'waiting', 'Task group waiting.')
+        self._worker.schedule()
         return jsonify(prepare_response(result))
 
     def _aggregate(self, json_input, collection):
         pipeline = json_input['aggregate']
-        if not self.authorize.verify_user(require_credentials=False):
+        if not self._authorize.verify_user(require_credentials=False):
             pipeline = [{'$match': {'username': request.authorization.username}}] + pipeline
 
         try:
-            cursor = self.mongo.db[collection].aggregate(pipeline)
+            cursor = self._mongo.db[collection].aggregate(pipeline)
         except:
             raise BadRequest('Could not execute aggregation pipeline with MongoDB: {}'.format(format_exc()))
 
@@ -260,25 +260,25 @@ class RequestHandler:
     @log
     @validation(callback_schema)
     def post_application_container_callback(self, json_input):
-        if not self.authorize.verify_callback(json_input, 'application_containers'):
+        if not self._authorize.verify_callback(json_input, 'application_containers'):
             raise Unauthorized()
 
         self._validate_callback(json_input, 'application_containers')
 
-        c = self.mongo.db['application_containers'].find_one(
+        c = self._mongo.db['application_containers'].find_one(
             {'_id': json_input['container_id']},
             {'state': 1, 'task_id': 1, 'data_container_ids': 1}
         )
 
         if is_state(c['state'], 'failed'):
-            Thread(target=self.worker.post_container_callback).start()
+            self._worker.container_callback()
             raise BadRequest('Container failed.')
 
         if json_input['callback_type'] == 0:
             # collect input file information and send with response
 
             task_id = c['task_id'][0]
-            task = self.mongo.db['tasks'].find_one(
+            task = self._mongo.db['tasks'].find_one(
                 {'_id': task_id},
                 {'input_files': 1, 'no_cache': 1, 'result_files': 1, 'application_container_description': 1}
             )
@@ -297,12 +297,12 @@ class RequestHandler:
                 response['input_files'] = []
                 for input_file, data_container_id in zip(task['input_files'], c['data_container_ids']):
 
-                    data_container = self.mongo.db['data_containers'].find_one(
+                    data_container = self._mongo.db['data_containers'].find_one(
                         {'_id': data_container_id},
                         {'input_files': 1, 'input_file_keys': 1}
                     )
 
-                    ip = self.worker.get_ip(data_container_id, 'data_containers')
+                    ip = self._worker.get_ip(data_container_id, 'data_containers')
 
                     for f, k in zip(data_container['input_files'], data_container['input_file_keys']):
                         if f == input_file:
@@ -317,56 +317,55 @@ class RequestHandler:
 
         elif json_input['callback_type'] == 3:
             description = 'Callback with callback_type 3 and has been sent.'
-            self.state_handler.transition('application_containers', c['_id'], 'success', description)
-            Thread(target=self.worker.post_container_callback).start()
+            self._state_handler.transition('application_containers', c['_id'], 'success', description)
+            self._worker.container_callback()
 
         return jsonify({})
 
     @log
     @validation(callback_schema)
     def post_data_container_callback(self, json_input):
-        if not self.authorize.verify_callback(json_input, 'data_containers'):
+        if not self._authorize.verify_callback(json_input, 'data_containers'):
             raise Unauthorized()
 
         self._validate_callback(json_input, 'data_containers')
 
-        c = self.mongo.db['data_containers'].find_one(
+        c = self._mongo.db['data_containers'].find_one(
             {'_id': json_input['container_id']},
             {'state': 1, 'input_files': 1}
         )
 
         if is_state(c['state'], 'failed'):
-            Thread(target=self.worker.post_container_callback).start()
+            self._worker.container_callback()
             raise BadRequest('Container failed.')
 
         if json_input['callback_type'] == 1:
             description = 'Input files available in data container.'
-            self.state_handler.transition('data_containers', c['_id'], 'processing', description)
-
-            Thread(target=self.worker.post_data_container_callback).start()
+            self._state_handler.transition('data_containers', c['_id'], 'processing', description)
+            self._worker.data_container_callback()
 
         return jsonify({})
 
     def _validate_callback(self, json_input, collection):
-        c = self.mongo.db[collection].find_one({'_id': json_input['container_id']})
+        c = self._mongo.db[collection].find_one({'_id': json_input['container_id']})
         if is_state(c['state'], 'failed') or is_state(c['state'], 'success'):
             return
 
-        self.mongo.db[collection].update({'_id': c['_id']}, {
+        self._mongo.db[collection].update({'_id': c['_id']}, {
             '$push': {'callbacks': json_input}
         })
 
         if json_input['callback_type'] != len(c['callbacks']):
             description = 'Callback with invalid callback_type has been sent.'
-            self.state_handler.transition(collection, c['_id'], 'failed', description)
+            self._state_handler.transition(collection, c['_id'], 'failed', description)
             return
 
         if is_state(json_input['content']['state'], 'failed'):
             description = 'Something went wrong on the other side.'
-            self.state_handler.transition(collection, c['_id'], 'failed', description)
+            self._state_handler.transition(collection, c['_id'], 'failed', description)
             return
 
         if not is_state(json_input['content']['state'], 'success'):
             description = 'Callback with invalid state has been sent.'
-            self.state_handler.transition(collection, c['_id'], 'failed', description)
+            self._state_handler.transition(collection, c['_id'], 'failed', description)
             return

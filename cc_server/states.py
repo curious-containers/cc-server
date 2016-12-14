@@ -50,9 +50,9 @@ def _transition(state, description, exception, caused_by):
 
 class StateHandler:
     def __init__(self, config, tee, mongo):
-        self.config = config
-        self.tee = tee
-        self.mongo = mongo
+        self._config = config
+        self._tee = tee
+        self._mongo = mongo
 
     def transition(self, collection, _id, state, description, exception=None):
         if collection == 'tasks':
@@ -67,7 +67,7 @@ class StateHandler:
             raise Exception('Invalid collection: %s' % collection)
 
     def _task_group_transition(self, task_group_id, state, description, exception, caused_by):
-        task_group = self.mongo.db['task_groups'].find_one(
+        task_group = self._mongo.db['task_groups'].find_one(
             {'_id': task_group_id},
             {'state': 1}
         )
@@ -82,7 +82,7 @@ class StateHandler:
         self._append_transition('task_groups', task_group_id, t)
 
     def _application_container_transition(self, application_container_id, state, description, exception, caused_by):
-        application_container = self.mongo.db['application_containers'].find_one(
+        application_container = self._mongo.db['application_containers'].find_one(
             {'_id': application_container_id},
             {'task_id': 1, 'state': 1}
         )
@@ -112,14 +112,14 @@ class StateHandler:
 
     def _append_transition(self, collection, _id, t):
         if is_state(t['state'], 'failed'):
-            self.tee('{} {} {} {} {}'.format(
+            self._tee('{} {} {} {} {}'.format(
                 collection, _id, index_to_state(t['state']), t['description'], t.get('exception'))
             )
         else:
-            self.tee('{} {} {}'.format(collection, _id, index_to_state(t['state'])))
+            self._tee('{} {} {}'.format(collection, _id, index_to_state(t['state'])))
 
         if is_state(t['state'], 'created'):
-            self.mongo.db[collection].update({'_id': _id}, {
+            self._mongo.db[collection].update({'_id': _id}, {
                 '$push': {'transitions': t},
                 '$set': {
                     'state': t['state'],
@@ -127,18 +127,18 @@ class StateHandler:
                 }
             })
         else:
-            self.mongo.db[collection].update({'_id': _id}, {
+            self._mongo.db[collection].update({'_id': _id}, {
                 '$push': {'transitions': t},
                 '$set': {'state': t['state']}
             })
         if t['state'] in end_states():
-            data = self.mongo.db[collection].find_one({'_id': _id})
+            data = self._mongo.db[collection].find_one({'_id': _id})
             del data['_id']
             data = remove_secrets(data)
-            self.mongo.db[collection].update_one({'_id': _id}, {'$set': data})
+            self._mongo.db[collection].update_one({'_id': _id}, {'$set': data})
 
     def _task_transition(self, task_id, state, description, exception, caused_by):
-        task = self.mongo.db['tasks'].find_one(
+        task = self._mongo.db['tasks'].find_one(
             {'_id': task_id},
             {'trials': 1, 'notifications': 1, 'state': 1, 'task_group_id': 1}
         )
@@ -148,18 +148,18 @@ class StateHandler:
 
         if state == 'failed':
             trials = task['trials'] + 1
-            self.mongo.db['tasks'].update_one(
+            self._mongo.db['tasks'].update_one(
                 {'_id': task_id},
                 {'$set': {'trials': trials}}
             )
-            max_task_trials = self.config.defaults['error_handling']['max_task_trials']
+            max_task_trials = self._config.defaults['error_handling']['max_task_trials']
 
             if trials < max_task_trials:
                 state = 'waiting'
                 description = 'Task waiting again (trial {} of {}): {}'.format(trials, max_task_trials, description)
 
         if state == 'cancelled':
-            application_containers = self.mongo.db['application_containers'].find({
+            application_containers = self._mongo.db['application_containers'].find({
                 'state': {'$nin': end_states()},
                 'task_id': task_id
             }, {'_id': 1})
@@ -175,7 +175,7 @@ class StateHandler:
         self._append_transition('tasks', task_id, t)
 
         if state == 'processing':
-            task_group = self.mongo.db['task_groups'].find_one(
+            task_group = self._mongo.db['task_groups'].find_one(
                 {'_id': task['task_group_id'][0], 'state': state_to_index('waiting')},
                 {'_id': 1}
             )
@@ -188,15 +188,15 @@ class StateHandler:
         if state_to_index(state) in end_states():
             if task.get('notifications'):
                 meta_data = {'task_id': task_id}
-                notify(self.tee, task['notifications'], meta_data)
+                notify(self._tee, task['notifications'], meta_data)
 
     def update_task_groups(self):
-        task_groups = self.mongo.db['task_groups'].find(
+        task_groups = self._mongo.db['task_groups'].find(
             {'state': {'$nin': end_states()}},
             {'task_ids': 1, 'tasks_count': 1}
         )
         for task_group in task_groups:
-            tasks = self.mongo.db['tasks'].find(
+            tasks = self._mongo.db['tasks'].find(
                 {
                     '_id': {'$in': task_group['task_ids']},
                     'state': {'$in': end_states()}
@@ -206,7 +206,7 @@ class StateHandler:
             tasks = list(tasks)
             if task_group['tasks_count'] != len(tasks):
                 continue
-            task = self.mongo.db['tasks'].find_one(
+            task = self._mongo.db['tasks'].find_one(
                 {
                     '_id': {'$in': task_group['task_ids']},
                     'state': state_to_index('success')
@@ -221,7 +221,7 @@ class StateHandler:
             self._task_group_transition(task_group['_id'], 'failed', description, None, None)
 
     def _data_container_transition(self, data_container_id, state, description, exception, caused_by):
-        data_container = self.mongo.db['data_containers'].find_one(
+        data_container = self._mongo.db['data_containers'].find_one(
             {'_id': data_container_id},
             {'state': 1}
         )
@@ -233,7 +233,7 @@ class StateHandler:
         self._append_transition('data_containers', data_container_id, t)
 
         if state == 'failed':
-            application_containers = self.mongo.db['application_containers'].find({
+            application_containers = self._mongo.db['application_containers'].find({
                 'state': {'$nin': end_states()},
                 'data_container_ids': data_container_id
             }, {'_id': 1})

@@ -10,9 +10,9 @@ from cc_server.helper import generate_secret, equal_keys, get_ip
 
 class Authorize:
     def __init__(self, config, tee, mongo):
-        self.tee = tee
-        self.mongo = mongo
-        self.config = config
+        self._tee = tee
+        self._mongo = mongo
+        self._config = config
 
     def create_user(self, username, password, is_admin):
         salt = urandom(16)
@@ -30,7 +30,7 @@ class Authorize:
             'hash_function': 'SHA256',
             'is_admin': is_admin
         }
-        self.mongo.db['users'].update_one({'username': username}, {'$set': user}, upsert=True)
+        self._mongo.db['users'].update_one({'username': username}, {'$set': user}, upsert=True)
 
     def verify_user(self, require_admin=True, require_credentials=True):
         auth = request.authorization
@@ -39,7 +39,7 @@ class Authorize:
         username = auth.username
         password = auth.password
 
-        user = self.mongo.db['users'].find_one({'username': username})
+        user = self._mongo.db['users'].find_one({'username': username})
         if not user:
             return False
 
@@ -65,7 +65,7 @@ class Authorize:
         return False
 
     def verify_callback(self, json_input, collection):
-        container = self.mongo.db[collection].find_one(
+        container = self._mongo.db[collection].find_one(
             {'_id': json_input['container_id']},
             {'callback_key': 1}
         )
@@ -76,26 +76,26 @@ class Authorize:
         return True
 
     def _is_blocked_temporarily(self, username):
-        num_login_attempts = self.config.defaults['authorization']['num_login_attempts']
-        block_for_seconds = self.config.defaults['authorization']['block_for_seconds']
-        self.mongo.db['block_entries'].delete_many({'timestamp': {'$lt': time() - block_for_seconds}})
-        block_entries = list(self.mongo.db['block_entries'].find({'username': username}))
+        num_login_attempts = self._config.defaults['authorization']['num_login_attempts']
+        block_for_seconds = self._config.defaults['authorization']['block_for_seconds']
+        self._mongo.db['block_entries'].delete_many({'timestamp': {'$lt': time() - block_for_seconds}})
+        block_entries = list(self._mongo.db['block_entries'].find({'username': username}))
         if len(block_entries) > num_login_attempts:
             return True
         return False
 
     def _add_block_entry(self, username):
-        self.mongo.db['block_entries'].insert_one({
+        self._mongo.db['block_entries'].insert_one({
             'username': username,
             'timestamp': time()
         })
-        self.tee('Unverified login attempt: added block entry!')
+        self._tee('Unverified login attempt: added block entry!')
 
     def issue_token(self):
         token = generate_secret()
         username = request.authorization.username
         ip = get_ip()
-        self.mongo.db['tokens'].insert_one({
+        self._mongo.db['tokens'].insert_one({
             'username': username,
             'ip': ip,
             'token': token,
@@ -104,9 +104,9 @@ class Authorize:
         return token
 
     def _verify_user_by_token(self, user, token, ip):
-        tokens_valid_for_seconds = self.config.defaults['authorization']['tokens_valid_for_seconds']
-        self.mongo.db['tokens'].delete_many({'timestamp': {'$lt': time() - tokens_valid_for_seconds}})
-        t = self.mongo.db['tokens'].find_one({
+        tokens_valid_for_seconds = self._config.defaults['authorization']['tokens_valid_for_seconds']
+        self._mongo.db['tokens'].delete_many({'timestamp': {'$lt': time() - tokens_valid_for_seconds}})
+        t = self._mongo.db['tokens'].find_one({
             'username': user['username'],
             'ip': ip,
             'token': token

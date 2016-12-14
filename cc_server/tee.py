@@ -50,27 +50,27 @@ class TeeManager(BaseManager):
 
 class Tee:
     def __init__(self, config):
-        self.config = config
-        self.q = None
+        self._config = config
+        self._q = None
 
     def late_init(self):
-        self.q = Queue()
+        self._q = Queue()
         Thread(target=self._loop, args=()).start()
 
     def tee(self, message):
-        self.q.put(message)
+        self._q.put(message)
 
     def get_pid(self):
         return os.getpid()
 
     def _loop(self):
         log_path = None
-        if self.config.server.get('log_dir'):
-            log_dir = os.path.expanduser(self.config.server['log_dir'])
+        if self._config.server.get('log_dir'):
+            log_dir = os.path.expanduser(self._config.server['log_dir'])
             if not os.path.exists(log_dir):
                 os.makedirs(log_dir)
             log_path = os.path.join(log_dir, 'server.log')
-        suppress_stdout = self.config.server.get('suppress_stdout')
+        suppress_stdout = self._config.server.get('suppress_stdout')
 
         def stdout_func(message):
             print(message)
@@ -95,4 +95,4 @@ class Tee:
             tee = both_func
 
         while True:
-            tee(self.q.get())
+            tee(self._q.get())
