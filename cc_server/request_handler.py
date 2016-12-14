@@ -2,7 +2,6 @@ import jsonschema
 from traceback import format_exc
 from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, Unauthorized
-from threading import Thread
 
 from cc_server.database import Mongo
 from cc_server.authorization import Authorize
