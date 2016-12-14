@@ -1,6 +1,7 @@
 import os
 import json
 import signal
+import atexit
 from queue import Queue
 from threading import Thread
 from multiprocessing.managers import BaseManager
@@ -12,14 +13,16 @@ from cc_server.states import StateHandler, state_to_index
 from cc_server.scheduling import Scheduler
 
 
-def connect(config):
+def _connect(config):
     WorkerManager.register('get_worker')
     m = WorkerManager(address=('', config.ipc['worker_port']), authkey=config.ipc['secret'].encode('utf-8'))
     m.connect()
-    return m.get_worker()
+    worker = m.get_worker()
+    print('worker | PID: {} | CONNECTED'.format(worker.get_pid()))
+    return worker
 
 
-def start(config):
+def _start(config):
     worker = Worker(
         config=config
     )
@@ -27,27 +30,23 @@ def start(config):
     m = WorkerManager(address=('', config.ipc['worker_port']), authkey=config.ipc['secret'].encode('utf-8'))
     m.start()
     worker = m.get_worker()
+    pid = worker.get_pid()
+    atexit.register(_terminate, pid)
     worker.late_init()
+    print('worker | PID: {} | STARTED'.format(pid))
     return worker
 
 
-def stop(config):
-    WorkerManager.register('get_worker')
-    m = WorkerManager(address=('', config.ipc['worker_port']), authkey=config.ipc['secret'].encode('utf-8'))
-    m.connect()
-    worker = m.get_worker()
-    pid = worker.get_pid()
+def _terminate(pid):
     os.kill(pid, signal.SIGTERM)
+    print('worker | PID: {} | TERMINATED'.format(pid))
 
 
 def get_worker(config):
     try:
-        worker = connect(config=config)
-        print('worker | PID: {} | CONNECTED'.format(worker.get_pid()))
+        return _connect(config=config)
     except:
-        worker = start(config=config)
-        print('worker | PID: {} | STARTED'.format(worker.get_pid()))
-    return worker
+        return _start(config=config)
 
 
 def _put(q):

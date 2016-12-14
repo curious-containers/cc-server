@@ -1,19 +1,22 @@
 import os
 import datetime
 import signal
+import atexit
 from threading import Thread
 from queue import Queue
 from multiprocessing.managers import BaseManager
 
 
-def connect(config):
+def _connect(config):
     TeeManager.register('get_tee')
     m = TeeManager(address=('', config.ipc['tee_port']), authkey=config.ipc['secret'].encode('utf-8'))
     m.connect()
-    return m.get_tee()
+    tee = m.get_tee()
+    print('tee | PID: {} | CONNECTED'.format(tee.get_pid()))
+    return tee
 
 
-def start(config):
+def _start(config):
     tee = Tee(
         config=config
     )
@@ -21,27 +24,23 @@ def start(config):
     m = TeeManager(address=('', config.ipc['tee_port']), authkey=config.ipc['secret'].encode('utf-8'))
     m.start()
     tee = m.get_tee()
+    pid = tee.get_pid()
+    atexit.register(_terminate, pid)
     tee.late_init()
+    print('tee | PID: {} | STARTED'.format(pid))
     return tee
 
 
-def stop(config):
-    TeeManager.register('get_tee')
-    m = TeeManager(address=('', config.ipc['tee_port']), authkey=config.ipc['secret'].encode('utf-8'))
-    m.connect()
-    tee = m.get_tee()
-    pid = tee.get_pid()
+def _terminate(pid):
     os.kill(pid, signal.SIGTERM)
+    print('tee | PID: {} | TERMINATED'.format(pid))
 
 
 def get_tee(config):
     try:
-        tee = connect(config=config)
-        print('tee | PID: {} | CONNECTED'.format(tee.get_pid()))
+        return _connect(config=config).tee
     except:
-        tee = start(config=config)
-        print('tee | PID: {} | STARTED'.format(tee.get_pid()))
-    return tee.tee
+        return _start(config=config).tee
 
 
 class TeeManager(BaseManager):
