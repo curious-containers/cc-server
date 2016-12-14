@@ -2,6 +2,12 @@
 host = 'http://172.18.0.1:5000'
 internal_port = 5000
 log_dir = '~/.cc_server/'
+suppress_stdout = false
+
+[ipc]
+tee_port = 14736
+worker_port = 14737
+secret = 'SECRET'
 
 [mongo]
 username = 'ccdbAdmin'

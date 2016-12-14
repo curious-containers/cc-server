@@ -10,13 +10,7 @@ from cc_server.authorization import Authorize
 from cc_server.configuration import Config
 from cc_server.database import Mongo
 
-conf_file_path = None
-try:
-    conf_file_path = sys.argv[1]
-except:
-    pass
-
-config = Config(conf_file_path)
+config = Config()
 
 mongo = Mongo(
     config=config
