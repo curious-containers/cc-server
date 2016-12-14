@@ -17,7 +17,7 @@ def _connect(config):
     m = WorkerManager(address=('', config.ipc['worker_port']), authkey=config.ipc['secret'].encode('utf-8'))
     m.connect()
     worker = m.get_worker()
-    print('worker | PID: {} | CONNECTED'.format(worker.get_pid()))
+    print('| worker | PID: {} | CONNECTED  |'.format(worker.get_pid()))
     return worker
 
 
@@ -32,13 +32,13 @@ def _start(config):
     pid = worker.get_pid()
     atexit.register(_terminate, m, pid)
     worker.late_init()
-    print('worker | PID: {} | STARTED'.format(pid))
+    print('| worker | PID: {} | STARTED    |'.format(pid))
     return worker
 
 
 def _terminate(manager, pid):
     manager.shutdown()
-    print('worker | PID: {} | TERMINATED'.format(pid))
+    print('| worker | PID: {} | TERMINATED |'.format(pid))
 
 
 def get_worker(config):

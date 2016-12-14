@@ -11,7 +11,7 @@ def _connect(config):
     m = TeeManager(address=('', config.ipc['tee_port']), authkey=config.ipc['secret'].encode('utf-8'))
     m.connect()
     tee = m.get_tee()
-    print('tee | PID: {} | CONNECTED'.format(tee.get_pid()))
+    print('| tee    | PID: {} | CONNECTED  |'.format(tee.get_pid()))
     return tee
 
 
@@ -26,13 +26,13 @@ def _start(config):
     pid = tee.get_pid()
     atexit.register(_terminate, m, pid)
     tee.late_init()
-    print('tee | PID: {} | STARTED'.format(pid))
+    print('| tee    | PID: {} | STARTED    |'.format(pid))
     return tee
 
 
 def _terminate(manager, pid):
     manager.shutdown()
-    print('tee | PID: {} | TERMINATED'.format(pid))
+    print('| tee    | PID: {} | TERMINATED |'.format(pid))
 
 
 def get_tee(config):
