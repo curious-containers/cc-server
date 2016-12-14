@@ -1,6 +1,5 @@
 import os
 import datetime
-import signal
 import atexit
 from threading import Thread
 from queue import Queue
@@ -25,14 +24,14 @@ def _start(config):
     m.start()
     tee = m.get_tee()
     pid = tee.get_pid()
-    atexit.register(_terminate, pid)
+    atexit.register(_terminate, m, pid)
     tee.late_init()
     print('tee | PID: {} | STARTED'.format(pid))
     return tee
 
 
-def _terminate(pid):
-    os.kill(pid, signal.SIGTERM)
+def _terminate(manager, pid):
+    manager.shutdown()
     print('tee | PID: {} | TERMINATED'.format(pid))
 
 

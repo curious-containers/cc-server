@@ -1,6 +1,5 @@
 import os
 import json
-import signal
 import atexit
 from queue import Queue
 from threading import Thread
@@ -31,14 +30,14 @@ def _start(config):
     m.start()
     worker = m.get_worker()
     pid = worker.get_pid()
-    atexit.register(_terminate, pid)
+    atexit.register(_terminate, m, pid)
     worker.late_init()
     print('worker | PID: {} | STARTED'.format(pid))
     return worker
 
 
-def _terminate(pid):
-    os.kill(pid, signal.SIGTERM)
+def _terminate(manager, pid):
+    manager.shutdown()
     print('worker | PID: {} | TERMINATED'.format(pid))
 
 
