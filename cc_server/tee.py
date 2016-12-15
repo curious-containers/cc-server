@@ -1,6 +1,7 @@
 import os
 import datetime
 import atexit
+from time import sleep
 from threading import Thread
 from queue import Queue
 from multiprocessing.managers import BaseManager
@@ -39,7 +40,11 @@ def get_tee(config):
     try:
         return _connect(config=config).tee
     except:
-        return _start(config=config).tee
+        try:
+            return _start(config=config).tee
+        except:
+            sleep(1)
+            return _connect(config=config).tee
 
 
 class TeeManager(BaseManager):

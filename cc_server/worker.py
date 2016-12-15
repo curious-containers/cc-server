@@ -1,6 +1,7 @@
 import os
 import json
 import atexit
+from time import sleep
 from queue import Queue
 from threading import Thread
 from multiprocessing.managers import BaseManager
@@ -45,7 +46,11 @@ def get_worker(config):
     try:
         return _connect(config=config)
     except:
-        return _start(config=config)
+        try:
+            return _start(config=config)
+        except:
+            sleep(1)
+            return _connect(config=config)
 
 
 def _put(q):
