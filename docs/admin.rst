@@ -193,6 +193,20 @@ information.
    suppress_stdout = true
 
 
+CC-Server spawns two background processes, called tee and worker, on startup. It is necessary to specify a port for
+each of the processes as **tee_port** and **worker_port**. The only requirements are, that the ports are distinct from
+each other, not yet occupied by another process and that the ports are not restricted (port numbers <1024 are
+restricted). In addition an arbitrary **secret** must be specified, which is used to authenticate other CC-Server
+processes with the background processes.
+
+.. code-block:: toml
+
+   [ipc]
+   tee_port = 14736
+   worker_port = 14737
+   secret = 'SECRET'
+
+
 mongo
 """""
 
@@ -394,49 +408,53 @@ Run the Code
 
 *The following commands assume being inside the cc-server directory.*
 
+Running the application as specified below will run an insecure and single-threaded flask development server, which is
+for development and testing purposes only. The server will be running on the **internal_port** specified in
+*config.toml* (e.g. localhost:5000)
+
 .. code-block:: bash
 
    python3 cc_server
 
 
-CC-Server will try to find the config.toml automatically. It will first look inside the directory from where the server
-got launched (*./config.toml*). If the configuriation file is not there, it will first try to find it one directory
-above (*../config.toml*) and then in the system users home directory (*~/.config/curious-containers/config.toml*).
+CC-Server will try to find the *config.toml* automatically. It will first look inside the system users home directory
+(*~/.config/curious-containers/config.toml*). If the configuriation file is not there, it will try to find the
+*config.toml* file in the source code directory of CC-Server (*/PATH/TO/cc-server/config.toml*).
 
-If these locations are not suitable for the configuration file, the file path can be defined explicitely as a CLI argument:
-
-.. code-block:: bash
-
-   python3 cc_server /path/to/my_config.toml
-
-
-If the server is not launched from within the git directory, but from another relative or absolute path, the location of
-the curious_containers Python module must be specified in the PYTHONPATH. This can be achieved by specifying the path as
-environment variable.
+If these locations are not suitable for the configuration file, the file path can be defined explicitely as a CLI
+argument:
 
 .. code-block:: bash
 
-   export PYTHONPATH=/path/to/cc-server:${PYTHONPATH}
-   python3 /path/to/cc-server/cc_server /path/to/cc-server/config.toml
-
-
-For a permanent change, the path can be added to the *~/.profile* file:
-
-.. code-block:: bash
-
-   echo 'PYTHONPATH=/path/to/cc-server:${PYTHONPATH}' >> ~/.profile
+   python3 cc_server /PATH/TO/my_config.toml
 
 
 Apache 2 WSGI
 ^^^^^^^^^^^^^
 
-The following sample configuration shows how to setup CC-Server with Apache 2 and mod_wsgi.
+*First take a look at the* `server documentation <admin.html#server>`__ *above and configure the config.toml file of
+CC-Server for production usage with Apache 2.*
 
-**IMPORTANT NOTE:** This is not the most secure configuration possible, but only a simplified example. For more
-information take a look at the following resources:
-`Apache 2 SSL <https://httpd.apache.org/docs/current/ssl/>`__,
-`Mozilla Server Side TLS <https://wiki.mozilla.org/Security/Server_Side_TLS>`__,
-`Mozilla TLS Configuration <https://wiki.mozilla.org/Security/TLS_Configurations>`__
+The following sample configuration shows how to setup Apache 2 and mod_wsgi for CC-Server. The mod_wsgi extension can
+run multiple processes serving web requests with the CC-Server flask application, which improves the performace compared
+to the flask development server. In addition Apache 2 should be configured to encrypt the incoming web requests with
+TLS.
+
+On Ubuntu install Apache2 and the Python3 version of mod_wsgi as follows:
+
+.. code-block:: bash
+
+   sudo apt update
+   sudo apt install apache2 libapache2-mod-wsgi-py3
+   sudo a2enmod ssl
+
+
+Create a new Apache 2 site configuration file at */etc/apache2/sites-available/cc-server.conf* and copy the file content
+from the code block below. Replace all occurences of */PATH/TO* with the appropriate absolute paths to the CC-Server
+source code and *wsgi.py* file, as well as the SSL certificates. The configuration assumes that a system user *ccuser*
+has been created beforehand and that this user has permissions to read and execute the CC-Server code and *wsgi.py*
+script. This can be customized to run under any other system user, except root. The number of of processes and threads
+should be customized to fit the available system resources (e.g. CPU and RAM).
 
 .. code-block:: apache
 
@@ -463,6 +481,21 @@ information take a look at the following resources:
           </Files>
        </Directory>
    </VirtualHost>
+
+
+**IMPORTANT NOTE:** This is not the most secure configuration possible, but only a simplified example. For more
+information take a look at the following resources:
+`Apache 2 SSL <https://httpd.apache.org/docs/current/ssl/>`__,
+`Mozilla Server Side TLS <https://wiki.mozilla.org/Security/Server_Side_TLS>`__,
+`Mozilla TLS Configuration <https://wiki.mozilla.org/Security/TLS_Configurations>`__
+
+
+The newly created site can now be enabled with the following commands:
+
+.. code-block:: bash
+
+   sudo a2ensite cc-server.conf
+   sudo service apache2 restart
 
 
 CC-Server is now ready to use at *https://my-domain.tld/cc/*.
