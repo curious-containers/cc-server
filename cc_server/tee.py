@@ -6,6 +6,8 @@ from threading import Thread
 from queue import Queue
 from multiprocessing.managers import BaseManager
 
+from cc_server.helper import RedirectStdStreams
+
 
 def _connect(config):
     TeeManager.register('get_tee')
@@ -38,10 +40,14 @@ def _terminate(manager, pid):
 
 def get_tee(config):
     try:
-        return _connect(config=config).tee
+        with open(os.devnull, 'w') as devnull:
+            with RedirectStdStreams(stderr=devnull):
+                return _connect(config=config).tee
     except:
         try:
-            return _start(config=config).tee
+            with open(os.devnull, 'w') as devnull:
+                with RedirectStdStreams(stderr=devnull):
+                    return _start(config=config).tee
         except:
             sleep(1)
             return _connect(config=config).tee

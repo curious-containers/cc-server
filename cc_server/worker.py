@@ -11,6 +11,7 @@ from cc_server.database import Mongo
 from cc_server.cluster import Cluster
 from cc_server.states import StateHandler, state_to_index
 from cc_server.scheduling import Scheduler
+from cc_server.helper import RedirectStdStreams
 
 
 def _connect(config):
@@ -44,10 +45,14 @@ def _terminate(manager, pid):
 
 def get_worker(config):
     try:
-        return _connect(config=config)
+        with open(os.devnull, 'w') as devnull:
+            with RedirectStdStreams(stderr=devnull):
+                return _connect(config=config)
     except:
         try:
-            return _start(config=config)
+            with open(os.devnull, 'w') as devnull:
+                with RedirectStdStreams(stderr=devnull):
+                    return _start(config=config)
         except:
             sleep(1)
             return _connect(config=config)
