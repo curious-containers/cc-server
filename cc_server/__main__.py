@@ -29,11 +29,11 @@ def get_root():
         Content-Type: application/json
 
         {
-            "version": 0.7
+            "version": 0.8
         }
 
     """
-    return jsonify({'version': 0.7})
+    return jsonify({'version': 0.8})
 
 
 @app.route('/nodes', methods=['GET'])

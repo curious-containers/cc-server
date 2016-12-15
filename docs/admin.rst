@@ -120,7 +120,7 @@ Clone a specific version from the Github repository:
 
 .. code-block:: bash
 
-   git clone -b 0.7 --depth 1 https://github.com/curious-containers/cc-server
+   git clone -b 0.8 --depth 1 https://github.com/curious-containers/cc-server
    cd cc-server
 
 
@@ -158,26 +158,16 @@ server
 CC-Server uses `flask <http://flask.pocoo.org/>`__ to run a light-weight web server providing a REST interface.
 When starting the server it connects to an **internal_port** with port 5000 as default value. The server is then
 reachable at localhost:5000 and requests can be sent to the API. This **internal_port** should never be exposed to
-internet (configure a firewall to ensure this), because flask does not provide TLS encryption for the HTTP communication.
-Another web server (e.g. Apache 2) can be used as a TLS proxy by forwarding requests to the **internal_port**.
-Therefore the external adress of CC-Server (e.g. https://my-domain.tld/cc) differs from the internal adress (e.g.
-http://localhost:5000) and the external adress must be specified as **host**. CC-Server runs Docker containers
-with a CC-Container-Worker. Since the worker sends callback requests to this **host** adress, this adress must be
-reachable by the container. The easiest way to achieve this, is to expose the **host** adress to the internet. Take a
-look at the `Apache 2 TLS Proxy documentation <#apache-2-tls-proxy>`__ for a sample configuration.
-
-.. code-block:: toml
-
-   [server]
-   host = 'https://my-domain.tld/cc'
-   internal_port = 5000
-   log_dir = '~/.cc_server/'
-
-
+internet (configure a firewall to ensure this), because flask does not by default provide TLS encryption for the HTTP
+communication. The external address, specified as **host**, must be reachable by the containers spawned by CC-Server.
 In the case a local docker-engine is used, the host's IP adress for the Docker Bridge interface is reachable by the
-containers. Run *ifconfig* in a shell and look for the appropriate network interface and IP (e.g. 172.17.0.1).
-With this configuration it is not necessary to expose the host to the internet.
-More advanced routing configurations may be possible, but are not discussed here.
+containers. Run *ifconfig* in a shell and look for the appropriate network interface (e.g. docker0) and IP
+(e.g. 172.17.0.1). With this configuration it is not necessary to expose the host to the internet. It should only be
+used for development and testing purposes.
+
+An optional file logging for CC-Server can be enabled by specifying a logging directory as **log_dir**. By setting the
+optional field **suppress_stdout** to *true*, printing to the standard output can be disabled. This setting works
+independently of the file logging mechanism. Both output mechanisms carry the same information.
 
 .. code-block:: toml
 
@@ -185,9 +175,23 @@ More advanced routing configurations may be possible, but are not discussed here
    host = 'http://172.17.0.1:5000'
    internal_port = 5000
    log_dir = '~/.cc_server/'
+   suppress_stdout = false
 
 
-An optional debug log for the flask webserver can be enabled by specifying a logging directory as **log_dir**.
+For a production setup it is recommended to use Apache2 with mod_wsgi. In this case it is not necessary to specify an
+**internal_port** and it will be ignored if already set. With mod_wsgi the standard output of CC-Server is redirected to
+the Apache2 error log. To prevenet polluting the error log with the standard output information, it is recommended to
+set **suppress_stdout** to *true* and to specify a **log_dir** instead. The **host** must be set to the address given in
+the Apache2 virtual host config. Take a look at the `Apache 2 configuration <admin.html#apache-2-wsgi>`__ below for more
+information.
+
+.. code-block:: toml
+
+   [server]
+   host = 'https://my-domain.tld/cc'
+   log_dir = '~/.cc_server/'
+   suppress_stdout = true
+
 
 mongo
 """""
@@ -305,7 +309,7 @@ at */opt/container_worker*. The appropriate command to start the worker is given
 .. code-block:: toml
 
    [defaults.data_container_description]
-   image = 'docker.io/curiouscontainers/cc-image-ubuntu:0.7'
+   image = 'docker.io/curiouscontainers/cc-image-ubuntu:0.8'
    entry_point = 'python3 /opt/container_worker'
    container_ram = 512
 
@@ -423,34 +427,43 @@ For a permanent change, the path can be added to the *~/.profile* file:
    echo 'PYTHONPATH=/path/to/cc-server:${PYTHONPATH}' >> ~/.profile
 
 
-Apache 2 TLS Proxy
-^^^^^^^^^^^^^^^^^^
+Apache 2 WSGI
+^^^^^^^^^^^^^
 
-A TLS proxy should always be used to protect the CC-Server API. Make sure that the internal port is protected by a
-firewall. The following sample configuration shows how this can be achieved with Apache 2.
+The following sample configuration shows how to setup CC-Server with Apache 2 and mod_wsgi.
 
 **IMPORTANT NOTE:** This is not the most secure configuration possible, but only a simplified example. For more
-information take a look at the official `Apache 2 documentation <https://httpd.apache.org/docs/current/ssl/>`__ and the
-`Mozilla Wiki <https://wiki.mozilla.org/Security/Server_Side_TLS>`__.
+information take a look at the following resources:
+`Apache 2 SSL <https://httpd.apache.org/docs/current/ssl/>`__,
+`Mozilla Server Side TLS <https://wiki.mozilla.org/Security/Server_Side_TLS>`__,
+`Mozilla TLS Configuration <https://wiki.mozilla.org/Security/TLS_Configurations>`__
 
 .. code-block:: apache
 
    Listen 443
 
    <VirtualHost *:443>
-       ProxyRequests Off
+       ServerName my-domain.tld
+
        SSLEngine On
        SSLCertificateFile /PATH/TO/cert.pem
        SSLCertificateKeyFile /PATH/TO/key.pem
        SSLCertificateChainFile /PATH/TO/chain.pem
 
-       ServerName my-domain.tld
-       ServerAlias my-domain.tld
+       WSGIDaemonProcess cc-server user=ccuser group=ccuser processes=4 threads=16
+       WSGIScriptAlias /cc /PATH/TO/cc-server/wsgi.py
+       WSGIImportScript /PATH/TO/cc-server/wsgi.py process-group=cc-server application-group=%{GLOBAL}
+       WSGIPassAuthorization On
 
-       ProxyPass /cc/ http://localhost:5000/
-       ProxyPassReverse /cc/ http://localhost:5000/
-       RedirectMatch ^/cc/(.*)$ https://my-domain.tld/cc/$1
+       <Directory /PATH/TO/cc-server>
+           <Files wsgi.py>
+               WSGIApplicationGroup %{GLOBAL}
+               WSGIProcessGroup cc-server
+               Require all granted
+          </Files>
+       </Directory>
    </VirtualHost>
+
 
 CC-Server is now ready to use at *https://my-domain.tld/cc/*.
 
@@ -471,32 +484,40 @@ The web interface CC-UI is an optional component and can be used to quickly acce
 application containers and data containers. The following instructions describe the deployment process with Apache 2,
 assuming that the Apache web server is already set up with CC-Server running at *https://my-domain.tld/cc/*.
 
-First edit the Apache configuration to contain the desired deployment directory (e.g. */opt/cc-ui*). Remember to restart
-the web server afterwards.
+First edit the Apache configuration to contain the desired deployment directory (e.g. */PATH/TO/cc-ui*). Remember to
+restart the web server afterwards.
 
 .. code-block:: apache
 
    Listen 443
 
    <VirtualHost *:443>
-       ProxyRequests Off
+       ServerName my-domain.tld
+
        SSLEngine On
        SSLCertificateFile /PATH/TO/cert.pem
        SSLCertificateKeyFile /PATH/TO/key.pem
        SSLCertificateChainFile /PATH/TO/chain.pem
 
-       ServerName my-domain.tld
-       ServerAlias my-domain.tld
+       WSGIDaemonProcess cc-server user=ccuser group=ccuser processes=4 threads=16
+       WSGIScriptAlias /cc /PATH/TO/cc-server/wsgi.py
+       WSGIImportScript /PATH/TO/cc-server/wsgi.py process-group=cc-server application-group=%{GLOBAL}
+       WSGIPassAuthorization On
 
-       DocumentRoot /opt/cc-ui
-       <Directory /opt/cc-ui>
-           Require all granted
+       <Directory /PATH/TO/cc-server>
+           <Files wsgi.py>
+               WSGIApplicationGroup %{GLOBAL}
+               WSGIProcessGroup cc-server
+               Require all granted
+          </Files>
        </Directory>
 
-       ProxyPass /cc/ http://localhost:5000/
-       ProxyPassReverse /cc/ http://localhost:5000/
-       RedirectMatch ^/cc/(.*)$ https://my-domain.tld/cc/$1
+       DocumentRoot /PATH/TO/cc-ui
+       <Directory /PATH/TO/cc-ui>
+           Require all granted
+       </Directory>
    </VirtualHost>
+
 
 Install **nodejs** and **npm** on your platform and run the following commands.
 
@@ -516,8 +537,8 @@ fix the file permissions for Apache.
 
 .. code-block:: bash
 
-   cp -R ./build /opt/cc-ui
-   chown -R www-data:www-data /opt/cc-ui
+   cp -R ./build /PATH/TO/cc-ui
+   chown -R www-data:www-data /PATH/TO/cc-ui
 
 
 CC-UI is now ready to use at *https://my-domain.tld/*.

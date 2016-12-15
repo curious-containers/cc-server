@@ -32,18 +32,18 @@ def log(func):
             result = func(self, *args, **kwargs)
         except Unauthorized:
             info.insert(1, '401')
-            self.tee(' '.join(info))
+            self._tee(' '.join(info))
             raise
         except BadRequest:
             info.insert(1, '400')
-            self.tee(' '.join(info))
+            self._tee(' '.join(info))
             raise
         except:
             info.insert(1, '500')
-            self.tee(' '.join(info))
+            self._tee(' '.join(info))
             raise
         info.insert(1, '200')
-        self.tee(' '.join(info))
+        self._tee(' '.join(info))
         return result
     return wrapper
 
@@ -52,7 +52,7 @@ def auth(require_admin=True, require_credentials=True):
     """function decorator"""
     def dec(func):
         def wrapper(self, *args, **kwargs):
-            if not self.authorize.verify_user(require_admin=require_admin, require_credentials=require_credentials):
+            if not self._authorize.verify_user(require_admin=require_admin, require_credentials=require_credentials):
                 raise Unauthorized()
             return func(self, *args, **kwargs)
         return wrapper

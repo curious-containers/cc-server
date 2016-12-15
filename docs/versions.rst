@@ -23,10 +23,16 @@ CC-Server    Docker
 0.5          12
 0.6          12
 0.7          12
+0.8          12
 ===========  =========
 
 Change Log
 ----------
+
+Version 0.8
+^^^^^^^^^^^
+
+- Major refactoring of CC-Server. Enabled support for multiprocess execution of CC-Server with Apache2 mod_wsgi support.
 
 Version 0.7
 ^^^^^^^^^^^

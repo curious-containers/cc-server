@@ -78,7 +78,7 @@ via **application_command**.
 
 .. code-block:: docker
 
-   FROM docker.io/curiouscontainers/cc-image-ubuntu:0.7
+   FROM docker.io/curiouscontainers/cc-image-ubuntu:0.8
    COPY config.json /opt/config.json
 
    COPY algorithm.sh /home/ubuntu/algorithm.sh
@@ -93,7 +93,7 @@ CC-Sample-App for a custom image, this URL must be changed to something else. Lo
 
    REGISTRY_URL=docker.io/curiouscontainers/cc-sample-app
 
-   docker pull docker.io/curiouscontainers/cc-image-ubuntu:0.7
+   docker pull docker.io/curiouscontainers/cc-image-ubuntu:0.8
    docker pull ${REGISTRY_URL}
    docker build -t ${REGISTRY_URL} .
    docker push ${REGISTRY_URL}
