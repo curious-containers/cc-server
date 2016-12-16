@@ -204,7 +204,8 @@ class DockerProvider:
         self._mongo = mongo
         self._config = config
 
-        self._node_configs = self._node_configs()
+        self._node_configs = {}
+        self._update_node_configs()
         self._clients = {}
 
         threads = []
@@ -242,7 +243,7 @@ class DockerProvider:
         except:
             q.put((node_name, format_exc()))
 
-    def _node_configs(self):
+    def _update_node_configs(self):
         node_configs = {}
         if self._config.docker.get('machines_dir'):
             machines_dir = os.path.expanduser(self._config.docker['machines_dir'])
@@ -278,14 +279,15 @@ class DockerProvider:
         if self._config.docker.get('nodes'):
             for node_name, node_config in self._config.docker['nodes'].items():
                 node_configs[node_name] = node_config
-        return node_configs
+        self._node_configs = node_configs
 
     def update_nodes_status(self):
         if not self._config.defaults['error_handling'].get('dead_node_invalidation'):
             return
         self._tee('Update nodes status...')
+        self._update_node_configs()
         threads = []
-        for node_name in self._config.docker['nodes']:
+        for node_name in list(self._node_configs):
             t = Thread(target=self.update_node_status, args=(node_name,))
             t.start()
             threads.append(t)
@@ -302,6 +304,7 @@ class DockerProvider:
     def update_node_status(self, node_name):
         if not self._config.defaults['error_handling'].get('dead_node_invalidation'):
             return
+        self._update_node_configs()
         if node_name not in self._node_configs:
             self._tee('Could not find config for updating node: {}'.format(node_name))
             return
