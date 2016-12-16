@@ -14,7 +14,6 @@ def application_container_prototype(container_ram):
         'data_container_ids': [],
         'callbacks': [],
         'callback_key': generate_secret(),
-        'telemetry': None,
         'cluster_node': None,
         'container_ram': container_ram
     }
