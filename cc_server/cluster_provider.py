@@ -306,7 +306,9 @@ class DockerProvider:
             return
         self._update_node_configs()
         if node_name not in self._node_configs:
-            self._tee('Could not find config for updating node: {}'.format(node_name))
+            if node_name in self._clients:
+                del self._clients[node_name]
+            self._tee('Could not find config for node: {}'.format(node_name))
             return
         self._tee('Update status of node: {}'.format(node_name))
         node = self._clients.get(node_name)
