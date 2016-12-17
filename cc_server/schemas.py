@@ -299,7 +299,89 @@ cancel_schema = {
 query_schema = {
     'type': 'object',
     'properties': {
-        'aggregate': {'type': 'array'}
+        'aggregate': {
+            'type': 'array',
+            'items': {
+                'anyOf': [{
+                    'type': 'object',
+                    'properties': {
+                        '$match': {}
+                    },
+                    'required': ['$match'],
+                    'additionalProperties': False
+                }, {
+                    'type': 'object',
+                    'properties': {
+                        '$project': {}
+                    },
+                    'required': ['$project'],
+                    'additionalProperties': False
+                }, {
+                    'type': 'object',
+                    'properties': {
+                        '$limit': {}
+                    },
+                    'required': ['$limit'],
+                    'additionalProperties': False
+                }, {
+                    'type': 'object',
+                    'properties': {
+                        '$skip': {}
+                    },
+                    'required': ['$skip'],
+                    'additionalProperties': False
+                }, {
+                    'type': 'object',
+                    'properties': {
+                        '$count': {}
+                    },
+                    'required': ['$count'],
+                    'additionalProperties': False
+                }, {
+                    'type': 'object',
+                    'properties': {
+                        '$sort': {}
+                    },
+                    'required': ['$sort'],
+                    'additionalProperties': False
+                }, {
+                    'type': 'object',
+                    'properties': {
+                        '$unwind': {}
+                    },
+                    'required': ['$unwind'],
+                    'additionalProperties': False
+                }, {
+                    'type': 'object',
+                    'properties': {
+                        '$group': {}
+                    },
+                    'required': ['$group'],
+                    'additionalProperties': False
+                }, {
+                    'type': 'object',
+                    'properties': {
+                        '$sample': {}
+                    },
+                    'required': ['$sample'],
+                    'additionalProperties': False
+                }, {
+                    'type': 'object',
+                    'properties': {
+                        '$replaceRoot': {}
+                    },
+                    'required': ['$replaceRoot'],
+                    'additionalProperties': False
+                }, {
+                    'type': 'object',
+                    'properties': {
+                        '$addFields': {}
+                    },
+                    'required': ['$addFields'],
+                    'additionalProperties': False
+                }]
+            }
+        }
     },
     'required': ['aggregate'],
     'additionalProperties': False

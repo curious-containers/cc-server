@@ -33,6 +33,7 @@ Version 0.8
 ^^^^^^^^^^^
 
 - Major refactoring of CC-Server. Enabled support for multiprocess execution of CC-Server with Apache2 mod_wsgi support.
+- Fixed security issue with aggregation pipelines of query requests, by having a whitelist for permitted operations.
 
 Version 0.7
 ^^^^^^^^^^^

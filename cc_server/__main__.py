@@ -166,6 +166,10 @@ def post_tasks_query():
     `MongoDB documentation <https://docs.mongodb.com/manual/reference/method/db.collection.aggregate/>`__ for further
     instructions.
 
+    The permitted operations in the aggregation pipeline are:
+
+    $match, $project, $limit, $skip, $count, $sort, $unwind, $group, $sample, $replaceRoot, $addFields.
+
     **Example request**
 
     .. sourcecode:: http
