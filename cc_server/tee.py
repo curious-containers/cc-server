@@ -1,60 +1,7 @@
 import os
 import datetime
-import atexit
-from time import sleep
 from threading import Thread
 from queue import Queue
-from multiprocessing.managers import BaseManager
-
-from cc_server.helper import RedirectStdStreams
-
-
-def _connect(config):
-    TeeManager.register('get_tee')
-    m = TeeManager(address=('', config.ipc['tee_port']), authkey=config.ipc['secret'].encode('utf-8'))
-    m.connect()
-    tee = m.get_tee()
-    print('| tee    | PID: {} | CONNECTED  |'.format(tee.get_pid()))
-    return tee
-
-
-def _start(config):
-    tee = Tee(
-        config=config
-    )
-    TeeManager.register('get_tee', callable=lambda: tee)
-    m = TeeManager(address=('', config.ipc['tee_port']), authkey=config.ipc['secret'].encode('utf-8'))
-    m.start()
-    tee = m.get_tee()
-    pid = tee.get_pid()
-    atexit.register(_terminate, m, pid)
-    tee.late_init()
-    print('| tee    | PID: {} | STARTED    |'.format(pid))
-    return tee
-
-
-def _terminate(manager, pid):
-    manager.shutdown()
-    print('| tee    | PID: {} | TERMINATED |'.format(pid))
-
-
-def get_tee(config):
-    try:
-        with open(os.devnull, 'w') as devnull:
-            with RedirectStdStreams(stderr=devnull):
-                return _connect(config=config).tee
-    except:
-        try:
-            with open(os.devnull, 'w') as devnull:
-                with RedirectStdStreams(stderr=devnull):
-                    return _start(config=config).tee
-        except:
-            sleep(1)
-            return _connect(config=config).tee
-
-
-class TeeManager(BaseManager):
-    pass
 
 
 class Tee:
@@ -69,7 +16,7 @@ class Tee:
     def tee(self, message):
         self._q.put(message)
 
-    def get_pid(self):
+    def getpid(self):
         return os.getpid()
 
     def _loop(self):

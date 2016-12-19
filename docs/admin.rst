@@ -92,7 +92,7 @@ It is recommended to install the Python packages globally for a certain system u
 
 .. code-block:: bash
 
-   pip3 install --user --upgrade flask pymongo docker-py cryptography toml jsonschema requests streql
+   pip3 install --user --upgrade stance flask pymongo docker-py cryptography toml jsonschema requests streql
 
 
 MongoDB

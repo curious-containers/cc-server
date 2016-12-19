@@ -1,61 +1,14 @@
 import os
 import json
-import atexit
-from time import sleep
 from queue import Queue
 from threading import Thread
-from multiprocessing.managers import BaseManager
+from stance import Stance
 
-from cc_server.tee import get_tee
+from cc_server.tee import Tee
 from cc_server.database import Mongo
 from cc_server.cluster import Cluster
 from cc_server.states import StateHandler, state_to_index
 from cc_server.scheduling import Scheduler
-from cc_server.helper import RedirectStdStreams
-
-
-def _connect(config):
-    WorkerManager.register('get_worker')
-    m = WorkerManager(address=('', config.ipc['worker_port']), authkey=config.ipc['secret'].encode('utf-8'))
-    m.connect()
-    worker = m.get_worker()
-    print('| worker | PID: {} | CONNECTED  |'.format(worker.get_pid()))
-    return worker
-
-
-def _start(config):
-    worker = Worker(
-        config=config
-    )
-    WorkerManager.register('get_worker', callable=lambda: worker)
-    m = WorkerManager(address=('', config.ipc['worker_port']), authkey=config.ipc['secret'].encode('utf-8'))
-    m.start()
-    worker = m.get_worker()
-    pid = worker.get_pid()
-    atexit.register(_terminate, m, pid)
-    worker.late_init()
-    print('| worker | PID: {} | STARTED    |'.format(pid))
-    return worker
-
-
-def _terminate(manager, pid):
-    manager.shutdown()
-    print('| worker | PID: {} | TERMINATED |'.format(pid))
-
-
-def get_worker(config):
-    try:
-        with open(os.devnull, 'w') as devnull:
-            with RedirectStdStreams(stderr=devnull):
-                return _connect(config=config)
-    except:
-        try:
-            with open(os.devnull, 'w') as devnull:
-                with RedirectStdStreams(stderr=devnull):
-                    return _start(config=config)
-        except:
-            sleep(1)
-            return _connect(config=config)
 
 
 def _put(q):
@@ -63,10 +16,6 @@ def _put(q):
         q.put_nowait(None)
     except:
         pass
-
-
-class WorkerManager(BaseManager):
-    pass
 
 
 class Worker:
@@ -82,7 +31,14 @@ class Worker:
         self._data_container_callback_q = None
 
     def late_init(self):
-        self._tee = get_tee(self._config)
+        s = Stance(Tee, port=self._config.ipc['tee_port'], secret=self._config.ipc['secret'])
+        tee = s.register(config=self._config)
+        if s.created_new_instance():
+            print('| tee    | PID: {} | STARTED     | in worker |'.format(tee.getpid()))
+            raise(Exception('Tee should have been started in main.'))
+        else:
+            print('| tee    | PID: {} | CONNECTED   | in worker |'.format(tee.getpid()))
+        self._tee = tee.tee
 
         self._tee('Loaded TOML config from {}'.format(self._config.conf_file_path))
 
@@ -123,7 +79,7 @@ class Worker:
         Thread(target=self._scheduling_loop).start()
         _put(self._scheduling_q)
 
-    def get_pid(self):
+    def getpid(self):
         return os.getpid()
 
     def _container_callback(self):

@@ -625,24 +625,35 @@ def post_data_container_callback():
 
 
 def prepare():
+    from stance import Stance
     from cc_server.configuration import Config
     config = Config()
 
-    from cc_server.tee import get_tee
-    tee = get_tee(
-        config=config
-    )
+    from cc_server.tee import Tee
+    s = Stance(Tee, port=config.ipc['tee_port'], secret=config.ipc['secret'])
+    tee = s.register(config=config)
+    if s.created_new_instance():
+        print('| tee    | PID: {} | STARTED     | in main   |'.format(tee.getpid()))
+        tee.late_init()
+        print('| tee    | PID: {} | INITIALIZED | in main   |'.format(tee.getpid()))
+    else:
+        print('| tee    | PID: {} | CONNECTED   | in main   |'.format(tee.getpid()))
 
-    from cc_server.worker import get_worker
-    worker = get_worker(
-        config=config
-    )
+    from cc_server.worker import Worker
+    s = Stance(Worker, port=config.ipc['worker_port'], secret=config.ipc['secret'])
+    worker = s.register(config=config)
+    if s.created_new_instance():
+        print('| worker | PID: {} | STARTED     | in main   |'.format(worker.getpid()))
+        worker.late_init()
+        print('| worker | PID: {} | INITIALIZED | in main   |'.format(worker.getpid()))
+    else:
+        print('| worker | PID: {} | CONNECTED   | in main   |'.format(worker.getpid()))
 
     from cc_server.request_handler import RequestHandler
     global request_handler
     request_handler = RequestHandler(
         config=config,
-        tee=tee,
+        tee=tee.tee,
         worker=worker
     )
 
