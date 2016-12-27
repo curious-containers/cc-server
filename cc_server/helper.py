@@ -1,6 +1,6 @@
 from os import urandom
 from binascii import hexlify
-from streql import equals
+from hmac import compare_digest
 from bson.objectid import ObjectId
 from flask import request
 
@@ -22,7 +22,7 @@ def generate_secret():
 
 
 def equal_keys(a, b):
-    return equals(a.encode('utf-8'), b.encode('utf-8'))
+    return compare_digest(a, b)
 
 
 def _prepare_input(data, replace):
