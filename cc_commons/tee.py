@@ -5,8 +5,9 @@ from queue import Queue
 
 
 class Tee:
-    def __init__(self, config):
+    def __init__(self, config, file_name='server.log'):
         self._config = config
+        self._file_name = file_name
         self._q = None
 
     def late_init(self):
@@ -25,7 +26,7 @@ class Tee:
             log_dir = os.path.expanduser(self._config.server['log_dir'])
             if not os.path.exists(log_dir):
                 os.makedirs(log_dir)
-            log_path = os.path.join(log_dir, 'server.log')
+            log_path = os.path.join(log_dir, self._file_name)
         suppress_stdout = self._config.server.get('suppress_stdout')
 
         def stdout_func(message):

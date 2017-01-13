@@ -1,9 +1,11 @@
 from threading import Lock
 from traceback import format_exc
+
 from bson.objectid import ObjectId
 
+from cc_commons.states import state_to_index, end_states
+
 from cc_server.cluster_provider import DockerProvider
-from cc_server.states import state_to_index, end_states
 
 
 class Cluster:

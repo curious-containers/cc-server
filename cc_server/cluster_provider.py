@@ -1,14 +1,14 @@
+import json
 import os
 import docker
-import json
-from threading import Semaphore, Thread
-from queue import Queue
-from requests.exceptions import ReadTimeout, ConnectionError
 from docker.errors import APIError
+from queue import Queue
+from threading import Semaphore, Thread
 from traceback import format_exc
+from requests.exceptions import ReadTimeout, ConnectionError
 
-from cc_server.states import end_states
-from cc_server.notification import notify
+from cc_commons.notification import notify
+from cc_commons.states import end_states
 
 
 def handle_api_errors():

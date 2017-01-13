@@ -1,4 +1,4 @@
-from cc_server.helper import generate_secret
+from cc_commons.helper import generate_secret
 
 
 def data_container_prototype(username, input_files, container_ram):

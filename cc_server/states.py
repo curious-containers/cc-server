@@ -1,51 +1,6 @@
-from time import time
-
-from cc_server.notification import notify
-from cc_server.helper import remove_secrets
-
-STATES = [
-    'created',
-    'waiting',
-    'processing',
-    'success',          # end state
-    'failed',           # end state
-    'cancelled'         # end state
-]
-
-
-# public functions
-def index_to_state(index):
-    return STATES[index]
-
-
-def end_states():
-    return [
-        state_to_index('success'),
-        state_to_index('failed'),
-        state_to_index('cancelled')
-    ]
-
-
-def state_to_index(state):
-    for i, s in enumerate(STATES):
-        if s == state:
-            return i
-    raise Exception('Invalid state: %s' % str(state))
-
-
-def is_state(index, compare_state):
-    compare_index = state_to_index(compare_state)
-    return index == compare_index
-
-
-def _transition(state, description, exception, caused_by):
-    return {
-        'timestamp': time(),
-        'state': state_to_index(state),
-        'description': description,
-        'exception': exception,  # optional
-        'caused_by': caused_by  # optional
-    }
+from cc_commons.helper import remove_secrets
+from cc_commons.notification import notify
+from cc_commons.states import *
 
 
 class StateHandler:
@@ -78,7 +33,7 @@ class StateHandler:
         if state_to_index(state) == task_group['state']:
             return
 
-        t = _transition(state, description, exception, caused_by)
+        t = transition(state, description, exception, caused_by)
         self._append_transition('task_groups', task_group_id, t)
 
     def _application_container_transition(self, application_container_id, state, description, exception, caused_by):
@@ -90,7 +45,7 @@ class StateHandler:
         if application_container['state'] in end_states():
             return
 
-        t = _transition(state, description, exception, caused_by)
+        t = transition(state, description, exception, caused_by)
         self._append_transition('application_containers', application_container_id, t)
 
         task_id = application_container['task_id'][0]
@@ -171,7 +126,7 @@ class StateHandler:
                     ac_id, 'cancelled', ac_description, None, {'task_id': task_id}
                 )
 
-        t = _transition(state, description, exception, caused_by)
+        t = transition(state, description, exception, caused_by)
         self._append_transition('tasks', task_id, t)
 
         if state == 'processing':
@@ -229,7 +184,7 @@ class StateHandler:
         if data_container['state'] in end_states():
             return
 
-        t = _transition(state, description, exception, caused_by)
+        t = transition(state, description, exception, caused_by)
         self._append_transition('data_containers', data_container_id, t)
 
         if state == 'failed':
@@ -244,5 +199,3 @@ class StateHandler:
                 self._application_container_transition(
                     ac_id, 'failed', ac_description, None, {'data_container_id': data_container_id}
                 )
-
-

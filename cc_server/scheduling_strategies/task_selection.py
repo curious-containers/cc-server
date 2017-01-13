@@ -1,4 +1,4 @@
-from cc_server.states import state_to_index
+from cc_commons.states import state_to_index
 
 
 class FIFO:

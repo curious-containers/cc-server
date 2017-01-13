@@ -1,11 +1,11 @@
 from os import urandom
+from time import time
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from time import time
 from flask import request
 
-from cc_server.helper import generate_secret, equal_keys, get_ip
+from cc_commons.helper import generate_secret, equal_keys, get_ip
 
 
 class Authorize:

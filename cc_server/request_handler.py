@@ -3,11 +3,13 @@ from traceback import format_exc
 from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, Unauthorized
 
-from cc_server.database import Mongo
-from cc_server.authorization import Authorize
-from cc_server.helper import prepare_response, prepare_input, get_ip
-from cc_server.states import StateHandler, is_state
-from cc_server.schemas import query_schema, tasks_schema, callback_schema, cancel_schema, nodes_schema
+from cc_commons.authorization import Authorize
+from cc_commons.database import Mongo
+from cc_commons.helper import prepare_response, prepare_input, get_ip
+from cc_commons.schemas import query_schema, tasks_schema, callback_schema, cancel_schema, nodes_schema
+from cc_commons.states import is_state
+
+from cc_server.states import StateHandler
 
 
 def task_group_prototype():

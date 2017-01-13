@@ -2,7 +2,7 @@ import os
 import sys
 from flask import Flask, request, jsonify
 
-sys.path.insert(0, os.path.split(os.path.abspath(__file__))[0])
+sys.path.insert(0, os.path.split(os.path.split(os.path.abspath(__file__))[0])[0])
 
 request_handler = None
 app = Flask('cc-server')
@@ -629,7 +629,7 @@ def prepare():
     from cc_server.configuration import Config
     config = Config()
 
-    from cc_server.tee import Tee
+    from cc_commons.tee import Tee
     s = Stance(Tee, port=config.ipc['tee_port'], secret=config.ipc['secret'])
     tee = s.register(config=config)
     if s.created_new_instance():
