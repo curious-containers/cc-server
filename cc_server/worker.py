@@ -79,6 +79,8 @@ class Worker:
         self._tee(json.dumps(self._cluster.nodes(), indent=4))
 
         Thread(target=self._scheduling_loop).start()
+        Thread(target=self._data_container_callback_loop).start()
+
         _put(self._scheduling_q)
 
     def getpid(self):
@@ -194,7 +196,7 @@ class Worker:
     def data_container_callback(self):
         _put(self._data_container_callback_q)
 
-    def _data_container_callback(self):
+    def _data_container_callback_loop(self):
         while True:
             self._data_container_callback_q.get()
             clean_up = False
