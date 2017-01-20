@@ -24,10 +24,17 @@ CC-Server    Docker
 0.6          12
 0.7          12
 0.8          12
+0.9          12
 ===========  =========
 
 Change Log
 ----------
+
+Version 0.9
+^^^^^^^^^^^
+
+- Maintenance release for bug fixes.
+- Worker process logic is now in separate Python library: install stance via pip3.
 
 Version 0.8
 ^^^^^^^^^^^
