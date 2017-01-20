@@ -31,6 +31,17 @@ _tracing_connector_schema = {
     'additionalProperties': False
 }
 
+_auth = {
+    'type': 'object',
+    'properties': {
+        'auth_type': {'enum': ['basic', 'digest']},
+        'username': {'type': 'string'},
+        'password': {'type': 'string'}
+    },
+    'required': ['auth_type', 'username', 'password'],
+    'additionalProperties': False
+}
+
 _notification_connector_schema = {
     'type': 'object',
     'properties': {
@@ -40,16 +51,7 @@ _notification_connector_schema = {
                 'url': {'type': 'string'},
                 'json_data': {'type': 'object'},
                 'ssl_verify': {'type': 'boolean'},
-                'auth': {
-                    'type': 'object',
-                    'properties': {
-                        'auth_type': {'enum': ['basic', 'digest']},
-                        'username': {'type': 'string'},
-                        'password': {'type': 'string'}
-                    },
-                    'required': ['auth_type', 'username', 'password'],
-                    'additionalProperties': False
-                }
+                'auth': _auth
             },
             'required': ['url'],
             'additionalProperties': False
@@ -431,4 +433,148 @@ callback_schema = {
         'content'
     ],
     'additionalProperties': False
+}
+
+cc_server_config_schema = {
+    'type': 'object',
+    'properties': {
+        'server': {
+            'type': 'object',
+            'properties': {
+                'host': {'type': 'string'},
+                'internal_port': {'type': 'integer'},
+                'log_dir': {'type': 'string'},
+                'suppress_stdout': {'type': 'boolean'}
+            },
+            'required': ['host'],
+            'additionalProperties': False
+        },
+        'ipc': {
+            'type': 'object',
+            'properties': {
+                'tee_port': {'type': 'integer'},
+                'worker_port': {'type': 'integer'},
+                'secret': {'type': 'string'}
+            },
+            'required': ['tee_port', 'worker_port', 'secret'],
+            'additionalProperties': False
+        },
+        'mongo': {
+            'type': 'object',
+            'properties': {
+                'username': {'type': 'string'},
+                'password': {'type': 'string'},
+                'host': {'type': 'string'},
+                'port': {'type': 'integer'},
+                'db': {'type': 'string'}
+            },
+            'required': ['username', 'password', 'host', 'port', 'db'],
+            'additionalProperties': False
+        },
+        'docker': {
+            'type': 'object',
+            'properties': {
+                'thread_limit': {'type': 'integer'},
+                'api_timeout': {'type': 'integer'},
+                'net': {'type': 'string'},
+                'machines_dir': {'type': 'string'},
+                'nodes': {
+                    'type': 'object',
+                    'patternProperties': {
+                        '^[a-zA-Z0-9_\-]+$': {
+                            'type': 'object',
+                            'properties': {
+                                'base_url': {'type': 'string'},
+                                'tls': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'verify': {'type': 'string'},
+                                        'client_cert': {
+                                            'type': 'array',
+                                            'items': {'type': 'string'}
+                                        },
+                                        'assert_hostname': {'type': 'boolean'}
+                                    },
+                                    'additionalProperties': True
+                                }
+                            },
+                            'required': ['base_url'],
+                            'additionalProperties': False
+                        }
+                    }
+                }
+            },
+            'required': ['thread_limit'],
+            'additionalProperties': False
+        },
+        'defaults': {
+            'type': 'object',
+            'properties': {
+                'application_container_description': {
+                    'type': 'object',
+                    'properties': {
+                        'entry_point': {'type': 'string'}
+                    },
+                    'required': ['entry_point'],
+                    'additionalProperties': False
+                },
+                'data_container_description': {
+                    'type': 'object',
+                    'properties': {
+                        'image': {'type': 'string'},
+                        'entry_point': {'type': 'string'},
+                        'container_ram': {'type': 'integer'},
+                        'registry_auth': {
+                            'type': 'object',
+                            'properties': {
+                                'username': {'type': 'string'},
+                                'password': {'type': 'string'}
+                            },
+                            'required': ['username', 'password'],
+                            'additionalProperties': False
+                        }
+                    },
+                    'required': ['image', 'entry_point', 'container_ram'],
+                    'additionalProperties': False
+                },
+                'scheduling_strategies': {
+                    'type': 'object',
+                    'properties': {
+                        'container_allocation': {'enum': ['spread', 'binpack']}
+                    },
+                    'required': ['container_allocation'],
+                    'additionalProperties': False
+                },
+                'error_handling': {
+                    'type': 'object',
+                    'properties': {
+                        'max_task_trials': {'type': 'integer'},
+                        'dead_node_invalidation': {'type': 'boolean'},
+                        'dead_node_notification': {
+                            'type': 'object',
+                            'properties': {
+                                'url': {'type': 'string'},
+                                'auth': _auth
+                            },
+                            'required': ['url'],
+                            'additionalProperties': False
+                        }
+                    },
+                    'required': ['max_task_trials'],
+                    'additionalProperties': False
+                },
+                'authorization': {
+                    'type': 'object',
+                    'properties': {
+                        'num_login_attempts': {'type': 'integer'},
+                        'block_for_seconds': {'type': 'integer'},
+                        'tokens_valid_for_seconds': {'type': 'integer'}
+                    },
+                    'required': ['num_login_attempts', 'block_for_seconds', 'tokens_valid_for_seconds']
+                }
+            }
+        }
+    },
+    'required': ['server', 'ipc', 'mongo', 'docker', 'defaults'],
+    'additionalProperties': True
 }

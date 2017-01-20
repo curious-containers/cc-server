@@ -1,6 +1,9 @@
 import os
 import sys
 from toml import loads
+from jsonschema import validate
+
+from cc_commons.schemas import cc_server_config_schema
 
 
 class Config:
@@ -37,7 +40,9 @@ class Config:
                 pass
 
         if not config:
-            raise Exception('No valid TOML file found. Try specifying a file path as first CLI argument.')
+            raise Exception('No TOML file found. Try specifying a file path as first CLI argument.')
+
+        validate(config, cc_server_config_schema)
 
         self.server = config['server']
         self.ipc = config['ipc']
