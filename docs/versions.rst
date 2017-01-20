@@ -35,6 +35,7 @@ Version 0.9
 
 - Maintenance release for bug fixes.
 - Worker process logic is now in separate Python library: install stance via pip3.
+- Schema validation for config.toml.
 
 Version 0.8
 ^^^^^^^^^^^
