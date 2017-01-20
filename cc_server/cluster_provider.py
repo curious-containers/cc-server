@@ -229,6 +229,9 @@ class DockerProvider:
                 )
                 self._tee('Dead node: {}'.format(node_name))
 
+    def logs_from_container(self, container_id, collection):
+        return self._client(container_id, collection).logs_from_container(container_id)
+
     def _docker_client_proxy(self, node_name, q):
         try:
             client = DockerClientProxy(

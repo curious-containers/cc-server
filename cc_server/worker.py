@@ -82,6 +82,7 @@ class Worker:
         Thread(target=self._data_container_callback_loop).start()
 
         _put(self._scheduling_q)
+        _put(self._data_container_callback_q)
 
     def getpid(self):
         return os.getpid()
@@ -231,12 +232,14 @@ class Worker:
         if not application_container:
             return
 
-        data_containers = list(self._mongo.db['data_containers'].find(
+        data_containers = self._mongo.db['data_containers'].find(
             {'_id': {'$in': application_container['data_container_ids']}, 'state': state_to_index('processing')}
-        ))
+        )
+        data_container_ids = [data_container['_id'] for data_container in data_containers]
 
-        if len(data_containers) < len(application_container['data_container_ids']):
-            return
+        for data_container_id in application_container['data_container_ids']:
+            if data_container_id not in data_container_ids:
+                return
 
         description = 'All data containers for application container ready.'
         self._state_handler.transition('application_containers', application_container_id, 'processing', description)
