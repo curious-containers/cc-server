@@ -408,7 +408,7 @@ callback_schema = {
         'content': {
             'type': 'object',
             'properties': {
-                'state': {'type': 'number'},
+                'state': {'type': 'integer'},
                 'description': {'type': 'string'},
                 'exception': {'type': ['string', 'null']},
                 'telemetry': {
@@ -418,12 +418,22 @@ callback_schema = {
                         'max_rss_memory': {'type': 'number'},
                         'input_file_sizes': {
                             'type': 'array',
-                            'items': {'type': ['null', _file_size]}
+                            'items': {
+                                'anyOf': [
+                                    {'type': 'null'},
+                                    _file_size
+                                ]
+                            }
                         },
                         'result_file_sizes': {
                             'type': 'object',
                             'patternProperties': {
-                                '^[a-zA-Z0-9_\-]+$': {'type': ['null', _file_size]}
+                                '^[a-zA-Z0-9_\-]+$': {
+                                    'anyOf': [
+                                        {'type': 'null'},
+                                        _file_size
+                                    ],
+                                }
                             },
                             'additionalProperties': False
                         },
