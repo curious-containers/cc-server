@@ -389,6 +389,16 @@ query_schema = {
     'additionalProperties': False
 }
 
+_file_size = {
+    'type': 'object',
+    'properties': {
+        'local_file_path': {'type': 'string'},
+        'file_size': {'type': 'integer'}
+    },
+    'required': ['local_file_path', 'file_size'],
+    'additionalProperties': False
+}
+
 callback_schema = {
     'type': 'object',
     'properties': {
@@ -408,11 +418,19 @@ callback_schema = {
                         'max_rss_memory': {'type': 'number'},
                         'input_file_sizes': {
                             'type': 'array',
-                            'items': {'type': ['number', 'null']}
+                            'items': {'type': ['null', _file_size]}
                         },
                         'result_file_sizes': {
-                            'type': 'array',
-                            'items': {'type': ['number', 'null']}
+                            'type': 'object',
+                            'patternProperties': {
+                                '^[a-zA-Z0-9_\-]+$': {
+                                    'anyOf': [
+                                        {'type': 'null'},
+                                        {'type': _file_size}
+                                    ]
+                                }
+                            },
+                            'additionalProperties': False
                         },
                         'wall_time': {'type': 'number'},
                         'std_out': {'type': 'string'},
