@@ -423,12 +423,7 @@ callback_schema = {
                         'result_file_sizes': {
                             'type': 'object',
                             'patternProperties': {
-                                '^[a-zA-Z0-9_\-]+$': {
-                                    'anyOf': [
-                                        {'type': 'null'},
-                                        {'type': _file_size}
-                                    ]
-                                }
+                                '^[a-zA-Z0-9_\-]+$': {'type': ['null', _file_size]}
                             },
                             'additionalProperties': False
                         },
