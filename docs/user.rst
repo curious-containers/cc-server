@@ -135,7 +135,7 @@ Modify and run the following Python 3 code:
 
    task = {
        "tags": ["experiment1"],
-       "no_cache": true,
+       "no_cache": True,
        "application_container_description": {
            "image": "docker.io/curiouscontainers/cc-sample-app",
            "container_ram": 1024,
