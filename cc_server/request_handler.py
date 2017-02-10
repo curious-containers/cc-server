@@ -112,12 +112,6 @@ class RequestHandler:
         }))
 
     @log
-    @auth(require_credentials=False)
-    def put_worker(self):
-        self._worker.schedule()
-        return jsonify({})
-
-    @log
     @auth(require_admin=False)
     def get_token(self):
         token = self._authorize.issue_token()
