@@ -122,7 +122,12 @@ class Cluster:
                 if c['state'] in end_states():
                     self._cluster_provider.remove_container(c['_id'], collection)
                 elif container.get('exit_status') and container['exit_status'] != 0:
-                    description = 'Container exited unexpectedly: {}'.format(container['description'])
+                    logs = 'container logs not available'
+                    try:
+                        logs = self._cluster_provider.logs_from_container(c['_id'], collection)
+                    except:
+                        pass
+                    description = 'Container exited unexpectedly ({}): {}'.format(container['description'], logs)
                     self._state_handler.transition(collection, c['_id'], 'failed', description)
                     self._cluster_provider.remove_container(c['_id'], collection)
 
