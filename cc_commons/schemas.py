@@ -470,7 +470,7 @@ cc_server_config_schema = {
                 'log_dir': {'type': 'string'},
                 'suppress_stdout': {'type': 'boolean'}
             },
-            'required': ['host'],
+            'required': ['host', 'scheduling_interval_seconds'],
             'additionalProperties': False
         },
         'ipc': {
