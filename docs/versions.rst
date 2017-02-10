@@ -34,8 +34,9 @@ Change Log
 Version 0.10
 ^^^^^^^^^^^^
 
-- Added cron for running the scheduler after a specified time has passed. Therefore added new config option **scheduling_interval_seconds**
-- Removed put_worker API endpoint
+- Added cron for running the scheduler after a specified time has passed. Therefore added new config option **scheduling_interval_seconds**.
+- Removed put_worker API endpoint.
+- Fixed bug with data containers, where input_files list was too large as cli parameter.
 
 Version 0.9
 ^^^^^^^^^^^
