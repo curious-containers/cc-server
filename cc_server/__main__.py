@@ -29,11 +29,11 @@ def get_root():
         Content-Type: application/json
 
         {
-            "version": 0.9
+            "version": 0.10
         }
 
     """
-    return jsonify({'version': 0.9})
+    return jsonify({'version': 0.10})
 
 
 @app.route('/nodes', methods=['GET'])
@@ -118,36 +118,6 @@ def post_nodes():
 
     """
     return request_handler.post_nodes(request.get_json())
-
-
-@app.route('/worker', methods=['PUT'])
-def put_worker():
-    """
-    .. :quickref: Dev API; Spawn worker thread
-
-    *Requires admin user.*
-
-    If CC-Server is stuck in an undefined state, a new worker thread can be spawned to pick up unfinished tasks. The
-    same behaviour can be triggered by restarting CC-Server. This endpoint should be used for debugging purposes only.
-
-    **Example request**
-
-    .. sourcecode:: http
-
-        PUT /worker HTTP/1.1
-
-    **Example response**
-
-    .. sourcecode:: http
-
-        HTTP/1.1 200 OK
-        Vary: Accept
-        Content-Type: application/json
-
-        {}
-
-    """
-    return request_handler.put_worker()
 
 
 @app.route('/tasks/query', methods=['POST'])

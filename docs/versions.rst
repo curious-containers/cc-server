@@ -4,7 +4,7 @@ Version Management
 This site contains a Docker compatibility table and a change log, including migration instructions.
 
 All Curious Container components (CC-Server, CC-Container-Worker and the CC-Images) have a version tag.
-If you are using CC-Server 0.8 for example, you should use the other components with the exact same version number.
+If you are using CC-Server 0.10 for example, you should use the other components with the exact same version number.
 Docker images with a specific version tag can be pulled from a Docker registry and software versions with a certain tag
 can be pulled from git.
 
@@ -25,10 +25,19 @@ CC-Server    Docker
 0.7          12
 0.8          12
 0.9          12
+0.10         12
 ===========  =========
 
 Change Log
 ----------
+
+Version 0.10
+^^^^^^^^^^^^
+
+- Added cron for running the scheduler after a specified time has passed. Therefore added new config option **scheduling_interval_seconds**.
+- Removed put_worker API endpoint.
+- Fixed bug with data containers, where input_files list was too large as cli parameter.
+- Fixed bug where spread and binpack had the opposite meaning.
 
 Version 0.9
 ^^^^^^^^^^^

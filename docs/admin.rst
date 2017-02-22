@@ -120,7 +120,7 @@ Clone a specific version from the Github repository:
 
 .. code-block:: bash
 
-   git clone -b 0.9 --depth 1 https://github.com/curious-containers/cc-server
+   git clone -b 0.10 --depth 1 https://github.com/curious-containers/cc-server
    cd cc-server
 
 
@@ -165,6 +165,10 @@ containers. Run *ifconfig* in a shell and look for the appropriate network inter
 (e.g. 172.17.0.1). With this configuration it is not necessary to expose the host to the internet. It should only be
 used for development and testing purposes.
 
+Another mandatory configuration parameter is **scheduling_interval_seconds**. CC-Server will run a scheduling process
+after the time specified has passed. It will only run if there are active containers in the database. This feature has
+been implemented to periodically check for containers that exited unexpectedly.
+
 An optional file logging for CC-Server can be enabled by specifying a logging directory as **log_dir**. By setting the
 optional field **suppress_stdout** to *true*, printing to the standard output can be disabled. This setting works
 independently of the file logging mechanism. Both output mechanisms carry the same information.
@@ -174,6 +178,7 @@ independently of the file logging mechanism. Both output mechanisms carry the sa
    [server]
    host = 'http://172.17.0.1:5000'
    internal_port = 5000
+   scheduling_interval_seconds = 60
    log_dir = '~/.cc_server/'
    suppress_stdout = false
 
@@ -189,6 +194,7 @@ information.
 
    [server]
    host = 'https://my-domain.tld/cc'
+   scheduling_interval_seconds = 60
    log_dir = '~/.cc_server/'
    suppress_stdout = true
 
@@ -323,7 +329,7 @@ at */opt/container_worker*. The appropriate command to start the worker is given
 .. code-block:: toml
 
    [defaults.data_container_description]
-   image = 'docker.io/curiouscontainers/cc-image-ubuntu:0.9'
+   image = 'docker.io/curiouscontainers/cc-image-ubuntu:0.10'
    entry_point = 'python3 /opt/container_worker'
    container_ram = 512
 

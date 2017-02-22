@@ -112,12 +112,6 @@ class RequestHandler:
         }))
 
     @log
-    @auth(require_credentials=False)
-    def put_worker(self):
-        self._worker.schedule()
-        return jsonify({})
-
-    @log
     @auth(require_admin=False)
     def get_token(self):
         token = self._authorize.issue_token()
@@ -334,12 +328,20 @@ class RequestHandler:
 
         c = self._mongo.db['data_containers'].find_one(
             {'_id': json_input['container_id']},
-            {'state': 1, 'input_files': 1}
+            {'state': 1, 'input_files': 1, 'input_file_keys': 1}
         )
 
         if is_state(c['state'], 'failed'):
             self._worker.container_callback()
             raise BadRequest('Container failed.')
+
+        if json_input['callback_type'] == 0:
+            # collect input file information and send with response
+            response = {
+                'input_files': c['input_files'],
+                'input_file_keys': c['input_file_keys']
+            }
+            return jsonify(response)
 
         if json_input['callback_type'] == 1:
             description = 'Input files available in data container.'

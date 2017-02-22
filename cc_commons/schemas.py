@@ -466,10 +466,11 @@ cc_server_config_schema = {
             'properties': {
                 'host': {'type': 'string'},
                 'internal_port': {'type': 'integer'},
+                'scheduling_interval_seconds': {'type': 'integer'},
                 'log_dir': {'type': 'string'},
                 'suppress_stdout': {'type': 'boolean'}
             },
-            'required': ['host'],
+            'required': ['host', 'scheduling_interval_seconds'],
             'additionalProperties': False
         },
         'ipc': {

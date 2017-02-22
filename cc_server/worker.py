@@ -2,10 +2,11 @@ import json
 import os
 from queue import Queue
 from threading import Thread
+from time import sleep
 from stance import Stance
 
 from cc_commons.database import Mongo
-from cc_commons.states import state_to_index
+from cc_commons.states import state_to_index, end_states
 from cc_commons.tee import Tee
 
 from cc_server.states import StateHandler
@@ -81,8 +82,24 @@ class Worker:
         Thread(target=self._scheduling_loop).start()
         Thread(target=self._data_container_callback_loop).start()
 
-        _put(self._scheduling_q)
-        _put(self._data_container_callback_q)
+        Thread(target=self._cron).start()
+
+    def _cron(self):
+        while True:
+            application_container = self._mongo.db['application_containers'].find_one(
+                {'state': {'$nin': end_states()}},
+                {'_id': 1}
+            )
+            data_container = None
+            if not application_container:
+                data_container = self._mongo.db['data_containers'].find_one(
+                    {'state': {'$nin': end_states()}},
+                    {'_id': 1}
+                )
+            if application_container or data_container:
+                _put(self._scheduling_q)
+                _put(self._data_container_callback_q)
+            sleep(self._config.server['scheduling_interval_seconds'])
 
     def getpid(self):
         return os.getpid()

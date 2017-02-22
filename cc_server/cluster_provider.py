@@ -470,8 +470,6 @@ class DockerProvider:
             'container_type': 'data',
             'callback_key': data_container['callback_key'],
             'callback_url': '{}/data-containers/callback'.format(self._config.server['host'].rstrip('/')),
-            'input_files': data_container['input_files'],
-            'input_file_keys': data_container['input_file_keys']
         }
 
         entry_point = self._config.defaults['data_container_description']['entry_point']

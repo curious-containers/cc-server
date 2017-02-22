@@ -4,6 +4,7 @@
 [server]
 host = 'http://172.17.0.1:5000'
 internal_port = 5000
+scheduling_interval_seconds = 60
 log_dir = '~/.cc_server/'
 suppress_stdout = false
 
