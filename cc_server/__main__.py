@@ -163,7 +163,7 @@ def post_tasks_query():
     * **aggregate** (required): List of steps to be performed as MongoDB aggregation pipeline
 
     Take a look at the
-    `MongoDB documentation <https://docs.mongodb.com/manual/reference/method/db.collection.aggregate/>`__ for further
+    `MongoDB documentation <https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/>`__ for further
     instructions.
 
     The permitted operations in the aggregation pipeline are:
