@@ -269,7 +269,7 @@ nodes_schema = {
     'additionalProperties': False
 }
 
-cancel_schema = {
+tasks_cancel_schema = {
     'type': 'object',
     'oneOf': [{
         'type': 'object',

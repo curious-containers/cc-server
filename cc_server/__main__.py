@@ -36,6 +36,85 @@ def get_root():
     return jsonify({'version': '0.10'})
 
 
+@app.route('/nodes/schema', methods=['GET'])
+def get_nodes_schema():
+    """
+    .. :quickref: User API; Get json-schema
+
+    Get json-schema used with `POST /nodes endpoint <#post--nodes>`__ for validation purposes.
+
+    """
+    return request_handler.get_nodes_schema()
+
+
+@app.route('/tasks/schema', methods=['GET'])
+def get_tasks_schema():
+    """
+    .. :quickref: User API; Get json-schema
+
+    Get json-schema used with `POST /tasks endpoint <#post--tasks>`__ for validation purposes.
+
+    """
+    return request_handler.get_tasks_schema()
+
+
+@app.route('/tasks/cancel/schema', methods=['GET'])
+def get_tasks_cancel_schema():
+    """
+    .. :quickref: User API; Get json-schema
+
+    Get json-schema used with `POST /tasks/cancel endpoint <#post--tasks-cancel>`__ for validation purposes.
+
+    """
+    return request_handler.get_tasks_cancel_schema()
+
+
+@app.route('/tasks/query/schema', methods=['GET'])
+def get_tasks_query_schema():
+    """
+    .. :quickref: User API; Get json-schema
+
+    Get json-schema used with `POST /tasks/query endpoint <#post--tasks-query>`__ for validation purposes.
+
+    """
+    return request_handler.get_query_schema()
+
+
+@app.route('/task-groups/query/schema', methods=['GET'])
+def get_task_groups_query_schema():
+    """
+    .. :quickref: User API; Get json-schema
+
+    Get json-schema used with `POST /task-groups/query endpoint <#post--task-groups-query>`__ for validation purposes.
+
+    """
+    return request_handler.get_query_schema()
+
+
+@app.route('/application-containers/query/schema', methods=['GET'])
+def get_application_containers_query_schema():
+    """
+    .. :quickref: User API; Get json-schema
+
+    Get json-schema used with `POST /application-containers/query endpoint <#post--application-containers-query>`__ for
+    validation purposes.
+
+    """
+    return request_handler.get_query_schema()
+
+
+@app.route('/data-containers/query/schema', methods=['GET'])
+def get_data_containers_query_schema():
+    """
+    .. :quickref: User API; Get json-schema
+
+    Get json-schema used with `POST /data-containers/query endpoint <#post--data-containers-query>`__ for validation
+    purposes.
+
+    """
+    return request_handler.get_query_schema()
+
+
 @app.route('/nodes', methods=['GET'])
 def get_nodes():
     """

@@ -6,7 +6,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 from cc_commons.authorization import Authorize
 from cc_commons.database import Mongo
 from cc_commons.helper import prepare_response, prepare_input, get_ip
-from cc_commons.schemas import query_schema, tasks_schema, callback_schema, cancel_schema, nodes_schema
+from cc_commons.schemas import query_schema, tasks_schema, callback_schema, tasks_cancel_schema, nodes_schema
 from cc_commons.states import is_state
 
 from cc_server.states import StateHandler
@@ -96,6 +96,26 @@ class RequestHandler:
         )
 
     @log
+    @auth(require_admin=False, require_credentials=False)
+    def get_nodes_schema(self):
+        return jsonify(nodes_schema)
+
+    @log
+    @auth(require_admin=False, require_credentials=False)
+    def get_tasks_schema(self):
+        return jsonify(tasks_schema)
+
+    @log
+    @auth(require_admin=False, require_credentials=False)
+    def get_tasks_cancel_schema(self):
+        return jsonify(tasks_cancel_schema)
+
+    @log
+    @auth(require_admin=False, require_credentials=False)
+    def get_query_schema(self):
+        return jsonify(query_schema)
+
+    @log
     @auth(require_credentials=False)
     @validation(nodes_schema)
     def post_nodes(self, json_input):
@@ -159,7 +179,7 @@ class RequestHandler:
 
     @log
     @auth(require_admin=False, require_credentials=False)
-    @validation(cancel_schema)
+    @validation(tasks_cancel_schema)
     def post_tasks_cancel(self, json_input):
         username = None
         if not self._authorize.verify_user(require_credentials=False):
