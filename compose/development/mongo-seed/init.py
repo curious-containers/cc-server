@@ -1,6 +1,7 @@
 from toml import loads
 from json import dumps
 from subprocess import call
+from time import sleep
 
 CONFIG = '/root/.config/curious-containers/config.toml'
 
@@ -19,4 +20,10 @@ command = 'mongo --host mongo --eval \'database = db.getSiblingDB("{}"); databas
     configuration['mongo']['db'],
     dumps(data)
 )
-call(command, shell=True)
+
+for _ in range(10):
+    code = call(command, shell=True)
+    if code == 0:
+        break
+    else:
+        sleep(1)

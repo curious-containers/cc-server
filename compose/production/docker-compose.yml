@@ -2,14 +2,15 @@ version: "2"
 services:
   cc-server:
     build: ./cc-server
-    command: "python3 -u /root/.config/curious-containers/cc-server/init.py"
+    command: "bash /home/cc/.config/curious-containers/cc-server/init.sh"
     ports:
-      - "5000:5000"
+      - "5000:80"
     volumes:
-      - ../cc_server:/opt/cc_server
-      - ../cc_commons:/opt/cc_commons
-      - .:/root/.config/curious-containers
-      #- ./logs:/root/.cc_server
+      - ../../cc_server:/home/cc/cc-server/cc_server
+      - ../../cc_commons:/home/cc/cc-server/cc_commons
+      - .:/home/cc/.config/curious-containers
+      #- ~/.docker/machine/machines:/home/cc/.docker/machine/machines
+      #- ~/.cc_server:/home/cc/.cc_server
     links:
       - mongo
       - dind

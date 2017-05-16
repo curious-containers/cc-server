@@ -40,7 +40,7 @@ Clone the latest CC-Server code and change into the compose directory.
 .. code-block:: bash
 
    git clone https://github.com/curious-containers/cc-server.git
-   cd cc-server/compose
+   cd cc-server/compose/development
 
 
 In order to start CC-Server run the following command. This will create Containers for MongoDB, Docker-In-Docker and

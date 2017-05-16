@@ -1,5 +1,6 @@
 import os
 import toml
+from time import sleep
 
 from cc_commons.authorization import Authorize
 from cc_commons.database import Mongo
@@ -24,6 +25,11 @@ authorize = Authorize(
     mongo=mongo
 )
 
-authorize.create_user(username, password, True)
+for _ in range(10):
+    try:
+        authorize.create_user(username, password, True)
+        break
+    except:
+        sleep(1)
 
 main()

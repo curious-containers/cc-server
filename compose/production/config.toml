@@ -1,0 +1,46 @@
+[server]
+host = 'http://172.18.0.1:5000'
+internal_port = 5000
+scheduling_interval_seconds = 60
+log_dir = '~/.cc_server/'
+suppress_stdout = true
+
+[ipc]
+tee_port = 14736
+worker_port = 14737
+secret = 'SECRET'
+
+[mongo]
+username = 'ccdbAdmin'
+password = 'PASSWORD'
+host = 'mongo'
+port = 27017
+db = 'db'
+
+[docker]
+thread_limit = 8
+api_timeout = 30
+#machines_dir = '~/.docker/machine/machines'
+
+[docker.nodes.dind]
+base_url = 'dind:2375'
+
+[defaults.application_container_description]
+entry_point = 'python3 /opt/container_worker'
+
+[defaults.data_container_description]
+image = 'docker.io/curiouscontainers/cc-image-ubuntu'
+entry_point = 'python3 /opt/container_worker'
+container_ram = 512
+
+[defaults.scheduling_strategies]
+container_allocation = 'spread'
+
+[defaults.error_handling]
+max_task_trials = 3
+dead_node_invalidation = true
+
+[defaults.authorization]
+num_login_attempts = 3
+block_for_seconds = 120
+tokens_valid_for_seconds = 172800
