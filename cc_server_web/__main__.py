@@ -1,11 +1,12 @@
 import os
 import sys
+
 from flask import Flask, request, jsonify
 
 sys.path.insert(0, os.path.split(os.path.split(os.path.abspath(__file__))[0])[0])
 
 request_handler = None
-app = Flask('cc-server')
+app = Flask('cc-server-web')
 
 
 @app.route('/', methods=['GET'])
@@ -673,45 +674,49 @@ def post_data_container_callback():
     return request_handler.post_data_container_callback(request.get_json())
 
 
+def at_exit(sockets):
+    for s in sockets:
+        s.close()
+
+
 def prepare():
-    from stance import Stance
-    from cc_server.configuration import Config
+    import zmq
+    import atexit
+
+    from cc_commons.configuration import Config
+
+    from cc_server_web.request_handler import RequestHandler
+
     config = Config()
 
-    from cc_commons.tee import Tee
-    s = Stance(Tee, port=config.ipc['tee_port'], secret=config.ipc['secret'])
-    tee = s.register(config=config)
-    if s.created_new_instance():
-        print('| tee    | PID: {} | STARTED     | in main   |'.format(tee.getpid()))
-        tee.late_init()
-        print('| tee    | PID: {} | INITIALIZED | in main   |'.format(tee.getpid()))
-    else:
-        print('| tee    | PID: {} | CONNECTED   | in main   |'.format(tee.getpid()))
+    context = zmq.Context()
+    logger_socket = context.socket(zmq.PUSH)
+    logger_socket.connect(config.server_log['external_url'])
+    tee = logger_socket.send_string
 
-    from cc_server.worker import Worker
-    s = Stance(Worker, port=config.ipc['worker_port'], secret=config.ipc['secret'])
-    worker = s.register(config=config)
-    if s.created_new_instance():
-        print('| worker | PID: {} | STARTED     | in main   |'.format(worker.getpid()))
-        worker.late_init()
-        print('| worker | PID: {} | INITIALIZED | in main   |'.format(worker.getpid()))
-    else:
-        print('| worker | PID: {} | CONNECTED   | in main   |'.format(worker.getpid()))
+    master_socket = context.socket(zmq.PUSH)
+    master_socket.connect(config.server_master['external_url'])
 
-    from cc_server.request_handler import RequestHandler
+    atexit.register(at_exit, [logger_socket, master_socket])
+
     global request_handler
     request_handler = RequestHandler(
         config=config,
-        tee=tee.tee,
-        worker=worker
+        tee=tee,
+        master=master_socket
     )
+
+    tee('Started flask worker with pid {}'.format(os.getpid()))
 
     return config
 
 
 def main():
     config = prepare()
-    app.run(host='0.0.0.0', port=config.server['internal_port'])
+    app.run(
+        host=config.server_web['bind_host'],
+        port=config.server_web['bind_port']
+    )
 
 if __name__ == '__main__':
     main()

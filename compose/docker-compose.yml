@@ -1,0 +1,61 @@
+version: "2"
+services:
+  cc-server-web:
+    build: ./cc-server-image
+    command: "gunicorn -w 4 wsgi:application --bind 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../cc_server_web:/opt/cc_server_web:ro
+      - ../cc_commons:/opt/cc_commons:ro
+      - .:/root/.config/curious-containers:ro
+    links:
+      - mongo
+      - cc-server-master
+      - cc-server-log
+    tty: true
+
+  cc-server-master:
+    build: ./cc-server-image
+    command: "python3 -u /root/.config/curious-containers/cc-server-master/init.py"
+    volumes:
+      - ../cc_server_master:/opt/cc_server_master:ro
+      - ../cc_commons:/opt/cc_commons:ro
+      - .:/root/.config/curious-containers:ro
+      - ~/.docker/machine/machines:/root/.docker/machine/machines:ro
+    links:
+      - mongo
+      - dind
+      - cc-server-log
+    depends_on:
+      - mongo-seed
+    tty: true
+
+  cc-server-log:
+    build: ./cc-server-image
+    command: "python3 -u /opt/cc_server_log"
+    volumes:
+      - ../cc_server_log:/opt/cc_server_log:ro
+      - ../cc_commons:/opt/cc_commons:ro
+      - .:/root/.config/curious-containers:ro
+      - ~/.cc_server_compose:/root/.cc_server
+    tty: true
+
+  mongo:
+    image: mongo
+    tty: true
+
+  mongo-seed:
+    build: ./mongo-seed
+    volumes:
+      - .:/root/.config/curious-containers
+    command: "python3 -u /root/.config/curious-containers/mongo-seed/init.py"
+    links:
+      - mongo
+    tty: true
+
+  dind:
+    image: docker:dind
+    privileged: true
+    command: "docker daemon -H tcp://0.0.0.0:2375"
+    tty: true

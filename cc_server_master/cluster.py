@@ -1,39 +1,21 @@
 from threading import Lock
 from traceback import format_exc
+
 from bson.objectid import ObjectId
 
 from cc_commons.states import state_to_index, end_states
-
-from cc_server.cluster_provider import DockerProvider
+from cc_server_master.cluster_provider import DockerProvider
 
 
 class Cluster:
-    def __init__(self, config, tee, mongo, state_handler):
+    def __init__(self, config, tee, mongo, state_handler, cluster_provider):
         self._config = config
         self._tee = tee
         self._mongo = mongo
         self._state_handler = state_handler
-        self._cluster_provider = DockerProvider(
-            config=self._config,
-            tee=self._tee,
-            mongo=self._mongo
-        )
+        self._cluster_provider = cluster_provider
 
         self._data_container_lock = Lock()
-
-    def get_ip(self, container_id, collection):
-        ip = None
-        try:
-            ip = self._cluster_provider.get_ip(container_id, collection)
-        except:
-            description = 'Could not get container IP.'
-            self._state_handler.transition(collection, container_id, 'failed', description,
-                                           exception=format_exc())
-            self._cluster_provider.remove_container(container_id, collection)
-        return ip
-
-    def update_nodes_status(self):
-        self._cluster_provider.update_nodes_status()
 
     def update_node_status(self, node_name):
         self._cluster_provider.update_node_status(node_name)
@@ -41,16 +23,14 @@ class Cluster:
     def nodes(self):
         return self._cluster_provider.nodes()
 
-    def update_data_container_image(self, image):
-        registry_auth = self._config.defaults['data_container_description'].get('registry_auth')
-        self._cluster_provider.update_data_container_image(image, registry_auth)
-
-    def update_application_container_image(self, node_name, image, registry_auth):
+    def update_image(self, node_name, image, registry_auth):
         self._cluster_provider.update_image(node_name, image, registry_auth)
 
     def start_container(self, container_id, collection):
         try:
             self._cluster_provider.start_container(container_id, collection)
+            ip = self._cluster_provider.get_ip(container_id, collection)
+            self._mongo.db[collection].update_one({'_id': container_id}, {'$set': {'ip': ip}})
         except:
             description = 'Container start failed.'
             self._state_handler.transition(collection, container_id, 'failed', description,

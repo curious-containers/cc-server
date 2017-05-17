@@ -7,9 +7,7 @@ from cc_commons.authorization import Authorize
 from cc_commons.database import Mongo
 from cc_commons.helper import prepare_response, prepare_input, get_ip
 from cc_commons.schemas import query_schema, tasks_schema, callback_schema, tasks_cancel_schema, nodes_schema
-from cc_commons.states import is_state
-
-from cc_server.states import StateHandler
+from cc_commons.states import is_state, StateHandler
 
 
 def task_group_prototype():
@@ -77,9 +75,9 @@ def validation(schema):
 
 
 class RequestHandler:
-    def __init__(self, config, tee, worker):
+    def __init__(self, config, tee, master):
         self._config = config
-        self._worker = worker
+        self._master = master
         self._tee = tee
         self._mongo = Mongo(
             config=self._config
@@ -120,16 +118,16 @@ class RequestHandler:
     @validation(nodes_schema)
     def post_nodes(self, json_input):
         for node in json_input['nodes']:
-            self._worker.update_node_status(node['name'])
+            self._master.send_json({
+                'action': 'update_node_status',
+                'data': {'node_name': node['name']}
+            })
         return jsonify({})
 
     @log
     @auth(require_admin=False, require_credentials=False)
     def get_nodes(self):
-        return jsonify(prepare_response({
-            'healthy_nodes': self._worker.nodes(),
-            'dead_nodes': list(self._mongo.db['dead_nodes'].find({}))
-        }))
+        return jsonify({})
 
     @log
     @auth(require_admin=False)
@@ -189,7 +187,7 @@ class RequestHandler:
             response = self._cancel_tasks(json_input, username)
         else:
             response = self._cancel_task(json_input, username)
-        self._worker.container_callback()
+        self._master.send_json({'action': 'container_callback'})
         return jsonify(prepare_response(response))
 
     def _register_task(self, json_input, task_group_id):
@@ -233,7 +231,7 @@ class RequestHandler:
         else:
             result = self._create_task(json_input, task_group_id)
         self._state_handler.transition('task_groups', task_group_id, 'waiting', 'Task group waiting.')
-        self._worker.schedule()
+        self._master.send_json({'action': 'schedule'})
         return jsonify(prepare_response(result))
 
     def _aggregate(self, json_input, collection):
@@ -287,7 +285,7 @@ class RequestHandler:
         )
 
         if is_state(c['state'], 'failed'):
-            self._worker.container_callback()
+            self._master.send_json({'action': 'container_callback'})
             raise BadRequest('Container failed.')
 
         if json_input['callback_type'] == 0:
@@ -315,10 +313,11 @@ class RequestHandler:
 
                     data_container = self._mongo.db['data_containers'].find_one(
                         {'_id': data_container_id},
-                        {'input_files': 1, 'input_file_keys': 1}
+                        {'input_files': 1, 'input_file_keys': 1, 'ip': 1}
                     )
 
-                    ip = self._worker.get_ip(data_container_id, 'data_containers')
+                    ip = data_container['ip']
+                    self._tee('APPLICATION_CONTAINER_CALLBACK IP: {}'.format(ip))
 
                     for f, k in zip(data_container['input_files'], data_container['input_file_keys']):
                         if f == input_file:
@@ -334,7 +333,7 @@ class RequestHandler:
         elif json_input['callback_type'] == 3:
             description = 'Callback with callback_type 3 and has been sent.'
             self._state_handler.transition('application_containers', c['_id'], 'success', description)
-            self._worker.container_callback()
+            self._master.send_json({'action': 'container_callback'})
 
         return jsonify({})
 
@@ -352,7 +351,7 @@ class RequestHandler:
         )
 
         if is_state(c['state'], 'failed'):
-            self._worker.container_callback()
+            self._master.send_json({'action': 'container_callback'})
             raise BadRequest('Container failed.')
 
         if json_input['callback_type'] == 0:
@@ -366,7 +365,7 @@ class RequestHandler:
         if json_input['callback_type'] == 1:
             description = 'Input files available in data container.'
             self._state_handler.transition('data_containers', c['_id'], 'processing', description)
-            self._worker.data_container_callback()
+            self._master.send_json({'action': 'data_container_callback'})
 
         return jsonify({})
 

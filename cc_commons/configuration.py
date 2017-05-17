@@ -44,8 +44,9 @@ class Config:
 
         validate(config, cc_server_config_schema)
 
-        self.server = config['server']
-        self.ipc = config['ipc']
+        self.server_web = config['server_web']
+        self.server_master = config['server_master']
+        self.server_log = config['server_log']
         self.mongo = config['mongo']
         self.docker = config['docker']
         self.defaults = config['defaults']

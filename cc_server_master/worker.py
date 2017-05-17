@@ -1,17 +1,8 @@
-import json
-import os
 from queue import Queue
 from threading import Thread
 from time import sleep
-from stance import Stance
 
-from cc_commons.database import Mongo
 from cc_commons.states import state_to_index, end_states
-from cc_commons.tee import Tee
-
-from cc_server.states import StateHandler
-from cc_server.cluster import Cluster
-from cc_server.scheduling import Scheduler
 
 
 def _put(q):
@@ -22,67 +13,23 @@ def _put(q):
 
 
 class Worker:
-    def __init__(self, config):
+    def __init__(self, config, tee, mongo, state_handler, cluster, scheduler):
         self._config = config
-        self._tee = None
-        self._mongo = None
-        self._state_handler = None
-        self._cluster = None
-        self._scheduler = None
-
-        self._scheduling_q = None
-        self._data_container_callback_q = None
-
-    def late_init(self):
-        s = Stance(Tee, port=self._config.ipc['tee_port'], secret=self._config.ipc['secret'])
-        tee = s.register(config=self._config)
-        if s.created_new_instance():
-            print('| tee    | PID: {} | STARTED     | in worker |'.format(tee.getpid()))
-            raise(Exception('Tee should have been started in main.'))
-        else:
-            print('| tee    | PID: {} | CONNECTED   | in worker |'.format(tee.getpid()))
-        self._tee = tee.tee
-
-        self._tee('Loaded TOML config from {}'.format(self._config.conf_file_path))
-
-        self._mongo = Mongo(
-            config=self._config
-        )
-
-        self._mongo.db['dead_nodes'].drop()
-
-        self._state_handler = StateHandler(
-            config=self._config,
-            tee=self._tee,
-            mongo=self._mongo
-        )
-        self._cluster = Cluster(
-            config=self._config,
-            tee=self._tee,
-            mongo=self._mongo,
-            state_handler=self._state_handler
-        )
-        self._scheduler = Scheduler(
-            config=self._config,
-            tee=self._tee,
-            mongo=self._mongo,
-            state_handler=self._state_handler,
-            cluster=self._cluster
-        )
+        self._tee = tee
+        self._mongo = mongo
+        self._state_handler = state_handler
+        self._cluster = cluster
+        self._scheduler = scheduler
 
         self._scheduling_q = Queue(maxsize=1)
         self._data_container_callback_q = Queue(maxsize=1)
 
-        self._tee('Pulling data container image...')
-        self._cluster.update_data_container_image(self._config.defaults['data_container_description']['image'])
-
-        self._tee('Cluster nodes:')
-        self._tee(json.dumps(self._cluster.nodes(), indent=4))
-
+        # initialize permanent threads
         Thread(target=self._scheduling_loop).start()
         Thread(target=self._data_container_callback_loop).start()
 
-        Thread(target=self._cron).start()
+        if self._config.server_master.get('scheduling_interval_seconds'):
+            Thread(target=self._cron).start()
 
     def _cron(self):
         while True:
@@ -99,10 +46,7 @@ class Worker:
             if application_container or data_container:
                 _put(self._scheduling_q)
                 _put(self._data_container_callback_q)
-            sleep(self._config.server['scheduling_interval_seconds'])
-
-    def getpid(self):
-        return os.getpid()
+            sleep(self._config.server_master['scheduling_interval_seconds'])
 
     def _container_callback(self):
         self._cluster.clean_up_unused_data_containers()
@@ -117,18 +61,26 @@ class Worker:
     def nodes(self):
         return self._cluster.nodes()
 
-    def get_ip(self, container_id, collection):
-        return self._cluster.get_ip(container_id, collection)
-
     def _update_images(self):
         application_containers = list(self._mongo.db['application_containers'].find(
             {'state': state_to_index('created')},
             {'task_id': 1, 'cluster_node': 1}
         ))
+        data_containers = list(self._mongo.db['data_containers'].find(
+            {'state': state_to_index('created')},
+            {'cluster_node': 1}
+        ))
+
         nodes = {}
+
         for application_container in application_containers:
             node_name = application_container['cluster_node']
             nodes[node_name] = set()
+
+        for data_container in data_containers:
+            node_name = data_container['cluster_node']
+            nodes[node_name] = set()
+
         for application_container in application_containers:
             node_name = application_container['cluster_node']
             task_id = application_container['task_id']
@@ -141,13 +93,25 @@ class Worker:
                 task['application_container_description']['image'],
                 registry_auth
             )])
+
+        for data_container in data_containers:
+            node_name = data_container['cluster_node']
+            registry_auth = None
+            if self._config.defaults['data_container_description'].get('registry_auth'):
+                ra = self._config.defaults['data_container_description']['registry_auth']
+                registry_auth = (ra['username'], ra['password'])
+            nodes[node_name].update([(
+                self._config.defaults['data_container_description']['image'],
+                registry_auth
+            )])
+
         threads = []
         for node_name, node in nodes.items():
             for image, registry_auth in node:
                 ra = None
                 if registry_auth:
                     ra = {'username': registry_auth[0], 'password': registry_auth[1]}
-                t = Thread(target=self._cluster.update_application_container_image, args=(
+                t = Thread(target=self._cluster.update_image, args=(
                     node_name, image, ra
                 ))
                 threads.append(t)

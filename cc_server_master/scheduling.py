@@ -1,8 +1,8 @@
 from cc_commons.helper import generate_secret
 
-from cc_server.scheduling_strategies.caching import OneCachePerTaskNoDuplicates
-from cc_server.scheduling_strategies.container_allocation import binpack, spread
-from cc_server.scheduling_strategies.task_selection import FIFO
+from cc_server_master.scheduling_strategies.caching import OneCachePerTaskNoDuplicates
+from cc_server_master.scheduling_strategies.task_selection import FIFO
+from cc_server_master.scheduling_strategies.container_allocation import binpack, spread
 
 
 def application_container_prototype(container_ram):

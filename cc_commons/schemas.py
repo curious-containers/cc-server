@@ -461,26 +461,37 @@ callback_schema = {
 cc_server_config_schema = {
     'type': 'object',
     'properties': {
-        'server': {
+        'server_web': {
             'type': 'object',
             'properties': {
-                'host': {'type': 'string'},
-                'internal_port': {'type': 'integer'},
-                'scheduling_interval_seconds': {'type': 'integer'},
+                'external_url': {'type': 'string'},
+                'bind_host': {'type': 'string'},
+                'bind_port': {'type': 'integer'},
+            },
+            'required': ['external_url', 'bind_host', 'bind_port'],
+            'additionalProperties': False
+        },
+        'server_master': {
+            'type': 'object',
+            'properties': {
+                'external_url': {'type': 'string'},
+                'bind_host': {'type': 'string'},
+                'bind_port': {'type': 'integer'},
+                'scheduling_interval_seconds': {'type': 'integer'}
+            },
+            'required': ['external_url', 'bind_host', 'bind_port'],
+            'additionalProperties': False
+        },
+        'server_log': {
+            'type': 'object',
+            'properties': {
+                'external_url': {'type': 'string'},
+                'bind_host': {'type': 'string'},
+                'bind_port': {'type': 'integer'},
                 'log_dir': {'type': 'string'},
                 'suppress_stdout': {'type': 'boolean'}
             },
-            'required': ['host', 'scheduling_interval_seconds'],
-            'additionalProperties': False
-        },
-        'ipc': {
-            'type': 'object',
-            'properties': {
-                'tee_port': {'type': 'integer'},
-                'worker_port': {'type': 'integer'},
-                'secret': {'type': 'string'}
-            },
-            'required': ['tee_port', 'worker_port', 'secret'],
+            'required': ['external_url', 'bind_host', 'bind_port'],
             'additionalProperties': False
         },
         'mongo': {
@@ -599,6 +610,6 @@ cc_server_config_schema = {
             }
         }
     },
-    'required': ['server', 'ipc', 'mongo', 'docker', 'defaults'],
+    'required': ['server_web', 'server_master', 'server_log', 'mongo', 'docker', 'defaults'],
     'additionalProperties': True
 }

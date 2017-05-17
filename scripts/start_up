@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+from multiprocessing import Process
+
+sys.path.insert(0, os.path.split(os.path.split(os.path.abspath(__file__))[0])[0])
+
+from cc_server_log.__main__ import main as log_main
+from cc_server_master.__main__ import main as master_main
+from cc_server_web.__main__ import main as web_main
+
+log = Process(target=log_main)
+log.daemon = True
+log.start()
+
+master = Process(target=master_main)
+master.daemon = True
+master.start()
+
+web_main()
