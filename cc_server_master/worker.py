@@ -55,30 +55,19 @@ class Worker:
     def container_callback(self):
         Thread(target=self._container_callback).start()
 
-    def update_node_status(self, node_name):
-        Thread(target=self._cluster.update_node_status, args=(node_name,)).start()
-
-    def nodes(self):
-        return self._cluster.nodes()
+    def update_node(self, node_name):
+        Thread(target=self._cluster.update_node, args=(node_name,)).start()
 
     def _update_images(self):
         application_containers = list(self._mongo.db['application_containers'].find(
             {'state': state_to_index('created')},
             {'task_id': 1, 'cluster_node': 1}
         ))
-        data_containers = list(self._mongo.db['data_containers'].find(
-            {'state': state_to_index('created')},
-            {'cluster_node': 1}
-        ))
 
         nodes = {}
 
         for application_container in application_containers:
             node_name = application_container['cluster_node']
-            nodes[node_name] = set()
-
-        for data_container in data_containers:
-            node_name = data_container['cluster_node']
             nodes[node_name] = set()
 
         for application_container in application_containers:
@@ -91,17 +80,6 @@ class Worker:
                 registry_auth = (ra['username'], ra['password'])
             nodes[node_name].update([(
                 task['application_container_description']['image'],
-                registry_auth
-            )])
-
-        for data_container in data_containers:
-            node_name = data_container['cluster_node']
-            registry_auth = None
-            if self._config.defaults['data_container_description'].get('registry_auth'):
-                ra = self._config.defaults['data_container_description']['registry_auth']
-                registry_auth = (ra['username'], ra['password'])
-            nodes[node_name].update([(
-                self._config.defaults['data_container_description']['image'],
                 registry_auth
             )])
 

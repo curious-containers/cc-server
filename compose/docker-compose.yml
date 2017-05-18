@@ -38,11 +38,13 @@ services:
       - ../cc_server_log:/opt/cc_server_log:ro
       - ../cc_commons:/opt/cc_commons:ro
       - .:/root/.config/curious-containers:ro
-      - ~/.cc_server_compose:/root/.cc_server
+      - ~/.cc_server_compose/logs:/root/.cc_server/logs
     tty: true
 
   mongo:
     image: mongo
+    volumes:
+      - ~/.cc_server_compose/mongo/db:/data/db
     tty: true
 
   mongo-seed:
@@ -57,5 +59,19 @@ services:
   dind:
     image: docker:dind
     privileged: true
-    command: "docker daemon -H tcp://0.0.0.0:2375"
+    command: "docker daemon --insecure-registry=registry:5000 -H tcp://0.0.0.0:2375"
+    volumes:
+      - ~/.cc_server_compose/dind/docker:/var/lib/docker
+    links:
+      - registry
     tty: true
+
+  registry:
+    image: registry:2
+    ports:
+      - "5000:5000"
+    environment:
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+
+    volumes:
+      - ~/.cc_server_compose/registry/data:/data

@@ -1,4 +1,5 @@
 from cc_commons.helper import generate_secret
+from cc_commons.states import end_states
 
 from cc_server_master.scheduling_strategies.caching import OneCachePerTaskNoDuplicates
 from cc_server_master.scheduling_strategies.task_selection import FIFO
@@ -45,9 +46,36 @@ class Scheduler:
     def schedule(self):
         dc_ram = self._config.defaults['data_container_description']['container_ram']
 
-        nodes = {node['name']: node for node in self._cluster.nodes()}
-        for name, node in nodes.items():
+        nodes_list = self._mongo.db['nodes'].find(
+            {'is_online': True},
+            {'cluster_node': 1, 'total_ram': 1}
+        )
+
+        nodes = {}
+
+        for node in nodes_list:
+            node_name = node['cluster_node']
+            application_containers = list(self._mongo.db['application_containers'].find({
+                'state': {'$nin': end_states()},
+                'cluster_node': node_name
+            }, {
+                'container_ram': 1
+            }))
+
+            data_containers = list(self._mongo.db['data_containers'].find({
+                'state': {'$nin': end_states()},
+                'cluster_node': node_name
+            }, {
+                'container_ram': 1
+            }))
+
+            reserved_dc_ram = [c['container_ram'] for c in data_containers]
+            reserved_ac_ram = [c['container_ram'] for c in application_containers]
+
+            node['reserved_ram'] = sum(reserved_dc_ram + reserved_ac_ram)
             node['free_ram'] = node['total_ram'] - node['reserved_ram']
+
+            nodes[node_name] = node
 
         for task in self._task_selection:
             ac_ram = task['application_container_description']['container_ram']
@@ -79,15 +107,15 @@ class Scheduler:
             failed = False
 
             for ram, _id, collection in assign_to_node:
-                cluster_node = self._container_allocation(nodes, ram)
-                if not cluster_node:
+                node_name = self._container_allocation(nodes, ram)
+                if not node_name:
                     failed = True
                     break
                 self._mongo.db[collection].update_one(
                     {'_id': _id},
-                    {'$set': {'cluster_node': cluster_node}}
+                    {'$set': {'cluster_node': node_name}}
                 )
-                nodes[cluster_node]['free_ram'] -= ram
+                nodes[node_name]['free_ram'] -= ram
 
             if failed:
                 for ram, _id, collection in assign_to_node:

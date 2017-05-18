@@ -1,36 +1,18 @@
 import json
-import os
 import docker
 
 from queue import Queue
 from threading import Semaphore, Thread
-from traceback import format_exc
-
-# from docker.errors import APIError
-# from requests.exceptions import ReadTimeout, ConnectionError
-
-from cc_commons.notification import notify
-from cc_commons.states import end_states
 
 
-def handle_api_errors():
-    """function decorator"""
-    def dec(func):
-        def wrapper(self, container_id, collection):
-            try:
-                return func(self, container_id, collection)
-            except:
-                self.update_node_status_by_container(container_id, collection)
-                raise
-        return wrapper
-    return dec
+class ClusterProviderException(Exception):
+    pass
 
 
 class DockerClientProxy:
-    def __init__(self, config, tee, mongo, node_name, node_config):
+    def __init__(self, config, tee, node_name, node_config):
         self._config = config
         self._tee = tee
-        self._mongo = mongo
 
         self.node_name = node_name
         self.node_config = node_config
@@ -51,59 +33,49 @@ class DockerClientProxy:
         with self._thread_limit:
             info = self.client.info()
 
-        application_containers = list(self._mongo.db['application_containers'].find({
-            'state': {'$nin': end_states()},
-            'cluster_node': self.node_name
-        }, {
-            'container_ram': 1
-        }))
+        #application_containers = list(self._mongo.db['application_containers'].find({
+        #    'state': {'$nin': end_states()},
+        #    'cluster_node': self.node_name
+        #}, {
+        #    'container_ram': 1
+        #}))
 
-        data_containers = list(self._mongo.db['data_containers'].find({
-            'state': {'$nin': end_states()},
-            'cluster_node': self.node_name
-        }, {
-            'container_ram': 1
-        }))
+        #data_containers = list(self._mongo.db['data_containers'].find({
+        #    'state': {'$nin': end_states()},
+        #    'cluster_node': self.node_name
+        #}, {
+        #    'container_ram': 1
+        #}))
 
-        dc_ram = [c['container_ram'] for c in data_containers]
-        ac_ram = [c['container_ram'] for c in application_containers]
+        #dc_ram = [c['container_ram'] for c in data_containers]
+        #ac_ram = [c['container_ram'] for c in application_containers]
 
-        reserved_ram = sum(dc_ram + ac_ram)
+        #reserved_ram = sum(dc_ram + ac_ram)
 
         return {
-            'name': self.node_name,
+            'cluster_node': self.node_name,
             'total_ram': info['MemTotal'] // (1024 * 1024),
-            'reserved_ram': reserved_ram,
-            'total_cpus': info['NCPU'],
-            'reserved_cpus': None,
-            'active_application_containers': ac_ram,
-            'active_data_containers': dc_ram
+            'total_cpus': info['NCPU']
         }
 
-    def node_status(self):
-        is_dead = False
+    def inspect(self):
         container_name = 'inspect-{}'.format(self.node_name)
-        description = None
-        try:
-            self.remove_container(container_name)
-            self._create_inspection_container(container_name)
-            self.start_container(container_name)
-            self.wait_for_container(container_name)
-        except:
-            is_dead = True
-            description = format_exc()
-
-        if not is_dead:
-            for key, val in self.containers().items():
-                if key == container_name:
-                    if val['exit_status'] != 0:
-                        is_dead = True
-                        description = val['description']
-                    break
 
         self.remove_container(container_name)
+        self._create_inspection_container(container_name)
+        self.start_container(container_name)
+        self.wait_for_container(container_name)
 
-        return {'name': self.node_name, 'is_dead': is_dead, 'description': description}
+        for key, val in self.containers().items():
+            if key == container_name:
+                if val['exit_status'] != 0:
+                    s = 'Inspection container on node {} exited with code {}: {}'.format(
+                        self.node_name, val['exit_status'], val['description']
+                    )
+                    raise ClusterProviderException(s)
+                break
+
+        self.remove_container(container_name)
 
     def containers(self):
         with self._thread_limit:
@@ -167,12 +139,12 @@ class DockerClientProxy:
         return container['NetworkSettings']['Networks']['bridge']['IPAddress']
 
     def update_image(self, image, registry_auth):
-        self._tee('Pull image {} on node {}.'.format(image, self.node_name))
         with self._thread_limit:
+            self._tee('Pull image {} on node {}.'.format(image, self.node_name))
             for line in self.client.pull(image, stream=True, auth_config=registry_auth):
                 line = str(line)
                 if 'error' in line.lower():
-                    raise Exception(line)
+                    raise ClusterProviderException(line)
 
     def _create_inspection_container(self, container_name):
         settings = {
@@ -206,185 +178,61 @@ class DockerProvider:
         self._mongo = mongo
         self._config = config
 
-        self._node_configs = self._read_node_configs()
         self._clients = {}
 
-        threads = []
-        q = Queue()
-        for node_name in self._node_configs:
-            t = Thread(target=self._docker_client_proxy, args=(node_name, q))
-            t.start()
-            threads.append(t)
-        for t in threads:
-            t.join()
-        while not q.empty():
-            client = q.get()
-            if isinstance(client, DockerClientProxy):
-                self._clients[client.node_name] = client
-            else:
-                node_name, formatted_exception = client
-                self._tee('Could not create DockerClientProxy for node {}: {}'.format(node_name, formatted_exception))
+    def logs_from_container(self, node_name, container_id):
+        return self._clients[node_name].logs_from_container(container_id)
 
-        for node_name, client in self._clients.items():
-            self._tee('{}: {}'.format(node_name, json.dumps(client.info(), indent=4)))
+    def node_info(self, node_name):
+        return self._clients[node_name].info()
 
-    def logs_from_container(self, container_id, collection):
-        return self._client(container_id, collection).logs_from_container(container_id)
-
-    def nodes(self):
-        threads = []
-        q = Queue()
-        for node_name in self._clients:
-            t = Thread(target=self._client_info, args=(node_name, q))
-            t.start()
-            threads.append(t)
-        for t in threads:
-            t.join()
-        nodes = []
-        while not q.empty():
-            nodes.append(q.get())
-        return nodes
-
-    def _client_info(self, node_name, q):
+    def update_node(self, node_name, node_config, startup):
         try:
-            q.put(self._clients[node_name].info())
+            node = self._clients[node_name]
+            node.inspect()
         except:
-            self._tee('Error on info request for node: {}'.format(node_name))
-
-    def _docker_client_proxy(self, node_name, q):
-        try:
-            client = DockerClientProxy(
-                config=self._config,
-                tee=self._tee,
-                mongo=self._mongo,
-                node_name=node_name,
-                node_config=self._node_configs[node_name]
-            )
-            client.containers()
-            q.put(client)
-        except:
-            q.put((node_name, format_exc()))
-
-    def _read_node_configs(self):
-        node_configs = {}
-        if self._config.docker.get('machines_dir'):
-            machines_dir = os.path.expanduser(self._config.docker['machines_dir'])
-            for machine_dir in os.listdir(machines_dir):
-                with open(os.path.join(machines_dir, machine_dir, 'config.json')) as f:
-                    machine_config = json.load(f)
-                node_name = machine_config['Driver']['MachineName']
-                if not machine_config['HostOptions']['EngineOptions'].get('ArbitraryFlags'):
-                    continue
-                port = None
-                try:
-                    for flag in machine_config['HostOptions']['EngineOptions']['ArbitraryFlags']:
-                        key, val = flag.split('=')
-                        if key == 'cluster-advertise':
-                            port = int(val.split(':')[-1])
-                            break
-                except:
-                    pass
-                if not port:
-                    continue
-                node_config = {
-                    'base_url': '{}:{}'.format(machine_config['Driver']['IPAddress'], port),
-                    'tls': {
-                        'verify': machine_config['HostOptions']['AuthOptions']['CaCertPath'],
-                        'client_cert': [
-                            machine_config['HostOptions']['AuthOptions']['ClientCertPath'],
-                            machine_config['HostOptions']['AuthOptions']['ClientKeyPath']
-                        ],
-                        'assert_hostname': False
-                    }
-                }
-                node_configs[node_name] = node_config
-        if self._config.docker.get('nodes'):
-            for node_name, node_config in self._config.docker['nodes'].items():
-                node_configs[node_name] = node_config
-        return node_configs
-
-    def update_node_status_by_container(self, container_id, collection):
-        container = self._mongo.db[collection].find_one(
-            {'_id': container_id},
-            {'cluster_node': 1}
-        )
-        self.update_node_status(container['cluster_node'])
-
-    def update_node_status(self, node_name):
-        self._node_configs = self._read_node_configs()
-
-        if node_name not in self._node_configs:
             if node_name in self._clients:
                 del self._clients[node_name]
-            self._tee('Could not find config for node {}.'.format(node_name))
-            return
-
-        self._tee('Update status of node {}.'.format(node_name))
-        node = self._clients.get(node_name)
-        if not node:
             node = DockerClientProxy(
                 config=self._config,
                 tee=self._tee,
-                mongo=self._mongo,
                 node_name=node_name,
-                node_config=self._node_configs[node_name]
+                node_config=node_config
             )
+            node.update_image(
+                self._config.defaults['data_container_description']['image'],
+                self._config.defaults['data_container_description'].get('registry_auth')
+            )
+            if not startup:
+                self._tee('Inspect node {}.'.format(node_name))
+                node.inspect()
+            self._clients[node_name] = node
 
-        node_status = node.node_status()
+    def get_ip(self, node_name, container_id):
+        return self._clients[node_name].get_ip(container_id)
 
-        if node_status['is_dead']:
-            if node_name in self._clients:
-                del self._clients[node_name]
-            self._tee('Node {} is dead.'.format(node_name))
-            if self._config.defaults['error_handling'].get('dead_node_notification'):
-                connector_access = self._config.defaults['error_handling']['dead_node_notification']
-                connector_access['add_meta_data'] = True
-                meta_data = {'name': node_name}
-                notify(self._tee, [connector_access], meta_data)
-        else:
-            if node_name not in self._clients:
-                self._clients[node_name] = node
+    def wait_for_container(self, node_name, container_id):
+        self._clients[node_name].wait_for_container(container_id)
 
-    def _client(self, container_id, collection):
-        container = self._mongo.db[collection].find_one(
-            {'_id': container_id},
-            {'cluster_node': 1}
-        )
-        if not container:
-            return None
-        return self._clients.get(container['cluster_node'])
+    def start_container(self, node_name, container_id):
+        self._clients[node_name].start_container(container_id)
 
-    @handle_api_errors()
-    def get_ip(self, container_id, collection):
-        return self._client(container_id, collection).get_ip(container_id)
-
-    @handle_api_errors()
-    def wait_for_container(self, container_id, collection):
-        self._client(container_id, collection).wait_for_container(container_id)
-
-    @handle_api_errors()
-    def start_container(self, container_id, collection):
-        self._client(container_id, collection).start_container(container_id)
-
-    def remove_container(self, container_id, collection):
-        client = self._client(container_id, collection)
-        if client:
-            client.remove_container(container_id)
-
-    @handle_api_errors()
     def create_container(self, container_id, collection):
         if collection == 'application_containers':
             self._create_application_container(container_id)
         elif collection == 'data_containers':
             self._create_data_container(container_id)
         else:
-            raise Exception('Collection {} not valid.', collection)
+            raise ClusterProviderException('Collection {} not valid.', collection)
+
+    def remove_container(self, node_name, container_id):
+        try:
+            self._clients[node_name].remove_container(container_id)
+        except:
+            pass
 
     def update_image(self, node_name, image, registry_auth):
-        try:
-            self._clients[node_name].update_image(image, registry_auth)
-        except:
-            self._tee('Error on update image for node {}.'.format(node_name))
+        self._clients[node_name].update_image(image, registry_auth)
 
     def _create_application_container(self, application_container_id):
         application_container = self._mongo.db['application_containers'].find_one({'_id': application_container_id})
@@ -491,7 +339,8 @@ class DockerProvider:
 
     def _containers(self, node_name, q):
         try:
-            q.put(self._clients[node_name].containers())
+            containers = self._clients[node_name].containers()
+            q.put(containers)
         except:
             self._tee('Error on container list for node {}.'.format(node_name))
 

@@ -82,15 +82,18 @@ def main():
         d = master_socket.recv_json()
         action = d.get('action')
         if action == 'schedule':
+            pass
             worker.schedule()
         elif action == 'container_callback':
+            pass
             worker.container_callback()
         elif action == 'data_container_callback':
+            pass
             worker.data_container_callback()
         elif action == 'update_node_status':
             node_name = d.get('data', {}).get('node_name')
             if node_name:
-                worker.update_node_status(node_name)
+                pass
 
 if __name__ == '__main__':
     main()

@@ -22,7 +22,7 @@ delete_collections = [
     'application_containers',
     'data_containers',
     'block_entries',
-    'dead_nodes'
+    'nodes'
 ]
 preserve_collections = [
     'users'

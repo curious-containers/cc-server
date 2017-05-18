@@ -317,7 +317,6 @@ class RequestHandler:
                     )
 
                     ip = data_container['ip']
-                    self._tee('APPLICATION_CONTAINER_CALLBACK IP: {}'.format(ip))
 
                     for f, k in zip(data_container['input_files'], data_container['input_file_keys']):
                         if f == input_file:

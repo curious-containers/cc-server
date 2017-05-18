@@ -16,7 +16,7 @@ scheduling_interval_seconds = 60
 external_url = 'tcp://localhost:8002'
 bind_host = '0.0.0.0'
 bind_port = 8002
-log_dir = '~/.cc_server/'
+log_dir = '~/.cc_server/logs/'
 suppress_stdout = false
 
 [mongo]

@@ -1,10 +1,12 @@
-from threading import Lock
+import os
+import json
+from threading import Lock, Thread
 from traceback import format_exc
 
 from bson.objectid import ObjectId
 
 from cc_commons.states import state_to_index, end_states
-from cc_server_master.cluster_provider import DockerProvider
+from cc_commons.notification import notify
 
 
 class Cluster:
@@ -17,25 +19,25 @@ class Cluster:
 
         self._data_container_lock = Lock()
 
-    def update_node_status(self, node_name):
-        self._cluster_provider.update_node_status(node_name)
-
-    def nodes(self):
-        return self._cluster_provider.nodes()
+        self._create_nodes_on_startup()
 
     def update_image(self, node_name, image, registry_auth):
-        self._cluster_provider.update_image(node_name, image, registry_auth)
+        try:
+            self._cluster_provider.update_image(node_name, image, registry_auth)
+        except:
+            pass
 
     def start_container(self, container_id, collection):
+        node_name = self._lookup_node_name(container_id, collection)
         try:
-            self._cluster_provider.start_container(container_id, collection)
-            ip = self._cluster_provider.get_ip(container_id, collection)
+            self._cluster_provider.start_container(node_name, container_id)
+            ip = self._cluster_provider.get_ip(node_name, container_id)
             self._mongo.db[collection].update_one({'_id': container_id}, {'$set': {'ip': ip}})
         except:
             description = 'Container start failed.'
             self._state_handler.transition(collection, container_id, 'failed', description,
                                            exception=format_exc())
-            self._cluster_provider.remove_container(container_id, collection)
+            self._cluster_provider.remove_container(node_name, container_id)
 
     def assign_existing_data_containers(self, application_container_id):
         with self._data_container_lock:
@@ -71,6 +73,7 @@ class Cluster:
             })
 
     def create_container(self, container_id, collection):
+        node_name = self._lookup_node_name(container_id, collection)
         try:
             self._cluster_provider.create_container(container_id, collection)
             description = 'Container waiting.'
@@ -79,7 +82,7 @@ class Cluster:
             description = 'Container creation failed.'
             self._state_handler.transition(collection, container_id, 'failed', description,
                                            exception=format_exc())
-            self._cluster_provider.remove_container(container_id, collection)
+            self._cluster_provider.remove_container(node_name, container_id)
 
     def containers(self):
         return self._cluster_provider.containers()
@@ -99,17 +102,18 @@ class Cluster:
             for c in cursor:
                 name = str(c['_id'])
                 container = containers[name]
+                node_name = self._lookup_node_name(c['_id'], collection)
                 if c['state'] in end_states():
-                    self._cluster_provider.remove_container(c['_id'], collection)
+                    self._cluster_provider.remove_container(node_name, c['_id'])
                 elif container.get('exit_status') and container['exit_status'] != 0:
                     logs = 'container logs not available'
                     try:
-                        logs = self._cluster_provider.logs_from_container(c['_id'], collection)
+                        logs = self._cluster_provider.logs_from_container(node_name, c['_id'])
                     except:
                         pass
                     description = 'Container exited unexpectedly ({}): {}'.format(container['description'], logs)
                     self._state_handler.transition(collection, c['_id'], 'failed', description)
-                    self._cluster_provider.remove_container(c['_id'], collection)
+                    self._cluster_provider.remove_container(node_name, c['_id'])
 
         for collection in ['application_containers', 'data_containers']:
             cursor = self._mongo.db[collection].find({
@@ -138,4 +142,104 @@ class Cluster:
 
                 description = 'Container removed. Not in use by any application container.'
                 self._state_handler.transition('data_containers', data_container_id, 'success', description)
-                self._cluster_provider.remove_container(data_container_id, 'data_containers')
+                node_name = self._lookup_node_name(data_container_id, 'data_containers')
+                self._cluster_provider.remove_container(node_name, data_container_id)
+
+    def _lookup_node_name(self, container_id, collection):
+        container = self._mongo.db[collection].find_one(
+            {'_id': container_id},
+            {'cluster_node': 1}
+        )
+        if not container:
+            return None
+        return container['cluster_node']
+
+    def _create_nodes_on_startup(self):
+        self._mongo.db['nodes'].drop()
+        node_configs = self._read_node_configs()
+        for node_name, node_config in node_configs.items():
+            self._tee('Create node {}.'.format(node_name))
+            #self._update_node(node_name, node_config, True)
+            Thread(target=self._update_node, args=(node_name, node_config, True)).start()
+
+    def update_node(self, node_name):
+        node_configs = self._read_node_configs()
+        node_config = node_configs.get(node_name)
+        if not node_config:
+            s = 'Config for node {} does not exist.'.format(node_name)
+            self._tee(s)
+            node = self._mongo.db['nodes'].find_one({'cluster_node': node_name}, {'is_online': 1})
+            if node and node.get('is_online'):
+                self._mongo.db['nodes'].update_one(
+                    {'cluster_node': node_name},
+                    {'$set': {'is_online': False}},
+                    upsert=True
+                )
+        self._update_node(node_name, node_config, False)
+
+    def _update_node(self, node_name, node_config, startup):
+        node = {
+            'cluster_node': node_name,
+            'config': node_config,
+            'is_online': True,
+            'exception': None,
+            'total_ram': None,
+            'total_cpus': None
+        }
+
+        try:
+            self._cluster_provider.update_node(node_name, node_config, startup)
+            info = self._cluster_provider.node_info(node_name)
+            node['total_ram'] = info['total_ram']
+            node['total_cpus'] = info['total_cpus']
+        except:
+            node['exception'] = format_exc()
+            node['is_online'] = False
+
+        self._mongo.db['nodes'].update_one({'cluster_node': node_name}, {'$set': node}, upsert=True)
+
+        self._tee(json.dumps(node, indent=4))
+
+        if not node['is_online'] and self._config.defaults['error_handling'].get('node_offline_notification'):
+            connector_access = self._config.defaults['error_handling']['node_offline_notification']
+            connector_access['add_meta_data'] = True
+            meta_data = {'name': node_name}
+            notify(self._tee, [connector_access], meta_data)
+
+    def _read_node_configs(self):
+        node_configs = {}
+        if self._config.docker.get('machines_dir'):
+            machines_dir = os.path.expanduser(self._config.docker['machines_dir'])
+            for machine_dir in os.listdir(machines_dir):
+                with open(os.path.join(machines_dir, machine_dir, 'config.json')) as f:
+                    machine_config = json.load(f)
+                node_name = machine_config['Driver']['MachineName']
+                if not machine_config['HostOptions']['EngineOptions'].get('ArbitraryFlags'):
+                    continue
+                port = None
+                try:
+                    for flag in machine_config['HostOptions']['EngineOptions']['ArbitraryFlags']:
+                        key, val = flag.split('=')
+                        if key == 'cluster-advertise':
+                            port = int(val.split(':')[-1])
+                            break
+                except:
+                    pass
+                if not port:
+                    continue
+                node_config = {
+                    'base_url': '{}:{}'.format(machine_config['Driver']['IPAddress'], port),
+                    'tls': {
+                        'verify': machine_config['HostOptions']['AuthOptions']['CaCertPath'],
+                        'client_cert': [
+                            machine_config['HostOptions']['AuthOptions']['ClientCertPath'],
+                            machine_config['HostOptions']['AuthOptions']['ClientKeyPath']
+                        ],
+                        'assert_hostname': False
+                    }
+                }
+                node_configs[node_name] = node_config
+        if self._config.docker.get('nodes'):
+            for node_name, node_config in self._config.docker['nodes'].items():
+                node_configs[node_name] = node_config
+        return node_configs
