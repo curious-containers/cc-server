@@ -27,6 +27,19 @@ class Cluster:
         except:
             pass
 
+    def create_container(self, container_id, collection):
+        node_name = self._lookup_node_name(container_id, collection)
+        try:
+            self._cluster_provider.create_container(container_id, collection)
+            description = 'Container waiting.'
+            self._state_handler.transition(collection, container_id, 'waiting', description)
+        except:
+            description = 'Container creation failed.'
+            if not self._update_node_and_check_if_online(node_name):
+                description = 'Container creation failed due to node {} being offline.'.format(node_name)
+            self._state_handler.transition(collection, container_id, 'failed', description, exception=format_exc())
+            self._cluster_provider.remove_container(node_name, container_id)
+
     def start_container(self, container_id, collection):
         node_name = self._lookup_node_name(container_id, collection)
         try:
@@ -35,8 +48,9 @@ class Cluster:
             self._mongo.db[collection].update_one({'_id': container_id}, {'$set': {'ip': ip}})
         except:
             description = 'Container start failed.'
-            self._state_handler.transition(collection, container_id, 'failed', description,
-                                           exception=format_exc())
+            if not self._update_node_and_check_if_online(node_name):
+                description = 'Container start failed due to node {} being offline.'.format(node_name)
+            self._state_handler.transition(collection, container_id, 'failed', description, exception=format_exc())
             self._cluster_provider.remove_container(node_name, container_id)
 
     def assign_existing_data_containers(self, application_container_id):
@@ -71,18 +85,6 @@ class Cluster:
             self._mongo.db['application_containers'].update({'_id': application_container_id}, {
                 '$set': {'data_container_ids': data_container_ids}
             })
-
-    def create_container(self, container_id, collection):
-        node_name = self._lookup_node_name(container_id, collection)
-        try:
-            self._cluster_provider.create_container(container_id, collection)
-            description = 'Container waiting.'
-            self._state_handler.transition(collection, container_id, 'waiting', description)
-        except:
-            description = 'Container creation failed.'
-            self._state_handler.transition(collection, container_id, 'failed', description,
-                                           exception=format_exc())
-            self._cluster_provider.remove_container(node_name, container_id)
 
     def containers(self):
         return self._cluster_provider.containers()
@@ -159,8 +161,12 @@ class Cluster:
         node_configs = self._read_node_configs()
         for node_name, node_config in node_configs.items():
             self._tee('Create node {}.'.format(node_name))
-            #self._update_node(node_name, node_config, True)
             Thread(target=self._update_node, args=(node_name, node_config, True)).start()
+
+    def _update_node_and_check_if_online(self, node_name):
+        self.update_node(node_name)
+        node = self._mongo.db['nodes'].find_one({'cluster_node': node_name}, {'is_online': 1})
+        return node['is_online']
 
     def update_node(self, node_name):
         node_configs = self._read_node_configs()
@@ -172,7 +178,10 @@ class Cluster:
             if node and node.get('is_online'):
                 self._mongo.db['nodes'].update_one(
                     {'cluster_node': node_name},
-                    {'$set': {'is_online': False}},
+                    {'$set': {
+                        'is_online': False,
+                        'debug_info': s
+                    }},
                     upsert=True
                 )
         self._update_node(node_name, node_config, False)
@@ -182,7 +191,7 @@ class Cluster:
             'cluster_node': node_name,
             'config': node_config,
             'is_online': True,
-            'exception': None,
+            'debug_info': None,
             'total_ram': None,
             'total_cpus': None
         }
@@ -193,7 +202,7 @@ class Cluster:
             node['total_ram'] = info['total_ram']
             node['total_cpus'] = info['total_cpus']
         except:
-            node['exception'] = format_exc()
+            node['debug_info'] = format_exc()
             node['is_online'] = False
 
         self._mongo.db['nodes'].update_one({'cluster_node': node_name}, {'$set': node}, upsert=True)

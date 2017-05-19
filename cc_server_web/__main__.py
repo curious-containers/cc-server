@@ -706,7 +706,7 @@ def prepare():
         master=master_socket
     )
 
-    tee('Started flask worker with pid {}'.format(os.getpid()))
+    tee('Started flask with pid {}'.format(os.getpid()))
 
     return config
 

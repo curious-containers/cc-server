@@ -33,25 +33,6 @@ class DockerClientProxy:
         with self._thread_limit:
             info = self.client.info()
 
-        #application_containers = list(self._mongo.db['application_containers'].find({
-        #    'state': {'$nin': end_states()},
-        #    'cluster_node': self.node_name
-        #}, {
-        #    'container_ram': 1
-        #}))
-
-        #data_containers = list(self._mongo.db['data_containers'].find({
-        #    'state': {'$nin': end_states()},
-        #    'cluster_node': self.node_name
-        #}, {
-        #    'container_ram': 1
-        #}))
-
-        #dc_ram = [c['container_ram'] for c in data_containers]
-        #ac_ram = [c['container_ram'] for c in application_containers]
-
-        #reserved_ram = sum(dc_ram + ac_ram)
-
         return {
             'cluster_node': self.node_name,
             'total_ram': info['MemTotal'] // (1024 * 1024),
@@ -59,6 +40,13 @@ class DockerClientProxy:
         }
 
     def inspect(self):
+        self._tee('Inspect node {}.'.format(self.node_name))
+
+        self.update_image(
+            self._config.defaults['data_container_description']['image'],
+            self._config.defaults['data_container_description'].get('registry_auth')
+        )
+
         container_name = 'inspect-{}'.format(self.node_name)
 
         self.remove_container(container_name)
@@ -186,10 +174,14 @@ class DockerProvider:
     def node_info(self, node_name):
         return self._clients[node_name].info()
 
+    def _inspect(self, node, startup):
+        if not startup:
+            node.inspect()
+
     def update_node(self, node_name, node_config, startup):
         try:
             node = self._clients[node_name]
-            node.inspect()
+            self._inspect(node, startup)
         except:
             if node_name in self._clients:
                 del self._clients[node_name]
@@ -199,13 +191,7 @@ class DockerProvider:
                 node_name=node_name,
                 node_config=node_config
             )
-            node.update_image(
-                self._config.defaults['data_container_description']['image'],
-                self._config.defaults['data_container_description'].get('registry_auth')
-            )
-            if not startup:
-                self._tee('Inspect node {}.'.format(node_name))
-                node.inspect()
+            self._inspect(node, startup)
             self._clients[node_name] = node
 
     def get_ip(self, node_name, container_id):

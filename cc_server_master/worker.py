@@ -63,12 +63,24 @@ class Worker:
             {'state': state_to_index('created')},
             {'task_id': 1, 'cluster_node': 1}
         ))
+        data_containers = list(self._mongo.db['data_containers'].find(
+            {'state': state_to_index('created')},
+            {'cluster_node': 1}
+        ))
 
         nodes = {}
-
-        for application_container in application_containers:
-            node_name = application_container['cluster_node']
+        i = j = 0
+        for container in application_containers:
+            node_name = container['cluster_node']
             nodes[node_name] = set()
+            i += 1
+
+        for container in data_containers:
+            node_name = container['cluster_node']
+            nodes[node_name] = set()
+            j += 1
+
+        self._tee('Scheduled:\n{}\tApplication Containers\n{}\tData Containers'.format(i, j))
 
         for application_container in application_containers:
             node_name = application_container['cluster_node']
@@ -80,6 +92,17 @@ class Worker:
                 registry_auth = (ra['username'], ra['password'])
             nodes[node_name].update([(
                 task['application_container_description']['image'],
+                registry_auth
+            )])
+
+        for data_container in data_containers:
+            node_name = data_container['cluster_node']
+            registry_auth = None
+            if self._config.defaults['data_container_description'].get('registry_auth'):
+                ra = self._config.defaults['data_container_description']['registry_auth']
+                registry_auth = (ra['username'], ra['password'])
+            nodes[node_name].update([(
+                self._config.defaults['data_container_description']['image'],
                 registry_auth
             )])
 
@@ -107,21 +130,19 @@ class Worker:
             {'_id': 1}
         )
 
-        i = j = 0
         threads = []
         for ac in application_containers:
             t = Thread(target=self._cluster_create_application_container, args=(ac['_id'],))
             threads.append(t)
             t.start()
-            i += 1
+
         for dc in data_containers:
             t = Thread(target=self._cluster_create_data_container, args=(dc['_id'],))
             threads.append(t)
             t.start()
-            j += 1
+
         for t in threads:
             t.join()
-        self._tee('Scheduled:\n{}\tApplication Containers\n{}\tData Containers'.format(i, j))
 
     def _scheduling_loop(self):
         while True:

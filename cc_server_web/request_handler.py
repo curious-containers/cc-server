@@ -7,7 +7,7 @@ from cc_commons.authorization import Authorize
 from cc_commons.database import Mongo
 from cc_commons.helper import prepare_response, prepare_input, get_ip
 from cc_commons.schemas import query_schema, tasks_schema, callback_schema, tasks_cancel_schema, nodes_schema
-from cc_commons.states import is_state, StateHandler
+from cc_commons.states import is_state, end_states, StateHandler
 
 
 def task_group_prototype():
@@ -127,7 +127,37 @@ class RequestHandler:
     @log
     @auth(require_admin=False, require_credentials=False)
     def get_nodes(self):
-        return jsonify({})
+        nodes = self._mongo.db['nodes'].find({}, {
+            'cluster_node': 1,
+            'is_online': 1,
+            'debug_info': 1,
+            'total_ram': 1,
+            'total_cpus': 1
+        })
+        result = []
+        for node in nodes:
+            del node['_id']
+            node_name = node['cluster_node']
+            application_containers = list(self._mongo.db['application_containers'].find({
+                'state': {'$nin': end_states()},
+                'cluster_node': node_name
+            }, {
+                'container_ram': 1
+            }))
+            data_containers = list(self._mongo.db['data_containers'].find({
+                'state': {'$nin': end_states()},
+                'cluster_node': node_name
+            }, {
+                'container_ram': 1
+            }))
+
+            reserved_dc_ram = [c['container_ram'] for c in data_containers]
+            reserved_ac_ram = [c['container_ram'] for c in application_containers]
+
+            node['reserved_ram'] = sum(reserved_dc_ram + reserved_ac_ram)
+            result.append(node)
+
+        return jsonify(result)
 
     @log
     @auth(require_admin=False)

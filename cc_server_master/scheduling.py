@@ -61,7 +61,6 @@ class Scheduler:
             }, {
                 'container_ram': 1
             }))
-
             data_containers = list(self._mongo.db['data_containers'].find({
                 'state': {'$nin': end_states()},
                 'cluster_node': node_name
