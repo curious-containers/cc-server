@@ -1,5 +1,6 @@
 import requests
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
+from traceback import format_exc
 
 
 def _auth(http_auth):
@@ -38,4 +39,4 @@ def notify(tee, servers, meta_data):
             )
             r.raise_for_status()
         except:
-            tee('Could not notify server: {}'.format(connector_access))
+            tee('Could not notify server {}: {}'.format(connector_access['url'], format_exc()))

@@ -120,7 +120,7 @@ class RequestHandler:
         for node in json_input['nodes']:
             self._master.send_json({
                 'action': 'update_node_status',
-                'data': {'node_name': node['name']}
+                'data': {'node_name': node['cluster_node']}
             })
         return jsonify({})
 
@@ -155,9 +155,12 @@ class RequestHandler:
             reserved_ac_ram = [c['container_ram'] for c in application_containers]
 
             node['reserved_ram'] = sum(reserved_dc_ram + reserved_ac_ram)
+            node['active_data_containers'] = reserved_dc_ram
+            node['active_application_containers'] = reserved_ac_ram
+
             result.append(node)
 
-        return jsonify(result)
+        return jsonify({'nodes': result})
 
     @log
     @auth(require_admin=False)

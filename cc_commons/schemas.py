@@ -257,9 +257,9 @@ nodes_schema = {
                 'anyOf': [{
                     'type': 'object',
                     'properties': {
-                        'name': {'type': 'string'}
+                        'cluster_node': {'type': 'string'}
                     },
-                    'required': ['name'],
+                    'required': ['cluster_node'],
                     'additionalProperties': False
                 }]
             }

@@ -4,7 +4,7 @@ Version Management
 This site contains a Docker compatibility table and a change log, including migration instructions.
 
 All Curious Container components (CC-Server, CC-Container-Worker and the CC-Images) have a version tag.
-If you are using CC-Server 0.10 for example, you should use the other components with the exact same version number.
+If you are using CC-Server 0.11 for example, you should use the other components with the exact same version number.
 Docker images with a specific version tag can be pulled from a Docker registry and software versions with a certain tag
 can be pulled from git.
 
@@ -26,10 +26,20 @@ CC-Server    Docker
 0.8          12
 0.9          12
 0.10         12
+0.11         12
 ===========  =========
 
 Change Log
 ----------
+
+Version 0.11
+^^^^^^^^^^^^
+
+- Major refactoring: using zeromq instead of stance and fully decoupled the flask processes from the master process. The code base is now split into 4 packages. The log and master processes won't start automatically now, see admin docs for updated installation instructions.
+- Improved cluster node status checks.
+- Improved compose configuration.
+- /nodes endpoint JSON format changed.
+- Configuration TOML format changed.
 
 Version 0.10
 ^^^^^^^^^^^^

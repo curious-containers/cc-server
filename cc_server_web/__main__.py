@@ -121,7 +121,7 @@ def get_nodes():
     """
     .. :quickref: User API; Query cluster nodes
 
-    Query the status of all nodes in the cluster. Dead nodes will appear in a separate list.
+    Query the status of all nodes in the cluster.
 
     **Example request**
 
@@ -138,20 +138,21 @@ def get_nodes():
         Content-Type: application/json
 
         {
-            "dead_nodes": [],
-            "healthy_nodes": [{
+            "nodes": [{
                 "active_application_containers": [],
                 "active_data_containers": [],
-                "name": "cc-node2",
-                "reserved_cpus": null,
+                "cluster_node": "cc-node2",
+                "debug_info": null,
+                "is_online": true,
                 "reserved_ram": 0,
                 "total_cpus": 2,
                 "total_ram": 2002
             }, {
                 "active_application_containers": [],
                 "active_data_containers": [],
-                "name": "cc-node1",
-                "reserved_cpus": null,
+                "cluster_node": "cc-node1",
+                "debug_info": null,
+                "is_online": true,
                 "reserved_ram": 0,
                 "total_cpus": 2,
                 "total_ram": 2002
