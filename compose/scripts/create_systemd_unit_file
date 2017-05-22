@@ -47,4 +47,4 @@ ExecStop=/bin/bash ${DIR}/compose/scripts/stop_cc_server -f ${DIR}/compose/docke
 WantedBy=multi-user.target
 "
 
-echo "${file_content}" > cc-server.service
+echo "${file_content}" > /etc/systemd/system/cc-server.service
