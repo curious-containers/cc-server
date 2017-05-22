@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+while [[ $# -gt 1 ]]; do
+    key="$1"
+    case $key in
+        -f|--file)
+        COMPOSE_FILE="$2"
+        shift
+        ;;
+        *)
+        ;;
+    esac
+    shift
+done
+
+command=docker-compose
+if [ ! -z "$COMPOSE_FILE" ]; then
+    command="${command} -f ${COMPOSE_FILE}"
+fi
+
+${command} up cc-server-web

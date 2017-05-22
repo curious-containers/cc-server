@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+while [[ $# -gt 1 ]]; do
+    key="$1"
+    case $key in
+        -f|--file)
+        COMPOSE_FILE="$2"
+        shift
+        ;;
+        *)
+        ;;
+    esac
+    shift
+done
+
+services=(cc-server-web cc-server-master cc-server-log mongo-seed mongo dind registry)
+
+command=docker-compose
+if [ ! -z "$COMPOSE_FILE" ]; then
+    command="${command} -f ${COMPOSE_FILE}"
+fi
+
+for service in "${services[@]}"; do
+    ${command} kill ${service}
+    ${command} rm -f ${service}
+done
