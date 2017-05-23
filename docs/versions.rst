@@ -36,6 +36,7 @@ Version 0.11
 ^^^^^^^^^^^^
 
 - Major refactoring: using zeromq instead of stance and fully decoupled the flask processes from the master process. The code base is now split into 4 packages. The log and master processes won't start automatically now, see admin docs for updated installation instructions.
+- Using gunicorn in cc-container-worker to allow for multiple processes serving files from a data container.
 - Improved cluster node status checks.
 - Improved compose configuration.
 - /nodes endpoint JSON format changed.
