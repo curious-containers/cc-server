@@ -22,7 +22,7 @@ services:
       - ../cc_server_master:/opt/cc_server_master:ro
       - ../cc_commons:/opt/cc_commons:ro
       - .:/root/.config/curious-containers:ro
-      - ~/.docker/machine/machines:/root/.docker/machine/machines:ro
+      - ~/.docker/machine:/root/.docker/machine:ro
     links:
       - mongo
       - dind
