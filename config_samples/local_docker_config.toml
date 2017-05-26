@@ -2,19 +2,19 @@
 # ------------------------------------------------
 
 [server_web]
-external_url = 'http://172.17.0.1:8000'
-bind_host = '0.0.0.0'
+external_url = 'https://cc.my-domain.tld/cc/'
+bind_host = '127.0.0.1'
 bind_port = 8000
 
 [server_master]
 external_url = 'tcp://localhost:8001'
-bind_host = '0.0.0.0'
+bind_host = '127.0.0.1'
 bind_port = 8001
 scheduling_interval_seconds = 60
 
 [server_log]
 external_url = 'tcp://localhost:8002'
-bind_host = '0.0.0.0'
+bind_host = '127.0.0.1'
 bind_port = 8002
 log_dir = '~/.cc_server/logs/'
 suppress_stdout = false

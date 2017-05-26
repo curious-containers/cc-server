@@ -35,8 +35,8 @@ base_url = 'dind:2375'
 entry_point = 'python3 /opt/container_worker'
 
 [defaults.data_container_description]
-image = 'docker.io/curiouscontainers/cc-image-fedora:0.10'
-#image = 'registry:5000/curiouscontainers/cc-image-fedora:0.10'
+image = 'docker.io/curiouscontainers/cc-image-fedora:0.11'
+#image = 'registry:5000/curiouscontainers/cc-image-fedora:0.11'
 entry_point = 'python3 /opt/container_worker'
 container_ram = 512
 
