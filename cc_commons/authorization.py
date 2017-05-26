@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from flask import request
 
-from cc_commons.helper import generate_secret, get_ip
+from cc_commons.helper import generate_secret, get_ip, equal_keys
 
 
 class Authorize:

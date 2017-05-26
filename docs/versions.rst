@@ -26,7 +26,7 @@ CC-Server    Docker
 0.8          12
 0.9          12
 0.10         12
-0.11         12
+0.11         17.04
 ===========  =========
 
 Change Log
@@ -39,6 +39,7 @@ Version 0.11
 - Using gunicorn in cc-container-worker to allow for multiple processes serving files from a data container.
 - Improved cluster node status checks.
 - Improved compose configuration.
+- Tokens are stored salted and hashed now.
 - /nodes endpoint JSON format changed.
 - Configuration TOML format changed.
 
