@@ -2,7 +2,7 @@ version: "2"
 services:
   cc-server-web:
     build: ./cc-server-image
-    command: "gunicorn -w 4 wsgi:application --bind 0.0.0.0:8000"
+    command: "python3 -u /root/.config/curious-containers/cc-server-web/init.py"
     ports:
       - "8000:8000"
     volumes:

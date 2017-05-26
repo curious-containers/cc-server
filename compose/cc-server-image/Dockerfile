@@ -5,4 +5,3 @@ RUN apt-get update \
 && pip3 install --no-input --upgrade toml jsonschema zmq requests pymongo docker-py flask gunicorn cryptography
 
 ENV PYTHONPATH $PYTHONPATH:/opt
-ENV PYTHONPATH $PYTHONPATH:/root/.config/curious-containers/cc-server-web

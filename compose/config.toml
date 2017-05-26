@@ -2,6 +2,7 @@
 external_url = 'http://172.18.0.1:8000'
 bind_host = '0.0.0.0'
 bind_port = 8000
+#num_workers = 4
 
 [server_master]
 external_url = 'tcp://cc-server-master:8001'

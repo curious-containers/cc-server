@@ -2,13 +2,17 @@
 
 import os
 import sys
-from multiprocessing import Process
+from multiprocessing import Process, cpu_count
 
 sys.path.insert(0, os.path.split(os.path.split(os.path.abspath(__file__))[0])[0])
 
+from cc_commons.configuration import Config
 from cc_server_log.__main__ import main as log_main
 from cc_server_master.__main__ import main as master_main
-from cc_server_web.__main__ import main as web_main
+from cc_server_web.boilerplate import WebApp
+
+
+config = Config()
 
 log = Process(target=log_main)
 log.daemon = True
@@ -18,4 +22,12 @@ master = Process(target=master_main)
 master.daemon = True
 master.start()
 
-web_main()
+options = {
+    'bind': '{}:{}'.format(
+        config.server_web['bind_host'],
+        config.server_web['bind_port']
+    ),
+    'workers': config.server_web.get('num_workers', cpu_count())
+}
+
+WebApp(options).run()

@@ -467,6 +467,7 @@ cc_server_config_schema = {
                 'external_url': {'type': 'string'},
                 'bind_host': {'type': 'string'},
                 'bind_port': {'type': 'integer'},
+                'num_workers': {'type': 'integer'}
             },
             'required': ['external_url', 'bind_host', 'bind_port'],
             'additionalProperties': False
