@@ -2,7 +2,7 @@
 external_url = 'http://172.18.0.1:8000'
 bind_host = '0.0.0.0'
 bind_port = 8000
-#num_workers = 4
+# num_workers = 4
 
 [server_master]
 external_url = 'tcp://cc-server-master:8001'
@@ -27,7 +27,7 @@ db = 'db'
 [docker]
 thread_limit = 8
 api_timeout = 30
-#machines_dir = '~/.docker/machine/machines'
+# machines_dir = '~/.docker/machine/machines'
 
 [docker.nodes.dind]
 base_url = 'dind:2375'
@@ -37,7 +37,7 @@ entry_point = 'python3 /opt/container_worker'
 
 [defaults.data_container_description]
 image = 'docker.io/curiouscontainers/cc-image-fedora:0.11'
-#image = 'registry:5000/curiouscontainers/cc-image-fedora:0.11'
+# image = 'registry:5000/curiouscontainers/cc-image-fedora:0.11'
 entry_point = 'python3 /opt/container_worker'
 container_ram = 512
 
