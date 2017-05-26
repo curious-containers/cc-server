@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from flask import request
 
-from cc_commons.helper import generate_secret, equal_keys, get_ip
+from cc_commons.helper import generate_secret, get_ip
 
 
 class Authorize:
@@ -16,18 +16,11 @@ class Authorize:
 
     def create_user(self, username, password, is_admin):
         salt = urandom(16)
-        kdf = PBKDF2HMAC(
-            algorithm=SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000,
-            backend=default_backend()
-        )
+        kdf = _kdf(salt)
         user = {
             'username': username,
             'password': kdf.derive(password.encode('utf-8')),
             'salt': salt,
-            'hash_function': 'SHA256',
             'is_admin': is_admin
         }
         self._mongo.db['users'].update_one({'username': username}, {'$set': user}, upsert=True)
@@ -92,13 +85,16 @@ class Authorize:
         self._tee('Unverified login attempt: added block entry!')
 
     def issue_token(self):
+        salt = urandom(16)
+        kdf = _kdf(salt)
         token = generate_secret()
         username = request.authorization.username
         ip = get_ip()
         self._mongo.db['tokens'].insert_one({
             'username': username,
             'ip': ip,
-            'token': token,
+            'salt': salt,
+            'token': kdf.derive(token.encode('utf-8')),
             'timestamp': time()
         })
         return token
@@ -106,27 +102,35 @@ class Authorize:
     def _verify_user_by_token(self, user, token, ip):
         tokens_valid_for_seconds = self._config.defaults['authorization']['tokens_valid_for_seconds']
         self._mongo.db['tokens'].delete_many({'timestamp': {'$lt': time() - tokens_valid_for_seconds}})
-        t = self._mongo.db['tokens'].find_one({
-            'username': user['username'],
-            'ip': ip,
-            'token': token
-        })
-        if t:
-            return True
+        cursor = self._mongo.db['tokens'].find(
+            {'username': user['username'], 'ip': ip},
+            {'token': 1, 'salt': 1}
+        )
+        for c in cursor:
+            try:
+                kdf = _kdf(c['salt'])
+                kdf.verify(token.encode('utf-8'), c['token'])
+                return True
+            except:
+                pass
         return False
 
 
 def _verify_user_by_credentials(user, password):
-    kdf = PBKDF2HMAC(
-        algorithm=SHA256(),
-        length=32,
-        salt=user['salt'],
-        iterations=100000,
-        backend=default_backend()
-    )
+    kdf = _kdf(user['salt'])
     try:
         kdf.verify(password.encode('utf-8'), user['password'])
     except:
         return False
 
     return True
+
+
+def _kdf(salt):
+    return PBKDF2HMAC(
+        algorithm=SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+        backend=default_backend()
+    )

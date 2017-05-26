@@ -1,6 +1,5 @@
 from os import urandom
 from binascii import hexlify
-from hmac import compare_digest
 from bson.objectid import ObjectId
 from flask import request
 
@@ -19,10 +18,6 @@ def get_ip():
 
 def generate_secret():
     return hexlify(urandom(24)).decode('utf-8')
-
-
-def equal_keys(a, b):
-    return compare_digest(a, b)
 
 
 def _prepare_input(data, replace):
