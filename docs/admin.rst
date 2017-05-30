@@ -129,8 +129,15 @@ Configuration
 
 *The following commands assume being inside the cc-server directory.*
 
-Create a config.toml file. Visit the `TOML specification <https://github.com/toml-lang/toml>`__ for further information
-about the file format. Use one of the included sample configuriation as a starting point. If you are connecting
+CC-Server uses `flask <http://flask.pocoo.org/>`__ to run a web server providing a REST interface. Since *flask*
+implements the Python `WSGI <https://www.python.org/dev/peps/pep-0333/>`__ standard, different configuration options are
+available. All configuration have in common, that exactly one instance of **cc_server_log** and one instance of
+**cc_server_master** should be running. The **cc_server_web** can be executed via **gunicorn**, Apache2 with
+**mod-wsgi-py3** or other external WSGI servers. These servers have multiprocessing/multithreading capabilities and
+therefore provide better performance than the development server integrated in flask/werkzeug.
+
+First create a config.toml file. Visit the `TOML specification <https://github.com/toml-lang/toml>`__ for further
+information on the file format. Use one of the included sample configuriation as a starting point. If you are connecting
 CC-Server to a local docker-engine:
 
 .. code-block:: bash
@@ -152,249 +159,67 @@ Else, if you are connection CC-Server to a Docker cluster created with **docker-
    cp sample_docker_machine_config.toml config.toml
 
 
-server
-""""""
-
-CC-Server uses `flask <http://flask.pocoo.org/>`__ to run a light-weight web server providing a REST interface.
-When starting the server it connects to an **internal_port** with port 5000 as default value. The server is then
-reachable at localhost:5000 and requests can be sent to the API. This **internal_port** should never be exposed to
-internet (configure a firewall to ensure this), because flask does not by default provide TLS encryption for the HTTP
-communication. The external address, specified as **host**, must be reachable by the containers spawned by CC-Server.
-In the case a local docker-engine is used, the host's IP adress for the Docker Bridge interface is reachable by the
-containers. Run *ifconfig* in a shell and look for the appropriate network interface (e.g. docker0) and IP
-(e.g. 172.17.0.1). With this configuration it is not necessary to expose the host to the internet. It should only be
-used for development and testing purposes.
-
-Another mandatory configuration parameter is **scheduling_interval_seconds**. CC-Server will run a scheduling process
-after the time specified has passed. It will only run if there are active containers in the database. This feature has
-been implemented to periodically check for containers that exited unexpectedly.
-
-An optional file logging for CC-Server can be enabled by specifying a logging directory as **log_dir**. By setting the
-optional field **suppress_stdout** to *true*, printing to the standard output can be disabled. This setting works
-independently of the file logging mechanism. Both output mechanisms carry the same information.
+server_web
+""""""""""
 
 .. code-block:: toml
 
-   [server]
-   host = 'http://172.17.0.1:5000'
-   internal_port = 5000
+   [server_web]
+   external_url = 'http://172.17.0.1:8000'
+   bind_host = '127.0.0.1'
+   bind_port = 8000
+   num_workers = 4
+
+
++---------------+------------------+-----+------------------------------------------------------------------+
+| name          | type             | req | description                                                      |
++===============+==================+=====+==================================================================+
+| external_url  | string           | yes | | Containers started by cc_server_master will send               |
+|               |                  |     | | callbacks to this url. Useful values are:                      |
+|               |                  |     | | **http://172.17.0.1:8000** (local docker-engine config)        |
+|               |                  |     | | **https://domain.tld/cc** (through proxy, e.g. Apache2)        |
++---------------+------------------+-----+------------------------------------------------------------------+
+| bind_host     | string           | yes | | Server binds to this host. Useful values are:                  |
+|               |                  |     | | **127.0.0.1** (accessible via loopback interface)              |
+|               |                  |     | | **0.0.0.0** (accessible via all interfaces,                    |
+|               |                  |     | | e.g. docker-compose config)                                    |
++---------------+------------------+-----+------------------------------------------------------------------+
+| bind_port     | integer          | yes | | Server binds to this port.                                     |
++---------------+------------------+-----+------------------------------------------------------------------+
+| num_workers   | integer          | no  | | Used by gunicorn to start multiple worker processes.           |
+|               |                  |     | | Default is **multiprocessing.cpu_count()**.                    |
++---------------+------------------+-----+------------------------------------------------------------------+
+
+
+server_master
+"""""""""""""
+
+.. code-block:: toml
+
+   [server_master]
+   external_url = 'tcp://localhost:8001'
+   bind_host = '127.0.0.1'
+   bind_port = 8001
    scheduling_interval_seconds = 60
-   log_dir = '~/.cc_server/'
-   suppress_stdout = false
 
 
-For a production setup it is recommended to use Apache2 with mod_wsgi. In this case it is not necessary to specify an
-**internal_port** and it will be ignored if already set. With mod_wsgi the standard output of CC-Server is redirected to
-the Apache2 error log. To prevenet polluting the error log with the standard output information, it is recommended to
-set **suppress_stdout** to *true* and to specify a **log_dir** instead. The **host** must be set to the address given in
-the Apache2 virtual host config. Take a look at the `Apache 2 configuration <admin.html#apache-2-wsgi>`__ below for more
-information.
-
-.. code-block:: toml
-
-   [server]
-   host = 'https://my-domain.tld/cc'
-   scheduling_interval_seconds = 60
-   log_dir = '~/.cc_server/'
-   suppress_stdout = true
-
-
-CC-Server spawns two background processes, called tee and worker, on startup. It is necessary to specify a port for
-each of the processes as **tee_port** and **worker_port**. The only requirements are, that the ports are distinct from
-each other, not yet occupied by another process and that the ports are not restricted (port numbers <1024 are
-restricted). In addition an arbitrary **secret** must be specified, which is used to authenticate other CC-Server
-processes with the background processes.
-
-.. code-block:: toml
-
-   [ipc]
-   tee_port = 14736
-   worker_port = 14737
-   secret = 'SECRET'
-
-
-mongo
-"""""
-
-Connect CC-Server to the previously installed MongoDB server. Assuming the database server is running the
-same machine as CC-Server, the **host** is specified as localhost and the standard port is 27017. The **username**,
-**password** and **db** must be changed according to the privious MongoDB settings.
-
-.. code-block:: toml
-
-   [mongo]
-   username = 'ccdbAdmin'
-   password = 'PASSWORD'
-   host = 'localhost'
-   port = 27017
-   db = 'ccdb'
-
-
-docker
-""""""
-
-CC-Server can use a local docker-engine or a Docker cluster in order to run Docker containers. If the local
-docker-engine is used, **base_url** is set to *unix://var/run/docker.sock*. CC-Server is a highly parallelized
-application, which spawns hundrets of threads. The number of threads, accessing the docker-engine in parallel, must be
-limited by setting **thread_limit** in order to avoid severe Docker bugs (currently version 12). The default value *8*
-is a reasonable choice, but higher values could speed up the processing times. In addition an optional **api_timeout**
-parameter can be set, to limit the time of requests to a Docker engine. Shorter values can speed up error detection but
-can on the other hand increase the likelihood of false positives.
-
-.. code-block:: toml
-
-   [docker]
-   thread_limit = 8
-   api_timeout = 30
-
-   [docker.nodes.local]
-   base_url = 'unix://var/run/docker.sock'
-
-
-If using a Docker cluster, the configuration becomes more complex. The **base_url** is changed to the IP and PORT of the
-specific docker-engine. A Docker Overlay Network must be created beforehand and the name of the network is given as **net**.
-The API of a Docker Manager is usually protected by a TLS encryption. When using Docker Machine for the Swarm setup, the
-certificate files can be found in the system users home directory at *~/.docker/machine/machines*. CC-Server is using
-the docker-py Python package. Take a look at the official
-`docker-py documentation <http://docker-py.readthedocs.io/en/stable/tls/>`__ for more information about TLS options. Delete
-the **docker.nodes.<node_name>.tls** sections from the configuration file if not required.
-
-.. code-block:: toml
-
-   [docker]
-   thread_limit = 8
-   api_timeout = 30
-   net = 'cc-overlay-network'
-
-   [docker.nodes.cc-node1]
-   base_url = '192.168.99.101:2376'
-
-   [docker.nodes.cc-node1.tls]
-   verify = '/home/USER/.docker/machine/machines/cc-node1/ca.pem'
-   client_cert = [
-       '/home/USER/.docker/machine/machines/cc-node1/cert.pem',
-       '/home/USER/.docker/machine/machines/cc-node1/key.pem'
-   ]
-   assert_hostname = false
-
-   [docker.nodes.cc-node2]
-   base_url = '192.168.99.102:2376'
-
-   [docker.nodes.cc-node2.tls]
-   verify = '/home/USER/.docker/machine/machines/cc-node2/ca.pem'
-   client_cert = [
-       '/home/USER/.docker/machine/machines/cc-node2/cert.pem',
-       '/home/USER/.docker/machine/machines/cc-node2/key.pem'
-   ]
-   assert_hostname = false
-
-
-If **docker-machine** has been used to setup the cluster, the following shorthand configuration can be used. The
-**machines_dir** parameter should point to a directory automatically created by docker-machine, containing subdirectories
-for all cluster nodes. CC-Server will read all necessary information from the corresponding node directories and the
-resuling cluster configuration should be identical to what has been specified above.
-
-.. code-block:: toml
-
-   [docker]
-   thread_limit = 8
-   api_timeout = 30
-   net = 'cc-overlay-network'
-   machines_dir = '~/.docker/machine/machines'
-
-
-defaults
-""""""""
-
-*The defaults section in the TOML configuration is for values, that usually do not need to be change in order to run
-CC-Server.*
-
-The **application_container_description** fields contain information about how to run an application container. The
-images contain CC-Container-Worker, which is usually stored in the image file system at */opt/container_worker*.
-The appropriate command to start the worker is given as **entry_point**. This default value can be overwritten by
-specifying a different **entry_point** in a task.
-
-.. code-block:: toml
-
-   [defaults.application_container_description]
-   entry_point = 'python3 /opt/container_worker'
-
-
-The **data_container_description** fields contain information about how to run a data container. CC-Image-Ubuntu and
-CC-Image-Fedora are both supported as data container images. Specify the URL of one of theses images, or a customized
-image, in the **image** field. The images contain CC-Container-Worker, which is usually stored in the image file system
-at */opt/container_worker*. The appropriate command to start the worker is given as **entry_point**. The field
-**container_ram** specifies the amount of memory for a data container in Megabytes.
-
-.. code-block:: toml
-
-   [defaults.data_container_description]
-   image = 'docker.io/curiouscontainers/cc-image-ubuntu:0.10'
-   entry_point = 'python3 /opt/container_worker'
-   container_ram = 512
-
-
-If a custom data container image is specified in **data_container_description** and the access to this image in a Docker
-registry is restricted, the appropriate **username** and **password** have to specified in **registry_auth**. The
-**registry_auth** subsection should be deleted from the configuration file if not required.
-
-.. code-block:: toml
-
-   [defaults.data_container_description.registry_auth]
-   username = 'REGISTRY_USER'
-   password = 'PASSWORD'
-
-
-Changing the scheduling behaviour of CC-Server can be achieved by changing the values the **scheduling_strategies**
-subsection. Currently only the **container_allocation** strategy can be changed. The value of **container_allocation** must
-be either *spread* or *binpack*. The *spread* strategy allocates a new container on a Swarm Node with the highest amount
-of free RAM and *binpack* allocates a new container on a Swarm Node with the lowest amount of free RAM still suitable for
-the container.
-
-.. code-block:: toml
-
-   [defaults.scheduling_strategies]
-   container_allocation = 'spread'
-
-
-CC-Server is fault tolerant, in the sense that faulty tasks are automatically restarted. Sometimes a restart will not fix
-the problem, because the task configuration is wrong or a resource is not available. In order to avoid infite restart
-loops, the number of restarts must be limited by setting the **max_task_trials** value in the **error_handling** subsection.
-The **dead_node_validation** field should be set to *true* for improved error handling. If a node in the Docker cluster
-is not responding or behaving incorrect, these errors will be detected and the node will be ignored by the CC-Server
-scheduler.
-
-.. code-block:: toml
-
-   [defaults.error_handling]
-   max_task_trials = 3
-   dead_node_invalidation = true
-
-
-If **dead_node_invalidation** is set to *true*, an entirely optional notification mechanism can be activated. This
-**dead_node_notification** will send an HTTP POST request, containing a JSON object with the **name** of the
-corresponding cluster node, to the specified **url**. Setting authentication information in the **auth** field is
-optional. Remove the complete **dead_node_invalidation** section from the config file if not required.
-
-.. code-block:: toml
-
-   [defaults.error_handling.dead_node_notification]
-   url = 'https://my-domain.tld/cluster'
-   auth = {'auth_type' = 'basic', 'username' = 'admin', 'password' = 'PASSWORD'}
-
-
-The authorization module of CC-Server provides mechanism to avoid API exploitation. After a certain number of login attemps
-with wrong user credentials, the authorization for this user will be blocked for a certain amount of time. These values
-can be set as **number_login_attempts** and **block_for_seconds** in the **authorization** subsection. A user can request
-a login token, which can be used instead of the original password for a certain amount of time specified as
-**tokens_valid_for_seconds**.
-
-.. code-block:: toml
-
-   [defaults.authorization]
-   num_login_attempts = 3
-   block_for_seconds = 120
-   tokens_valid_for_seconds = 172800
++-----------------------------+------------------+-----+---------------------------------------------------------------+
+| name                        | type             | req | description                                                   |
++=============================+==================+=====+===============================================================+
+| external_url                | string           | yes | | cc_server_web will send zmq messages to this url.           |
+|                             |                  |     | | Useful values are:                                          |
+|                             |                  |     | | **tcp://localhost:8001**                                    |
+|                             |                  |     | | **tcp://cc-server-master:8001** (docker-compose config)     |
++-----------------------------+------------------+-----+---------------------------------------------------------------+
+| bind_host                   | string           | yes | | Server binds to this host. Useful values are:               |
+|                             |                  |     | | **127.0.0.1** (accessible via loopback interface)           |
+|                             |                  |     | | **0.0.0.0** (accessible via all interfaces,                 |
+|                             |                  |     | | e.g. docker-compose config)                                 |
++-----------------------------+------------------+-----+---------------------------------------------------------------+
+| bind_port                   | integer          | yes | | Server binds to this port.                                  |
++-----------------------------+------------------+-----+---------------------------------------------------------------+
+| scheduling_interval_seconds | integer          | yes | | TODO                                                        |
++-----------------------------+------------------+-----+---------------------------------------------------------------+
 
 
 Create User Accounts

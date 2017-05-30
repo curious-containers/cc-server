@@ -21,7 +21,7 @@ Install additional Python3 packages:
    pip3 install --user --upgrade flask sphinx sphinx-autobuild sphinxcontrib-httpdomain sphinx_rtd_theme bibtex-pygments-lexer
 
 
-Run *make* inside the docs-src directory:
+Run *make* inside the *docs* directory:
 
 .. code-block:: bash
 
@@ -31,27 +31,30 @@ Run *make* inside the docs-src directory:
 Docker Compose
 --------------
 
-Curious Containers provides a quick way to setup a development envrionment via Docker Compose. First
-`install the latest docker-engine <https://docs.docker.com/engine/installation/linux/ubuntulinux/>`__ and
+Curious Containers provides a quick way to setup CC-Server via Docker Compose. First
+`install the latest docker-engine <https://docs.docker.com/engine/installation/>`__ and
 `Docker Compose <https://docs.docker.com/compose/install/>`__.
 
-Clone the latest CC-Server code and change into the compose directory.
+Clone the latest CC-Server code and change into the compose directory. Then copy or link the sample configuration files
+from the config_samples directory to the current working directory. The configuration should work out of the box, but
+may as well be customized, for example to prevent conflicting ports with other applications.
 
 .. code-block:: bash
 
    git clone https://github.com/curious-containers/cc-server.git
    cd cc-server/compose
+   cp config_samples/* .
 
 
-In order to start CC-Server run the following command. This will create Containers for MongoDB, Docker Registry,
+In order to start CC-Server run **scripts/start_cc_server**. This will create Containers for MongoDB, Docker Registry,
 Docker-In-Docker, CC-Server-Log, CC-Server-Master, CC-Server-Web. CC-Server-Web will be available as *localhost:8000*.
-Using the Docker Registry is optional. It is available as *localhost:5000*. During the setup MongoDB user credentials
+Using the Docker Registry is optional. It is available at *localhost:5000*. During the setup MongoDB user credentials
 are read from the **config.toml** file and the CC-Server user credentials are read from the **credentials.toml** file.
 These credentials can be changed before running *docker-compose*.
 
 .. code-block:: bash
 
-   docker-compose up cc-server-web
+   scripts/start_cc_server
 
 
 The Docker container for CC-Server will incorporate the CC-Server source code from the cloned git directory.
@@ -62,7 +65,9 @@ delete this directory.
 
 .. code-block:: bash
 
-   scripts/compose-shutdown
+   scripts/stop_cc_server
+
+   # optional: delete all data
    sudo rm -rf ~/.cc_server_compose
 
 
