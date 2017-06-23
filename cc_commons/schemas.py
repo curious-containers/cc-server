@@ -428,7 +428,7 @@ callback_schema = {
                         'result_file_sizes': {
                             'type': 'object',
                             'patternProperties': {
-                                '^[a-zA-Z0-9_\-]+$': {
+                                '^[a-zA-Z0-9_-]+$': {
                                     'anyOf': [
                                         {'type': 'null'},
                                         _file_size
@@ -517,7 +517,7 @@ cc_server_config_schema = {
                 'nodes': {
                     'type': 'object',
                     'patternProperties': {
-                        '^[a-zA-Z0-9_\-]+$': {
+                        '^[a-zA-Z0-9_-]+$': {
                             'type': 'object',
                             'properties': {
                                 'base_url': {'type': 'string'},
