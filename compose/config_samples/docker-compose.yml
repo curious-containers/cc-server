@@ -64,6 +64,16 @@ services:
       - ~/.cc_server_compose/dind/docker:/var/lib/docker
     links:
       - registry
+      - file-server
+    tty: true
+
+  file-server:
+    build: ./cc-server-image
+    command: "gunicorn -w 4 -b 0.0.0.0:80 file_server.__main__:app"
+    volumes:
+      - ./file_server:/opt/file_server:ro
+      - ~/.cc_server_compose/input_files:/root/input_files:ro
+      - ~/.cc_server_compose/result_files:/root/result_files
     tty: true
 
   registry:
