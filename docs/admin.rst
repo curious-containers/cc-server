@@ -72,8 +72,11 @@ The following figure shows a possible setup of Curious Containers with Docker Sw
 |
 
 
-CC-Server Installation
-----------------------
+CC-Server Installation (manual)
+-------------------------------
+
+*The following guide shows manual installation steps for CC-Server. For an easier deployment with docker-compose, skip
+to the* `docker-compose deployment guide <admin.html#cc-server-deployment-docker-compose>`__ *below.*
 
 The following installation instructions work with Ubuntu, but can be customized for other Linux operating systems.
 
@@ -120,7 +123,7 @@ Clone a specific version from the Github repository:
 
 .. code-block:: bash
 
-   git clone -b 0.10 --depth 1 https://github.com/curious-containers/cc-server
+   git clone -b 0.11 --depth 1 https://github.com/curious-containers/cc-server
    cd cc-server
 
 
@@ -131,10 +134,12 @@ Configuration
 
 CC-Server uses `flask <http://flask.pocoo.org/>`__ to run a web server providing a REST interface. Since *flask*
 implements the Python `WSGI <https://www.python.org/dev/peps/pep-0333/>`__ standard, different configuration options are
-available. All configuration have in common, that exactly one instance of **cc_server_log** and one instance of
-**cc_server_master** should be running. The **cc_server_web** can be executed via **gunicorn**, Apache2 with
-**mod-wsgi-py3** or other external WSGI servers. These servers have multiprocessing/multithreading capabilities and
-therefore provide better performance than the development server integrated in flask/werkzeug.
+available. All configuration have in common, that exactly one instance of **cc_server_log** (zmq logging server for all
+other process) and one instance of **cc_server_master** (zmq server for managing cluster resources) should be running.
+The REST interface is provided by the **cc_server_web** module. Mutliple instances of this module can be running at any
+time. It is advised to employ **gunicorn** or Apache2 with **mod-wsgi-py3** or other external WSGI servers. These servers
+have multiprocessing/multithreading capabilities and therefore provide better performance than the integrated development
+server in flask/werkzeug.
 
 First create a config.toml file. Visit the `TOML specification <https://github.com/toml-lang/toml>`__ for further
 information on the file format. Use one of the included sample configuriation as a starting point. If you are connecting
@@ -171,24 +176,24 @@ server_web
    num_workers = 4
 
 
-+---------------+------------------+-----+------------------------------------------------------------------+
-| name          | type             | req | description                                                      |
-+===============+==================+=====+==================================================================+
-| external_url  | string           | yes | | Containers started by cc_server_master will send               |
-|               |                  |     | | callbacks to this url. Useful values are:                      |
-|               |                  |     | | **http://172.17.0.1:8000** (local docker-engine config)        |
-|               |                  |     | | **https://domain.tld/cc** (through proxy, e.g. Apache2)        |
-+---------------+------------------+-----+------------------------------------------------------------------+
-| bind_host     | string           | yes | | Server binds to this host. Useful values are:                  |
-|               |                  |     | | **127.0.0.1** (accessible via loopback interface)              |
-|               |                  |     | | **0.0.0.0** (accessible via all interfaces,                    |
-|               |                  |     | | e.g. docker-compose config)                                    |
-+---------------+------------------+-----+------------------------------------------------------------------+
-| bind_port     | integer          | yes | | Server binds to this port.                                     |
-+---------------+------------------+-----+------------------------------------------------------------------+
-| num_workers   | integer          | no  | | Used by gunicorn to start multiple worker processes.           |
-|               |                  |     | | Default is **multiprocessing.cpu_count()**.                    |
-+---------------+------------------+-----+------------------------------------------------------------------+
++---------------+------------------+-----+--------------------------------------------------------------------+
+| name          | type             | req | description                                                        |
++===============+==================+=====+====================================================================+
+| external_url  | string           | yes | | Containers started by cc_server_master will send                 |
+|               |                  |     | | callbacks to this url. Useful values are:                        |
+|               |                  |     | | **http://172.17.0.1:8000** (local docker-engine)                 |
+|               |                  |     | | **https://domain.tld/cc** (through proxy, e.g. Apache2)          |
++---------------+------------------+-----+--------------------------------------------------------------------+
+| bind_host     | string           | yes | | Server binds to this host. Useful values are:                    |
+|               |                  |     | | **127.0.0.1** (accessible via loopback interface)                |
+|               |                  |     | | **0.0.0.0** (accessible via all interfaces,                      |
+|               |                  |     | | e.g. for docker-compose)                                         |
++---------------+------------------+-----+--------------------------------------------------------------------+
+| bind_port     | integer          | yes | | Server binds to this port.                                       |
++---------------+------------------+-----+--------------------------------------------------------------------+
+| num_workers   | integer          | no  | | Used by gunicorn to start multiple worker processes.             |
+|               |                  |     | | Default is **multiprocessing.cpu_count()**.                      |
++---------------+------------------+-----+--------------------------------------------------------------------+
 
 
 server_master
@@ -203,31 +208,195 @@ server_master
    scheduling_interval_seconds = 60
 
 
-+-----------------------------+------------------+-----+---------------------------------------------------------------+
-| name                        | type             | req | description                                                   |
-+=============================+==================+=====+===============================================================+
-| external_url                | string           | yes | | cc_server_web will send zmq messages to this url.           |
-|                             |                  |     | | Useful values are:                                          |
-|                             |                  |     | | **tcp://localhost:8001**                                    |
-|                             |                  |     | | **tcp://cc-server-master:8001** (docker-compose config)     |
-+-----------------------------+------------------+-----+---------------------------------------------------------------+
-| bind_host                   | string           | yes | | Server binds to this host. Useful values are:               |
-|                             |                  |     | | **127.0.0.1** (accessible via loopback interface)           |
-|                             |                  |     | | **0.0.0.0** (accessible via all interfaces,                 |
-|                             |                  |     | | e.g. docker-compose config)                                 |
-+-----------------------------+------------------+-----+---------------------------------------------------------------+
-| bind_port                   | integer          | yes | | Server binds to this port.                                  |
-+-----------------------------+------------------+-----+---------------------------------------------------------------+
-| scheduling_interval_seconds | integer          | yes | | TODO                                                        |
-+-----------------------------+------------------+-----+---------------------------------------------------------------+
++-----------------------------+------------------+-----+------------------------------------------------------+
+| name                        | type             | req | description                                          |
++=============================+==================+=====+======================================================+
+| external_url                | string           | yes | | cc_server_web will send zmq messages to this url.  |
+|                             |                  |     | | Useful values are:                                 |
+|                             |                  |     | | **tcp://localhost:8001**                           |
+|                             |                  |     | | **tcp://cc-server-master:8001** (docker-compose)   |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| bind_host                   | string           | yes | | Server binds to this host. Useful values are:      |
+|                             |                  |     | | **127.0.0.1** (accessible via loopback interface)  |
+|                             |                  |     | | **0.0.0.0** (accessible via all interfaces,        |
+|                             |                  |     | | e.g. for docker-compose   )                        |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| bind_port                   | integer          | yes | | Server binds to this port.                         |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| scheduling_interval_seconds | integer          | no  | | Scheduling is performed after receiving updates    |
+|                             |                  |     | | via zmq. In addition, the scheduler can be started |
+|                             |                  |     | | periodically by setting this scheduling interval   |
++-----------------------------+------------------+-----+------------------------------------------------------+
+
+
+server_log
+""""""""""
+
+.. code-block:: toml
+
+   [server_log]
+   external_url = 'tcp://localhost:8002'
+   bind_host = '127.0.0.1'
+   bind_port = 8002
+   log_dir = '~/.cc_server/logs/'
+   suppress_stdout = false
+
+
++-----------------------------+------------------+-----+------------------------------------------------------+
+| name                        | type             | req | description                                          |
++=============================+==================+=====+======================================================+
+| external_url                | string           | yes | | cc_server_web and cc_server_master will send zmq   |
+|                             |                  |     | | messages to this url. Useful values are:           |
+|                             |                  |     | | **tcp://localhost:8002**                           |
+|                             |                  |     | | **tcp://cc-server-log:8002** (docker-compose)      |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| bind_host                   | string           | yes | | Server binds to this host. Useful values are:      |
+|                             |                  |     | | **127.0.0.1** (accessible via loopback interface)  |
+|                             |                  |     | | **0.0.0.0** (accessible via all interfaces,        |
+|                             |                  |     | | e.g. for docker-compose   )                        |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| bind_port                   | integer          | yes | | Server binds to this port.                         |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| log_dir                     | string           | no  | | If set, the process will write all log messages to |
+|                             |                  |     | | a file in the specified folder.                    |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| suppress_stdout             | boolean          | no  | | If set to true, the log messages will not be       |
+|                             |                  |     | | written to stdout.                                 |
++-----------------------------+------------------+-----+------------------------------------------------------+
+
+
+mongo
+"""""
+
+.. code-block:: toml
+
+   [mongo]
+   username = 'ccdbAdmin'
+   password = 'test'
+   host = 'localhost'
+   port = 27017
+   db = 'ccdb'
+
+
++-----------------------------+------------------+-----+------------------------------------------------------+
+| name                        | type             | req | description                                          |
++=============================+==================+=====+======================================================+
+| username                    | string           | yes | | Credentials to connect to mongodb. When starting   |
+|                             |                  |     | | cc_server via docker-compose, the given username   |
+|                             |                  |     | | will be initially set in the database.             |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| password                    | string           | yes | | Credentials to connect to mongodb. When starting   |
+|                             |                  |     | | cc_server via docker-compose, the given password   |
+|                             |                  |     | | will be initially set in the database.             |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| host                        | string           | yes | | Hostname of the mongo server. Useful values are:   |
+|                             |                  |     | | **localhost**                                      |
+|                             |                  |     | | **mongo** (docker-compose)                         |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| port                        | integer          | yes | | Port number of mongo server. Userful value is:     |
+|                             |                  |     | | **27017** (standard port)                          |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| db                          | string           | yes | | Name of the database provided by the mongo server. |
++-----------------------------+------------------+-----+------------------------------------------------------+
+
+
+docker (connecting to docker-machine cluster)
+"""""""""""""""""""""""""""""""""""""""""""""
+
+.. code-block:: toml
+
+   [docker]
+   thread_limit = 8
+   api_timeout = 30
+   net = 'cc-overlay-network'
+   machines_dir = '~/.docker/machine/machines'
+
++-----------------------------+------------------+-----+------------------------------------------------------+
+| name                        | type             | req | description                                          |
++=============================+==================+=====+======================================================+
+| thread_limit                | integer          | yes | | cc_server_master will create one docker-py client  |
+|                             |                  |     | | per docker-engine in a compute cluster.            |
+|                             |                  |     | | This setting limits the number of concurrent calls |
+|                             |                  |     | | per client, to prevent hitting bugs in docker.     |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| api_timeout                 | integer          | yes | | docker-py client times out after specified amount  |
+|                             |                  |     | | of time, if the connected docker-engnine is not    |
+|                             |                  |     | | reachable via the network.                         |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| net                         | string           | no  | | This setting refers to the name of a docker        |
+|                             |                  |     | | overlay network. It is only necessary in cluster   |
+|                             |                  |     | | configurations with multiple docker-engines        |
++-----------------------------+------------------+-----+------------------------------------------------------+
+| machines_dir                | string           | no  | | This settings provides a convenient way to connect |
+|                             |                  |     | | to a cluster of multiple docker-engine, which has  |
+|                             |                  |     | | been set up using docker machine. Useful value is: |
+|                             |                  |     | | **~/.docker/machine/machines**                     |
++-----------------------------+------------------+-----+------------------------------------------------------+
+
+
+docker (connecting to local docker-engine)
+""""""""""""""""""""""""""""""""""""""""""
+
+.. code-block:: toml
+
+   [docker]
+   thread_limit = 8
+   api_timeout = 30
+
+   [docker.nodes.local]
+   base_url = 'unix://var/run/docker.sock'
+
+
+When connecting to a local docker-engine the *net* and *machines_dir* options should not be set. In this case the
+docker-engine is refered to as *docker.nodes.local*, where *local* is an arbitrary name for the given node. The
+base_url refers to the local unix socket of the docker-engine.
+
+
+docker (connecting to a cluster of docker-engines)
+""""""""""""""""""""""""""""""""""""""""""""""""""
+
+.. code-block:: toml
+
+   [docker]
+   thread_limit = 8
+   api_timeout = 30
+   net = 'cc-overlay-network'
+
+   [docker.nodes.cc-node1]
+   base_url = 'tcp://192.168.99.101:2376'
+
+   [docker.nodes.cc-node1.tls]
+   verify = '/home/christoph/.docker/machine/machines/cc-node1/ca.pem'
+   client_cert = [
+       '/home/christoph/.docker/machine/machines/cc-node1/cert.pem',
+       '/home/christoph/.docker/machine/machines/cc-node1/key.pem'
+   ]
+   assert_hostname = false
+
+   [docker.nodes.cc-node2]
+   base_url = 'tcp://192.168.99.102:2376'
+
+   [docker.nodes.cc-node2.tls]
+   verify = '/home/christoph/.docker/machine/machines/cc-node2/ca.pem'
+   client_cert = [
+       '/home/christoph/.docker/machine/machines/cc-node2/cert.pem',
+       '/home/christoph/.docker/machine/machines/cc-node2/key.pem'
+   ]
+   assert_hostname = false
+
+
+When connecting to a cluster of multiple docker-engines, without using the *machines_dir* option, every engine can
+be specified separately. In this case the *net* option must be set. Every node is given an arbitrary name like
+**cc-node1** and **cc-node2**. If TLS is configured for a docker-engine, the according settings are specified via
+**docker.nodes.cc-node1.tls**.
 
 
 Create User Accounts
 ^^^^^^^^^^^^^^^^^^^^
 
 Users can be created with an interactive script. Run the *create_user* script and follow the instructions. The script
-asks if admin rights should be granted to the user. Admin users can query and cancel tasks of other users via the REST API,
-while standard users only get access to their own tasks.
+asks if admin rights should be granted to the user. Admin users can query and cancel tasks of other users via the REST
+API, while standard users only get access to their own tasks.
 
 .. code-block:: bash
 
@@ -245,7 +414,7 @@ for development and testing purposes only. The server will be running on the **i
 
 .. code-block:: bash
 
-   python3 cc_server
+   scripts/start_cc_server
 
 
 CC-Server will try to find the *config.toml* automatically. It will first look inside the system users home directory
@@ -257,80 +426,12 @@ argument:
 
 .. code-block:: bash
 
-   python3 cc_server /PATH/TO/my_config.toml
+   scripts/start_cc_server /PATH/TO/my_config.toml
 
+CC-Server Deployment (docker-compose)
+-------------------------------------
 
-Apache 2 WSGI
-^^^^^^^^^^^^^
-
-*First take a look at the* `server documentation <admin.html#server>`__ *above and configure the config.toml file of
-CC-Server for production usage with Apache 2.*
-
-The following sample configuration shows how to setup Apache 2 and mod_wsgi for CC-Server. The mod_wsgi extension can
-run multiple processes serving web requests with the CC-Server flask application, which improves the performace compared
-to the flask development server. In addition Apache 2 should be configured to encrypt the incoming web requests with
-TLS.
-
-On Ubuntu install Apache2 and the Python3 version of mod_wsgi as follows:
-
-.. code-block:: bash
-
-   sudo apt update
-   sudo apt install apache2 libapache2-mod-wsgi-py3
-   sudo a2enmod ssl
-
-
-Create a new Apache 2 site configuration file at */etc/apache2/sites-available/cc-server.conf* and copy the file content
-from the code block below. Replace all occurences of */PATH/TO* with the appropriate absolute paths to the CC-Server
-source code and *wsgi.py* file, as well as the SSL certificates. The configuration assumes that a system user *ccuser*
-has been created beforehand and that this user has permissions to read and execute the CC-Server code and *wsgi.py*
-script. This can be customized to run under any other system user, except root. The number of of processes and threads
-should be customized to fit the available system resources (e.g. CPU and RAM).
-
-.. code-block:: apache
-
-   Listen 443
-
-   <VirtualHost *:443>
-       ServerName my-domain.tld
-
-       SSLEngine On
-       SSLCertificateFile /PATH/TO/cert.pem
-       SSLCertificateKeyFile /PATH/TO/key.pem
-       SSLCertificateChainFile /PATH/TO/chain.pem
-
-       WSGIDaemonProcess cc-server user=ccuser group=ccuser processes=4 threads=16
-       WSGIScriptAlias /cc /PATH/TO/cc-server/wsgi.py
-       WSGIImportScript /PATH/TO/cc-server/wsgi.py process-group=cc-server application-group=%{GLOBAL}
-       WSGIPassAuthorization On
-
-       <Directory /PATH/TO/cc-server>
-           <Files wsgi.py>
-               WSGIApplicationGroup %{GLOBAL}
-               WSGIProcessGroup cc-server
-               Require all granted
-          </Files>
-       </Directory>
-   </VirtualHost>
-
-
-**IMPORTANT NOTE:** This is not the most secure configuration possible, but only a simplified example. For more
-information take a look at the following resources:
-`Apache 2 SSL <https://httpd.apache.org/docs/current/ssl/>`__,
-`Mozilla Server Side TLS <https://wiki.mozilla.org/Security/Server_Side_TLS>`__,
-`Mozilla TLS Configuration <https://wiki.mozilla.org/Security/TLS_Configurations>`__
-
-
-The newly created site can now be enabled with the following commands:
-
-.. code-block:: bash
-
-   sudo a2ensite cc-server.conf
-   sudo service apache2 restart
-
-
-CC-Server is now ready to use at *https://my-domain.tld/cc/*.
-
+TODO
 
 Docker Registry
 ---------------
