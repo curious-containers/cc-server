@@ -391,6 +391,108 @@ be specified separately. In this case the *net* option must be set. Every node i
 **docker.nodes.cc-node1.tls**.
 
 
+defaults
+""""""""
+
+*The defaults section in the TOML configuration is for values, that usually do not need to be change in order to run
+CC-Server.*
+
+
+.. code-block:: toml
+
+   [defaults.application_container_description]
+   entry_point = 'python3 /opt/container_worker'
+
+
+The **application_container_description** fields contain information about how to run an application container. The
+images contain CC-Container-Worker, which is usually stored in the image file system at */opt/container_worker*.
+The appropriate command to start the worker is given as **entry_point**. This default value can be overwritten by
+specifying a different **entry_point** in a task.
+
+
+.. code-block:: toml
+
+   [defaults.data_container_description]
+   image = 'docker.io/curiouscontainers/cc-image-ubuntu:0.10'
+   entry_point = 'python3 /opt/container_worker'
+   container_ram = 512
+
+
+The **data_container_description** fields contain information about how to run a data container. CC-Image-Ubuntu and
+CC-Image-Fedora are both supported as data container images. Specify the URL of one of theses images, or a customized
+image, in the **image** field. The images contain CC-Container-Worker, which is usually stored in the image file system
+at */opt/container_worker*. The appropriate command to start the worker is given as **entry_point**. The field
+**container_ram** specifies the amount of memory for a data container in Megabytes.
+
+
+.. code-block:: toml
+
+   [defaults.data_container_description.registry_auth]
+   username = 'REGISTRY_USER'
+   password = 'PASSWORD'
+
+
+If a custom data container image is specified in **data_container_description** and the access to this image in a Docker
+registry is restricted, the appropriate **username** and **password** have to specified in **registry_auth**. The
+**registry_auth** subsection should be deleted from the configuration file if not required.
+
+
+.. code-block:: toml
+
+   [defaults.scheduling_strategies]
+   container_allocation = 'spread'
+
+
+Changing the scheduling behaviour of CC-Server can be achieved by changing the values the **scheduling_strategies**
+subsection. Currently only the **container_allocation** strategy can be changed. The value of **container_allocation** must
+be either *spread* or *binpack*. The *spread* strategy allocates a new container on a Swarm Node with the highest amount
+of free RAM and *binpack* allocates a new container on a Swarm Node with the lowest amount of free RAM still suitable for
+the container.
+
+
+.. code-block:: toml
+
+   [defaults.error_handling]
+   max_task_trials = 3
+   dead_node_invalidation = true
+
+
+CC-Server is fault tolerant, in the sense that faulty tasks are automatically restarted. Sometimes a restart will not fix
+the problem, because the task configuration is wrong or a resource is not available. In order to avoid infite restart
+loops, the number of restarts must be limited by setting the **max_task_trials** value in the **error_handling** subsection.
+The **dead_node_validation** field should be set to *true* for improved error handling. If a node in the Docker cluster
+is not responding or behaving incorrect, these errors will be detected and the node will be ignored by the CC-Server
+scheduler.
+
+
+.. code-block:: toml
+
+   [defaults.error_handling.dead_node_notification]
+   url = 'https://my-domain.tld/cluster'
+   auth = {'auth_type' = 'basic', 'username' = 'admin', 'password' = 'PASSWORD'}
+
+
+If **dead_node_invalidation** is set to *true*, an entirely optional notification mechanism can be activated. This
+**dead_node_notification** will send an HTTP POST request, containing a JSON object with the **name** of the
+corresponding cluster node, to the specified **url**. Setting authentication information in the **auth** field is
+optional. Remove the complete **dead_node_invalidation** section from the config file if not required.
+
+
+.. code-block:: toml
+
+   [defaults.authorization]
+   num_login_attempts = 3
+   block_for_seconds = 120
+   tokens_valid_for_seconds = 172800
+
+
+The authorization module of CC-Server provides mechanism to avoid API exploitation. After a certain number of login attemps
+with wrong user credentials, the authorization for this user will be blocked for a certain amount of time. These values
+can be set as **number_login_attempts** and **block_for_seconds** in the **authorization** subsection. A user can request
+a login token, which can be used instead of the original password for a certain amount of time specified as
+**tokens_valid_for_seconds**.
+
+
 Create User Accounts
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -428,10 +530,113 @@ argument:
 
    scripts/start_cc_server /PATH/TO/my_config.toml
 
+
 CC-Server Deployment (docker-compose)
 -------------------------------------
 
-TODO
+*The following commands assume being inside the cc-server directory.*
+
+Change to the compose directory and copy the sample configuration files to this directory. *config.toml* contains
+the usual CC-Server settings as described in the `configuration chapter <admin.html#configuration>`__ above.
+*credentials.toml* contains a **username** and **password** for an administrator user, which will be initialized
+automatically, when starting CC-Server via docker-compose. For security reasons, these credentials must be changed,
+before deploying CC-Server. *docker-compose.yml* describes the dependencies between various server components. If
+any of these components are not needed or being deployed without docker-compose, they can be removed from the file.
+Components specified in *docker-compose.yml*, which are not strictly required, are *dind* (if an external docker-engine
+or cluster is used), *registry* (if an external docker registry is used) and *file-server* (which is mostly useful for
+development).
+
+.. code-block:: bash
+
+   cd compose
+   cp config_samples/config.toml .
+   cp config_samples/credentials.toml .
+   cp config_samples/docker-compose.yml .
+
+
+Make sure `docker-compose <https://github.com/docker/compose/releases>`__ is installed. Use the scripts provided in the
+*scripts* folder to start and stop CC-Server.
+
+.. code-block:: bash
+
+   scripts/start_cc_server
+   scripts/stop_cc_server
+
+
+The docker-compose deployment of CC-Server can also be registered as a system service with systemd. Go back to the
+*cc-server* directory and run the *create_systemd_unit_file* script to automatically create a systemd unit file.
+
+.. code-block:: bash
+
+   # change directory from compose to cc-server
+   cd ..
+
+   # create systemd unit file
+   sudo compose/scripts/create_systemd_unit_file -d $(pwd)
+
+   # enable cc-server to automatically run it on system startup
+   systemctl enable cc-server
+
+   # start cc-server
+   systemctl start cc-server
+
+
+If the server configuration in the *config.toml* has not been changed, the CC-Server REST interface will be available
+at *http://localhost:8000* All persitent data of the server components is stored at *~/.cc_server_compose*.
+
+
+Apache2 TLS Proxy
+^^^^^^^^^^^^^^^^^
+
+The following Apache2 configuration enables a basic TLS proxy for CC-Server. First install Apache2 and enable the
+required modules.
+
+.. code-block:: bash
+
+   sudo apt update
+   sudo apt install apache2
+   sudo a2enmod ssl
+   sudo a2enmod proxy_http
+
+
+Create an Apache2 site file at **/etc/apache2/sites-available/cc-server.conf** and add the following content:
+
+.. code-block:: apache
+
+   Listen 443
+
+   <VirtualHost *:443>
+       ServerName domain.tld
+
+       SSLEngine On
+       SSLCertificateFile /PATH/TO/cert.pem
+       SSLCertificateKeyFile /PATH/TO/key.pem
+       SSLCertificateChainFile /PATH/TO/chain.pem
+
+       ProxyRequests Off
+       ProxyPass /cc http://localhost:8000
+       ProxyPassReverse /cc http://localhost:8000
+   </VirtualHost>
+
+
+**IMPORTANT NOTE:** This is not the most secure configuration possible, but only a simplified example. For more
+information take a look at the following resources:
+`Apache 2 SSL <https://httpd.apache.org/docs/current/ssl/>`__,
+`Mozilla Server Side TLS <https://wiki.mozilla.org/Security/Server_Side_TLS>`__,
+`Mozilla TLS Configuration <https://wiki.mozilla.org/Security/TLS_Configurations>`__
+
+Enable the site file and restart Apache2.
+
+.. code-block:: bash
+
+   sudo a2ensite cc-server
+   sudo systemctl restart apache2
+
+
+CC-Server is now ready to use at *https://domain.tld/cc/*. Make sure to adapt the CC-Server configuration, to include
+the new external url. Edit */PATH/TO/cc-server/compose/config.toml* and change the value of **web_server.external_url**
+to **https://domain.tld/cc**.
+
 
 Docker Registry
 ---------------
@@ -447,7 +652,7 @@ Web User Interface
 
 The web interface CC-UI is an optional component and can be used to quickly access information about task groups, tasks,
 application containers and data containers. The following instructions describe the deployment process with Apache 2,
-assuming that the Apache web server is already set up with CC-Server running at *https://my-domain.tld/cc/*.
+assuming that the Apache web server is already set up with CC-Server running at *https://domain.tld/cc/*.
 
 First edit the Apache configuration to contain the desired deployment directory (e.g. */PATH/TO/cc-ui*). Remember to
 restart the web server afterwards.
@@ -457,25 +662,16 @@ restart the web server afterwards.
    Listen 443
 
    <VirtualHost *:443>
-       ServerName my-domain.tld
+       ServerName domain.tld
 
        SSLEngine On
        SSLCertificateFile /PATH/TO/cert.pem
        SSLCertificateKeyFile /PATH/TO/key.pem
        SSLCertificateChainFile /PATH/TO/chain.pem
 
-       WSGIDaemonProcess cc-server user=ccuser group=ccuser processes=4 threads=16
-       WSGIScriptAlias /cc /PATH/TO/cc-server/wsgi.py
-       WSGIImportScript /PATH/TO/cc-server/wsgi.py process-group=cc-server application-group=%{GLOBAL}
-       WSGIPassAuthorization On
-
-       <Directory /PATH/TO/cc-server>
-           <Files wsgi.py>
-               WSGIApplicationGroup %{GLOBAL}
-               WSGIProcessGroup cc-server
-               Require all granted
-          </Files>
-       </Directory>
+       ProxyRequests Off
+       ProxyPass /cc http://localhost:8000
+       ProxyPassReverse /cc http://localhost:8000
 
        DocumentRoot /PATH/TO/cc-ui
        <Directory /PATH/TO/cc-ui>
@@ -506,18 +702,18 @@ fix the file permissions for Apache.
    chown -R www-data:www-data /PATH/TO/cc-ui
 
 
-CC-UI is now ready to use at *https://my-domain.tld/*.
+CC-UI is now ready to use at *https://domain.tld/*.
 
 
 Configuration
 ^^^^^^^^^^^^^
 
-In the case, that CC-Server is not deployed at *https://my-domain.tld/cc/*, the location can be configured in the
+In the case, that CC-Server is not deployed at *https://domain.tld/cc/*, the location can be configured in the
 **src/config.js** file.
 
 .. code-block:: javascript
 
-   export const host = 'https://my-domain.tld/path/to/cc/'
+   export const host = 'https://domain.tld/path/to/cc/'
 
 
 **IMPORTANT NOTE:** A Browser will not send REST requests to the CC-Server backend, if the protocol, ip/domain or port
