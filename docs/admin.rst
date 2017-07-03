@@ -638,15 +638,6 @@ the new external url. Edit */PATH/TO/cc-server/compose/config.toml* and change t
 to **https://domain.tld/cc**.
 
 
-Docker Registry
----------------
-
-Container images created by users have to be deployed to a Docker registry. The official
-`Docker Hub registry <https://hub.docker.com/>`__ with free public repositories or a paid plan for private repositories can
-be used. Consider deploying a private Docker repository in order to provide free private repositories to your users.
-Instructions can be found in the official `Docker Registry documentation <https://docs.docker.com/registry/deploying/>`__.
-
-
 Web User Interface
 ------------------
 
@@ -719,3 +710,12 @@ In the case, that CC-Server is not deployed at *https://domain.tld/cc/*, the loc
 **IMPORTANT NOTE:** A Browser will not send REST requests to the CC-Server backend, if the protocol, ip/domain or port
 are different from your CC-UI deployment. Take a look at `CORS <https://www.w3.org/TR/cors/>`__ and configure Apache to
 accept cross-origin requests. This may affect the security of CC-UI (although CC-UI does not set cookies).
+
+
+Docker Registry
+---------------
+
+Container images created by users have to be deployed to a Docker registry. The official
+`Docker Hub registry <https://hub.docker.com/>`__ with free public repositories or a paid plan for private repositories can
+be used. Consider deploying a private Docker repository in order to provide free private repositories to your users.
+Instructions can be found in the official `Docker Registry documentation <https://docs.docker.com/registry/deploying/>`__.
