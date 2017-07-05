@@ -40,6 +40,7 @@ def log(func):
             raise
         except:
             info.insert(1, '500')
+            info.append(format_exc())
             self._tee(' '.join(info))
             raise
         info.insert(1, '200')
