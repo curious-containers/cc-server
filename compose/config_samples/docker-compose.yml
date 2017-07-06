@@ -71,7 +71,9 @@ services:
 
   file-server:
     build: ./cc-server-image
-    command: "gunicorn -w 4 -b 0.0.0.0:80 file_server.__main__:app"
+    command: "gunicorn -w 4 -b 0.0.0.0:6000 file_server.__main__:app"
+    ports:
+      - "6000:6000"
     volumes:
       - ./file_server:/opt/file_server:ro
       - ~/.cc_server_compose/input_files:/root/input_files:ro
