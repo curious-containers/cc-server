@@ -2,7 +2,7 @@
 
 while [[ $# -gt 1 ]]; do
     key="$1"
-    case $key in
+    case ${key} in
         -f|--file)
         COMPOSE_FILE="$2"
         shift

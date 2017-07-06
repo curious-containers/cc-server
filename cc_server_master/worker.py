@@ -33,19 +33,32 @@ class Worker:
 
     def _cron(self):
         while True:
-            application_container = self._mongo.db['application_containers'].find_one(
+            work_to_do = False
+            task = self._mongo.db['tasks'].find_one(
                 {'state': {'$nin': end_states()}},
                 {'_id': 1}
             )
-            data_container = None
-            if not application_container:
-                data_container = self._mongo.db['data_containers'].find_one(
+            if task:
+                work_to_do = True
+            else:
+                application_container = self._mongo.db['application_containers'].find_one(
                     {'state': {'$nin': end_states()}},
                     {'_id': 1}
                 )
-            if application_container or data_container:
+                if application_container:
+                    work_to_do = True
+                else:
+                    data_container = self._mongo.db['data_containers'].find_one(
+                        {'state': {'$nin': end_states()}},
+                        {'_id': 1}
+                    )
+                    if data_container:
+                        work_to_do = True
+
+            if work_to_do:
                 _put(self._scheduling_q)
                 _put(self._data_container_callback_q)
+
             sleep(self._config.server_master['scheduling_interval_seconds'])
 
     def _container_callback(self):
