@@ -567,7 +567,10 @@ port forwarding configured in **docker-compose.yml**.
 
 .. code-block:: bash
 
+   sudo apt-get install python3-pip libssl-dev libffi-dev
+
    cd ..
+   pip3 install --user --upgrade -r requirements.txt
    bin/cc-create-user --config-file=compose/config.toml --mongo-host=localhost
 
 

@@ -3,7 +3,7 @@ from json import dumps
 from subprocess import call
 from time import sleep
 
-CONFIG = '/root/.config/curious-containers/local_docker_config.toml'
+CONFIG = '/root/.config/cc-server/config.toml'
 
 with open(CONFIG) as f:
     configuration = loads(f.read())
