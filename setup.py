@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
 
-import os
 from distutils.core import setup
-
-requirements_dir_path = os.path.split(os.path.abspath(__file__))[0]
-requirements_file_path = os.path.join(requirements_dir_path, 'requirements.txt')
-
-with open(requirements_file_path) as f:
-    requirements = [r for r in [line.strip() for line in f] if r]
 
 setup(
     name='cc-server',
@@ -43,5 +36,15 @@ setup(
     ],
     license='Apache-2.0',
     platforms=['any'],
-    install_requires=requirements
+    install_requires=[
+        'toml',
+        'jsonschema',
+        'zmq',
+        'requests',
+        'pymongo',
+        'docker-py',
+        'flask',
+        'gunicorn',
+        'cryptography'
+    ]
 )

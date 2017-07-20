@@ -1,9 +1,1 @@
-toml
-jsonschema
-zmq
-requests
-pymongo
-docker-py
-flask
-gunicorn
-cryptography
+-e .

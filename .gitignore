@@ -8,3 +8,4 @@ compose/docker-compose.yml
 
 MANIFEST
 dist
+cc_server.egg-info
