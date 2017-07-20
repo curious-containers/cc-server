@@ -4,33 +4,22 @@ Version Management
 This site contains a Docker compatibility table and a change log, including migration instructions.
 
 All Curious Container components (CC-Server, CC-Container-Worker and the CC-Images) have a version tag.
-If you are using CC-Server 0.11 for example, you should use the other components with the exact same version number.
+If you are using CC-Server 0.12 for example, you should use the other components with the exact same version number.
 Docker images with a specific version tag can be pulled from a Docker registry and software versions with a certain tag
 can be pulled from git.
 
 *When migrating to a newer CC-Server version, rebuild your custom Docker images with the respective CC-Image.*
 
-Docker Compatibility
---------------------
-
-===========  =========
-CC-Server    Docker
-===========  =========
-0.1          12
-0.2          12
-0.3          12
-0.4          12
-0.5          12
-0.6          12
-0.7          12
-0.8          12
-0.9          12
-0.10         12
-0.11         17.04
-===========  =========
-
 Change Log
 ----------
+
+Version 0.12
+^^^^^^^^^^^^
+
+- Refactored Python module structure of CC-Server.
+- Improved deployment (pip intallable) and scripts.
+- Simplified docker-compose.yml.
+- Breaking changes for various configuration, modules and script paths.
 
 Version 0.11
 ^^^^^^^^^^^^

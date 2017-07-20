@@ -1,4 +1,5 @@
 User Documentation
+User Documentation
 ==================
 
 This user documentation contains information about how to schedule a task with CC-Server to run the CC-Sample-App and
@@ -78,7 +79,7 @@ via **application_command**.
 
 .. code-block:: docker
 
-   FROM docker.io/curiouscontainers/cc-image-ubuntu:0.11
+   FROM docker.io/curiouscontainers/cc-image-ubuntu:0.12
    COPY config.json /opt/config.json
 
    COPY algorithm.sh /home/ubuntu/algorithm.sh
@@ -93,7 +94,7 @@ CC-Sample-App for a custom image, this URL must be changed to something else. Lo
 
    REGISTRY_URL=docker.io/curiouscontainers/cc-sample-app
 
-   docker pull docker.io/curiouscontainers/cc-image-ubuntu:0.11
+   docker pull docker.io/curiouscontainers/cc-image-ubuntu:0.12
    docker pull ${REGISTRY_URL}
    docker build -t ${REGISTRY_URL} .
    docker push ${REGISTRY_URL}

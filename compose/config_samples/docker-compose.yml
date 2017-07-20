@@ -2,13 +2,12 @@ version: "2"
 services:
   cc-server-web:
     build: ./cc-server-image
-    command: "python3 -u /root/.config/curious-containers/cc-server-web/init.py"
+    command: "python3 -u -m cc_server.web_service"
     ports:
       - "8000:8000"
     volumes:
-      - ../cc_server_web:/opt/cc_server_web:ro
-      - ../cc_commons:/opt/cc_commons:ro
-      - .:/root/.config/curious-containers:ro
+      - ./config.toml:/root/.config/cc-server/config.toml:ro
+      - ../cc_server:/opt/cc_server:ro
     links:
       - mongo
       - cc-server-master
@@ -17,11 +16,10 @@ services:
 
   cc-server-master:
     build: ./cc-server-image
-    command: "python3 -u /root/.config/curious-containers/cc-server-master/init.py"
+    command: "python3 -u -m cc_server.master_service"
     volumes:
-      - ../cc_server_master:/opt/cc_server_master:ro
-      - ../cc_commons:/opt/cc_commons:ro
-      - .:/root/.config/curious-containers:ro
+      - ./config.toml:/root/.config/cc-server/config.toml:ro
+      - ../cc_server:/opt/cc_server:ro
       - ~/.docker/machine:/root/.docker/machine:ro
     links:
       - mongo
@@ -33,11 +31,10 @@ services:
 
   cc-server-log:
     build: ./cc-server-image
-    command: "python3 -u /opt/cc_server_log"
+    command: "python3 -u -m cc_server.log_service"
     volumes:
-      - ../cc_server_log:/opt/cc_server_log:ro
-      - ../cc_commons:/opt/cc_commons:ro
-      - .:/root/.config/curious-containers:ro
+      - ./config.toml:/root/.config/cc-server/config.toml:ro
+      - ../cc_server:/opt/cc_server:ro
       - ~/.cc_server_compose/logs:/root/.cc_server/logs
     tty: true
 
@@ -52,8 +49,9 @@ services:
   mongo-seed:
     build: ./mongo-seed
     volumes:
-      - .:/root/.config/curious-containers
-    command: "python3 -u /root/.config/curious-containers/mongo-seed/init.py"
+      - ./config.toml:/root/.config/cc-server/config.toml:ro
+      - ./mongo-seed/mongo_seed:/opt/mongo_seed
+    command: "python3 -u -m mongo_seed"
     links:
       - mongo
     tty: true

@@ -88,16 +88,6 @@ Ubuntu Packages
    sudo apt-get install python3-pip libssl-dev libffi-dev
 
 
-Python 3 Packages
-^^^^^^^^^^^^^^^^^
-
-It is recommended to install the Python packages globally for a certain system user, but without root privileges.
-
-.. code-block:: bash
-
-   pip3 install --user --upgrade toml jsonschema zmq requests pymongo docker-py flask gunicorn cryptography
-
-
 MongoDB
 ^^^^^^^
 
@@ -116,52 +106,48 @@ In order to setup a database user, change *DB_PASSWORD* to something secure and 
    mongo --eval "database = db.getSiblingDB(\"${DB}\"); database.createUser(${data})"
 
 
-Get the Code
-^^^^^^^^^^^^
-
-Clone a specific version from the Github repository:
+CC-Server
+^^^^^^^^^
 
 .. code-block:: bash
 
-   git clone -b 0.11 --depth 1 https://github.com/curious-containers/cc-server
-   cd cc-server
+   pip3 install --user --upgrade cc-server
 
 
 Configuration
 ^^^^^^^^^^^^^
 
-*The following commands assume being inside the cc-server directory.*
-
-CC-Server uses `flask <http://flask.pocoo.org/>`__ to run a web server providing a REST interface. Since *flask*
-implements the Python `WSGI <https://www.python.org/dev/peps/pep-0333/>`__ standard, different configuration options are
-available. All configuration have in common, that exactly one instance of **cc_server_log** (zmq logging server for all
-other process) and one instance of **cc_server_master** (zmq server for managing cluster resources) should be running.
-The REST interface is provided by the **cc_server_web** module. Mutliple instances of this module can be running at any
-time. It is advised to employ **gunicorn** or Apache2 with **mod-wsgi-py3** or other external WSGI servers. These servers
-have multiprocessing/multithreading capabilities and therefore provide better performance than the integrated development
-server in flask/werkzeug.
-
 First create a config.toml file. Visit the `TOML specification <https://github.com/toml-lang/toml>`__ for further
-information on the file format. Use one of the included sample configuriation as a starting point. If you are connecting
-CC-Server to a local docker-engine:
+information on the file format. Use one of the sample configuriation files included in the git repository as a starting
+point.
+
+First create the configuration folder in the system user's home directory:
 
 .. code-block:: bash
 
-   cp sample_local_docker_config.toml config.toml
+   mkdir -p ~/.config/curious-containers
+   git clone -b 0.12 https://github.com/curious-containers/cc-server.git
+   cd cc-server
+
+If you are connecting CC-Server to a local docker-engine:
+
+.. code-block:: bash
+
+   cp config_samples/local_docker_config.toml ~/.config/cc-server/config.toml
 
 
 Else, if you are connecting CC-Server to a Docker cluster:
 
 .. code-block:: bash
 
-   cp sample_docker_cluster_config.toml config.toml
+   cp config_samples/docker_cluster_config.toml ~/.config/cc-server/config.toml
 
 
 Else, if you are connection CC-Server to a Docker cluster created with **docker-machine**:
 
 .. code-block:: bash
 
-   cp sample_docker_machine_config.toml config.toml
+   cp config_samples/docker_machine_config.toml ~/.config/cc-server/config.toml
 
 
 server_web
@@ -496,27 +482,23 @@ a login token, which can be used instead of the original password for a certain 
 Create User Accounts
 ^^^^^^^^^^^^^^^^^^^^
 
-Users can be created with an interactive script. Run the *create_user* script and follow the instructions. The script
+Users can be created with an interactive script. Run the *cc-create-user* script and follow the instructions. The script
 asks if admin rights should be granted to the user. Admin users can query and cancel tasks of other users via the REST
 API, while standard users only get access to their own tasks.
 
 .. code-block:: bash
 
-   python3 scripts/create_user
+   cc-create-user
 
 
 Run the Code
 ^^^^^^^^^^^^
 
-*The following commands assume being inside the cc-server directory.*
-
-Running the application as specified below will run an insecure and single-threaded flask development server, which is
-for development and testing purposes only. The server will be running on the **internal_port** specified in
-*config.toml* (e.g. localhost:5000)
+The server will be running on the **port** specified in *config.toml* (e.g. localhost:8000):
 
 .. code-block:: bash
 
-   scripts/start_cc_server
+   cc-server
 
 
 CC-Server will try to find the *config.toml* automatically. It will first look inside the system users home directory
@@ -534,13 +516,9 @@ argument:
 CC-Server Deployment (docker-compose)
 -------------------------------------
 
-*The following commands assume being inside the cc-server directory.*
-
-Change to the compose directory and copy the sample configuration files to this directory. *config.toml* contains
+Change to the cc-server/compose directory and copy the sample configuration files to this directory. *config.toml* contains
 the usual CC-Server settings as described in the `configuration chapter <admin.html#configuration>`__ above.
-*credentials.toml* contains a **username** and **password** for an administrator user, which will be initialized
-automatically, when starting CC-Server via docker-compose. For security reasons, these credentials must be changed,
-before deploying CC-Server. *docker-compose.yml* describes the dependencies between various server components. If
+*docker-compose.yml* describes the dependencies between various server components. If
 any of these components are not needed or being deployed without docker-compose, they can be removed from the file.
 Components specified in *docker-compose.yml*, which are not strictly required, are *dind* (if an external docker-engine
 or cluster is used), *registry* (if an external docker registry is used) and *file-server* (which is mostly useful for
@@ -548,10 +526,9 @@ development).
 
 .. code-block:: bash
 
-   cd compose
-   cp config_samples/config.toml .
-   cp config_samples/credentials.toml .
-   cp config_samples/docker-compose.yml .
+   git clone -b 0.12 https://github.com/curious-containers/cc-server.git
+   cd cc-server/compose
+   cp config_samples/* .
 
 
 Make sure `docker-compose <https://github.com/docker/compose/releases>`__ is installed. Use the scripts provided in the
@@ -559,20 +536,15 @@ Make sure `docker-compose <https://github.com/docker/compose/releases>`__ is ins
 
 .. code-block:: bash
 
-   scripts/start_cc_server
-   scripts/stop_cc_server
+   bin/cc-start-compose
+   bin/cc-stop-compose
 
 
-The docker-compose deployment of CC-Server can also be registered as a system service with systemd. Go back to the
-*cc-server* directory and run the *create_systemd_unit_file* script to automatically create a systemd unit file.
+The docker-compose deployment of CC-Server can also be registered as a system service with systemd.
 
 .. code-block:: bash
-
-   # change directory from compose to cc-server
-   cd ..
-
    # create systemd unit file
-   sudo compose/scripts/create_systemd_unit_file -d $(pwd)
+   sudo bin/cc-create-systemd-unit-file -d $(pwd)
 
    # enable cc-server to automatically run it on system startup
    systemctl enable cc-server
@@ -583,6 +555,20 @@ The docker-compose deployment of CC-Server can also be registered as a system se
 
 If the server configuration in the *config.toml* has not been changed, the CC-Server REST interface will be available
 at *http://localhost:8000* All persitent data of the server components is stored at *~/.cc_server_compose*.
+
+
+Create User Accounts
+^^^^^^^^^^^^^^^^^^^^
+
+First create a user for CC-Server. With the **cc-create-user** script the **config.toml** file used with docker-compose
+can be referenced. In **config.toml** the hostname of the MongoDB is set to *mongo*, because this is the hostname of the
+container created by docker-compose. Use --mongo-host to override this setting to *localhost*, which uses the MongoDB
+port forwarding configured in **docker-compose.yml**.
+
+.. code-block:: bash
+
+   cd ..
+   bin/cc-create-user --config-file=compose/config.toml --mongo-host=localhost
 
 
 Apache2 TLS Proxy

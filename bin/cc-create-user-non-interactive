@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import json
+import jsonschema
+
+try:
+    from cc_server.commons.authorization import Authorize
+    from cc_server.commons.database import Mongo
+    from cc_server.commons.configuration import Config
+except ImportError:
+    sys.path.insert(0, os.path.split(os.path.split(os.path.abspath(__file__))[0])[0])
+    from cc_server.commons.authorization import Authorize
+    from cc_server.commons.database import Mongo
+    from cc_server.commons.configuration import Config
+
+inputs_schema = {
+    'type': 'object',
+    'properties': {
+        'username': {'type': 'string'},
+        'password': {'type': 'string'},
+        'is_admin': {'type': 'boolean'}
+    },
+    'required': ['username', 'password'],
+    'additionalProperties': False
+}
+
+config = Config()
+
+mongo = Mongo(
+    config=config
+)
+auth_handler = Authorize(
+    config=config,
+    tee=print,
+    mongo=mongo
+)
+
+inputs = json.loads(sys.stdin.read())
+jsonschema.validate(inputs, inputs_schema)
+
+auth_handler.create_user(
+    inputs['username'],
+    inputs['password'],
+    is_admin=inputs.get('is_admin', False)
+)

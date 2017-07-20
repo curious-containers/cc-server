@@ -1,0 +1,6 @@
+flask
+sphinx
+sphinx-autobuild
+sphinxcontrib-httpdomain
+sphinx_rtd_theme
+bibtex-pygments-lexer

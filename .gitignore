@@ -1,8 +1,10 @@
 .idea
 __pycache__
 *.pyc
-/config.toml
+
 docs/_build
 compose/config.toml
-compose/credentials.toml
 compose/docker-compose.yml
+
+MANIFEST
+dist

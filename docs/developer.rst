@@ -14,11 +14,13 @@ first.
 Building the Documentation
 --------------------------
 
-Install additional Python3 packages:
+Clone CC-Server and install Python3 dependencies:
 
 .. code-block:: bash
 
-   pip3 install --user --upgrade flask sphinx sphinx-autobuild sphinxcontrib-httpdomain sphinx_rtd_theme bibtex-pygments-lexer
+   git clone https://github.com/curious-containers/cc-server.git
+   cd cc-server
+   pip3 install --user --upgrade -r docs/requirements.txt
 
 
 Run *make* inside the *docs* directory:
@@ -46,15 +48,26 @@ may as well be customized, for example to prevent conflicting ports with other a
    cp config_samples/* .
 
 
-In order to start CC-Server run **scripts/start_cc_server**. This will create Containers for MongoDB, Docker Registry,
-Docker-In-Docker, CC-Server-Log, CC-Server-Master, CC-Server-Web. CC-Server-Web will be available as *localhost:8000*.
+In order to start CC-Server run **bin/start_cc_server**. This will create Containers for MongoDB, Docker Registry,
+Docker-In-Docker, CC-Server-Log, CC-Server-Master and CC-Server-Web. CC-Server-Web will be available as *localhost:8000*.
 Using the Docker Registry is optional. It is available at *localhost:5000*. During the setup MongoDB user credentials
-are read from the **config.toml** file and the CC-Server user credentials are read from the **credentials.toml** file.
-These credentials can be changed before running *docker-compose*.
+are read from the **config.toml** file. These credentials can be changed before running *docker-compose*.
 
 .. code-block:: bash
 
-   scripts/start_cc_server
+   bin/cc-start-server
+
+
+First create a user for CC-Server. With the **cc-create-user** script the **config.toml** file used with docker-compose
+can be referenced. In **config.toml** the hostname of the MongoDB is set to *mongo*, because this is the hostname of the
+container created by docker-compose. Use --mongo-host to override this setting to *localhost*, which uses the MongoDB
+port forwarding configured in **docker-compose.yml**.
+
+
+.. code-block:: bash
+
+   cd ..
+   bin/cc-create-user --config-file=compose/config.toml --mongo-host=localhost
 
 
 The Docker container for CC-Server will incorporate the CC-Server source code from the cloned git directory.
@@ -65,7 +78,7 @@ delete this directory.
 
 .. code-block:: bash
 
-   scripts/stop_cc_server
+   bin/cc-stop-server
 
    # optional: delete all data
    sudo rm -rf ~/.cc_server_compose
