@@ -392,7 +392,8 @@ class RequestHandler:
             # collect input file information and send with response
             response = {
                 'input_files': c['input_files'],
-                'input_file_keys': c['input_file_keys']
+                'input_file_keys': c['input_file_keys'],
+                'num_workers': self._config.defaults['data_container_description'].get('num_workers')
             }
             return jsonify(response)
 

@@ -402,13 +402,16 @@ specifying a different **entry_point** in a task.
    image = 'docker.io/curiouscontainers/cc-image-ubuntu:0.10'
    entry_point = 'python3 /opt/container_worker'
    container_ram = 512
+   num_workers = 4
 
 
 The **data_container_description** fields contain information about how to run a data container. CC-Image-Ubuntu and
 CC-Image-Fedora are both supported as data container images. Specify the URL of one of theses images, or a customized
 image, in the **image** field. The images contain CC-Container-Worker, which is usually stored in the image file system
 at */opt/container_worker*. The appropriate command to start the worker is given as **entry_point**. The field
-**container_ram** specifies the amount of memory for a data container in Megabytes.
+**container_ram** specifies the amount of memory for a data container in Megabytes. The **num_workers** field is used
+by gunicorn to start multiple worker processes. If the field is not set the number of workers is determined with
+**multiprocessing.cpu_count()**.
 
 
 .. code-block:: toml

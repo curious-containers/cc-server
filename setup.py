@@ -45,6 +45,7 @@ setup(
         'docker-py',
         'flask',
         'gunicorn',
-        'cryptography'
+        'cryptography',
+        'gevent'
     ]
 )

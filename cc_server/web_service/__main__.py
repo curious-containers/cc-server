@@ -719,7 +719,8 @@ def main():
             config.server_web['bind_host'],
             config.server_web['bind_port']
         ),
-        'workers': config.server_web.get('num_workers', cpu_count())
+        'workers': config.server_web.get('num_workers', cpu_count()),
+        'worker_class': 'gevent'
     }
 
     WebApp(options).run()
