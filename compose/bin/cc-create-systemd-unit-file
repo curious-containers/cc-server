@@ -20,7 +20,7 @@ done
 
 if [ -z ${DIR} ]; then
     echo "usage: -d </absolute/path/to/cc-server/compose>" 1>&2
-    echo "Error: specifying the absolute path to the cc-server directory via the -d command line option is required." 1>&2
+    echo "Error: specifying the absolute path to the cc-server/compose directory via the -d command line option is required." 1>&2
     exit 1
 fi
 
