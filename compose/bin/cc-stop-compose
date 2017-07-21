@@ -24,3 +24,5 @@ for service in "${services[@]}"; do
     ${command} kill ${service}
     ${command} rm -f ${service}
 done
+
+exit 0
