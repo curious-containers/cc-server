@@ -26,11 +26,11 @@ class Config:
 
         args = parser.parse_args()
 
-        config_file_path = os.path.join(os.path.expanduser('~'), '.config', 'cc-server', 'config.toml')
+        self.config_file_path = os.path.join(os.path.expanduser('~'), '.config', 'cc-server', 'config.toml')
         if args.config_file:
-            config_file_path = args.config_file
+            self.config_file_path = args.config_file
 
-        with open(config_file_path) as f:
+        with open(self.config_file_path) as f:
             config = toml.load(f)
 
         validate(config, cc_server_config_schema)

@@ -60,7 +60,7 @@ def main():
 
     # log status
     tee('Started logger with pid {}'.format(os.getpid()))
-    tee('Loaded TOML config from {}'.format(config.conf_file_path))
+    tee('Loaded TOML config from {}'.format(config.config_file_path))
 
     # start endless loop
     while True:
