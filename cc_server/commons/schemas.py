@@ -560,6 +560,7 @@ cc_server_config_schema = {
                         'image': {'type': 'string'},
                         'entry_point': {'type': 'string'},
                         'container_ram': {'type': 'integer'},
+                        'num_workers': {'type': 'integer'},
                         'registry_auth': {
                             'type': 'object',
                             'properties': {
