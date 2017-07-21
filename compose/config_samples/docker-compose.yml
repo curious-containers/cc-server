@@ -4,7 +4,7 @@ services:
     build: ./cc-server-image
     command: "python3 -u -m cc_server.web_service"
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - ./config.toml:/root/.config/cc-server/config.toml:ro
       - ../cc_server:/opt/cc_server:ro
@@ -41,7 +41,7 @@ services:
   mongo:
     image: mongo
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - ~/.cc_server_compose/mongo/db:/data/db
     tty: true
@@ -71,7 +71,7 @@ services:
     build: ./cc-server-image
     command: "gunicorn -w 4 -b 0.0.0.0:6000 file_server.__main__:app"
     ports:
-      - "6000:6000"
+      - "127.0.0.1:6000:6000"
     volumes:
       - ./file_server:/opt/file_server:ro
       - ~/.cc_server_compose/input_files:/root/input_files:ro
@@ -81,7 +81,7 @@ services:
   registry:
     image: registry:2
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     environment:
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
     volumes:
