@@ -111,7 +111,9 @@ CC-Server
 
 .. code-block:: bash
 
-   pip3 install --user --upgrade cc-server
+   git clone -b 0.12 https://github.com/curious-containers/cc-server.git
+   cd cc-server
+   pip3 install --user --upgrade .
 
 
 Configuration
@@ -126,8 +128,6 @@ First create the configuration folder in the system user's home directory:
 .. code-block:: bash
 
    mkdir -p ~/.config/curious-containers
-   git clone -b 0.12 https://github.com/curious-containers/cc-server.git
-   cd cc-server
 
 If you are connecting CC-Server to a local docker-engine:
 
@@ -536,7 +536,7 @@ argument:
 
 .. code-block:: bash
 
-   scripts/start_cc_server /PATH/TO/my_config.toml
+   scripts/start_cc_server --config-file /PATH/TO/my_config.toml
 
 
 CC-Server Deployment (docker-compose)
