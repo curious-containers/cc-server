@@ -7,7 +7,6 @@ Quick reference
 ---------------
 
 .. qrefflask:: cc_server.web_service.__main__:app
-
    :undoc-static:
 
 
@@ -76,6 +75,5 @@ API reference
 -------------
 
 .. autoflask:: cc_server.web_service.__main__:app
-
    :undoc-static:
 
