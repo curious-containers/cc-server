@@ -197,7 +197,7 @@ server_master
 +-----------------------------+------------------+-----+------------------------------------------------------+
 | name                        | type             | req | description                                          |
 +=============================+==================+=====+======================================================+
-| external_url                | string           | yes | | cc_server_web will send zmq messages to this url.  |
+| external_url                | string           | yes | | cc-server-web will send zmq messages to this url.  |
 |                             |                  |     | | Useful values are:                                 |
 |                             |                  |     | | **tcp://localhost:8001**                           |
 |                             |                  |     | | **tcp://cc-server-master:8001** (docker-compose)   |
@@ -231,7 +231,7 @@ server_log
 +-----------------------------+------------------+-----+------------------------------------------------------+
 | name                        | type             | req | description                                          |
 +=============================+==================+=====+======================================================+
-| external_url                | string           | yes | | cc_server_web and cc_server_master will send zmq   |
+| external_url                | string           | yes | | cc-server-web and cc-server-master will send zmq   |
 |                             |                  |     | | messages to this url. Useful values are:           |
 |                             |                  |     | | **tcp://localhost:8002**                           |
 |                             |                  |     | | **tcp://cc-server-log:8002** (docker-compose)      |
@@ -268,11 +268,11 @@ mongo
 | name                        | type             | req | description                                          |
 +=============================+==================+=====+======================================================+
 | username                    | string           | yes | | Credentials to connect to mongodb. When starting   |
-|                             |                  |     | | cc_server via docker-compose, the given username   |
+|                             |                  |     | | cc-server via docker-compose, the given username   |
 |                             |                  |     | | will be initially set in the database.             |
 +-----------------------------+------------------+-----+------------------------------------------------------+
 | password                    | string           | yes | | Credentials to connect to mongodb. When starting   |
-|                             |                  |     | | cc_server via docker-compose, the given password   |
+|                             |                  |     | | cc-server via docker-compose, the given password   |
 |                             |                  |     | | will be initially set in the database.             |
 +-----------------------------+------------------+-----+------------------------------------------------------+
 | host                        | string           | yes | | Hostname of the mongo server. Useful values are:   |
@@ -300,7 +300,7 @@ docker (connecting to docker-machine cluster)
 +-----------------------------+------------------+-----+------------------------------------------------------+
 | name                        | type             | req | description                                          |
 +=============================+==================+=====+======================================================+
-| thread_limit                | integer          | yes | | cc_server_master will create one docker-py client  |
+| thread_limit                | integer          | yes | | cc-server-master will create one docker-py client  |
 |                             |                  |     | | per docker-engine in a compute cluster.            |
 |                             |                  |     | | This setting limits the number of concurrent calls |
 |                             |                  |     | | per client, to prevent hitting bugs in docker.     |
@@ -569,6 +569,7 @@ Make sure `docker-compose <https://github.com/docker/compose/releases>`__ is ins
 The docker-compose deployment of CC-Server can also be registered as a system service with systemd.
 
 .. code-block:: bash
+
    # create systemd unit file
    sudo bin/cc-create-systemd-unit-file -d $(pwd)
 

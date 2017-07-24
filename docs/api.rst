@@ -6,8 +6,10 @@ This page has detailed descriptions of the CC-Server API.
 Quick reference
 ---------------
 
-.. qrefflask:: cc_server_web.__main__:app
+.. qrefflask:: cc_server.web_service.__main__:app
+
    :undoc-static:
+
 
 About the API
 -------------
@@ -73,5 +75,7 @@ requests. The following Python code shows how to request a token. See `GET /toke
 API reference
 -------------
 
-.. autoflask:: cc_server_web.__main__:app
+.. autoflask:: cc_server.web_service.__main__:app
+
    :undoc-static:
+
