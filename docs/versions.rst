@@ -19,7 +19,7 @@ Version 0.12
 - Refactored Python module structure of CC-Server.
 - Improved deployment (pip intallable) and scripts.
 - Simplified docker-compose.yml.
-- Breaking changes for various configuration, modules and script paths.
+- Breaking changes for various configuration, modules and script paths. Affects cc-server and cc-container-worker. Container image update is required.
 
 Version 0.11
 ^^^^^^^^^^^^

@@ -98,12 +98,12 @@ information, where the file can be found or should be placed in the local file s
 **meta_data** argument must be in the function signature of the uploader, but is entirely optional to be used in the
 code. The existing data connectors give a good example how these arguments are used.
 
-In order to create custom data connectors, the empty Python files *custom_downloaders.py* and *custom_uploaders.py* of
-CC-Container-Worker can be overwritten when building a container image and filled. The CC-Worker-Worker will
-automatically pick up all functions specified in these files, which do not start with an underscore. The only
-requirement is that the function signatures are specified correctly and that the given function names are unique and do
-not collide with the existing connectors. A user can reference the custom connectors by specifying **connector_type**
-equals the function name in a task description.
+In order to create custom data connectors, add Python modules with the names *cc_custom_downloaders* and
+*cc_custom_uploaders* to your container image. Make sure to set the PYTHONPATH environment variable correctly. The
+CC-Worker-Worker will automatically pick up all functions specified in these modules, which do not start with an
+underscore. The only requirement is that the function signatures are specified correctly and that the given function
+names are unique and do not collide with the existing connectors. A user can reference the custom connectors by
+specifying **connector_type** equals the function name in a task description.
 
 
 Sample implementation of a multi-file uploader
@@ -117,7 +117,7 @@ Sample implementation of a multi-file uploader
    import glob
    import requests
 
-   from container_worker import helper
+   from cc_container_worker.commons import helper
 
    def http_multi_file(connector_access, local_result_file, meta_data):
        local_file_paths = glob.glob(os.path.join(
@@ -143,7 +143,7 @@ Sample implementation of a multi-file uploader
        "application_command": "bash /root/algorithm.sh",
        "local_input_files": [],
        "local_result_files": {
-           "csv_data": {"dir": "/home/ubuntu/result_files", "names": "*.csv"}
+           "csv_data": {"dir": "/root/result_files", "names": "*.csv"}
        }
    }
 
@@ -152,12 +152,14 @@ Sample implementation of a multi-file uploader
 
 .. code-block:: docker
 
-   FROM docker.io/curiouscontainers/cc-image-ubuntu
-   COPY config.json /opt/config.json
+   FROM docker.io/curiouscontainers/cc-image-fedora
+   COPY config.json /root/.config/cc-container-worker/config.json
 
-   COPY custom_uploaders.py /opt/container_worker/custom_uploaders.py
+   COPY algorithm.sh /root/algorithm.sh
 
-   COPY algorithm.sh /home/ubuntu/algorithm.sh
+   COPY custom_uploaders.py /app/custom_uploaders.py
+
+   ENV PYTHONPATH /app:${PYTHONPATH}
 
 
 Excerpt from a sample **task**:
