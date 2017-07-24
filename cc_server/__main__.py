@@ -1,11 +1,11 @@
 from multiprocessing import Process
 
-from cc_server import log_service
-from cc_server import master_service
-from cc_server import web_service
-
 
 def main():
+    from cc_server import log_service
+    from cc_server import master_service
+    from cc_server import web_service
+
     log = Process(target=log_service.main)
     log.daemon = True
     log.start()
