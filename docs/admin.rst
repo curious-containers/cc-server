@@ -387,7 +387,7 @@ CC-Server.*
 .. code-block:: toml
 
    [defaults.application_container_description]
-   entry_point = 'python3 /opt/container_worker'
+   entry_point = 'python3 -m cc_container_worker.application_container'
 
 
 The **application_container_description** fields contain information about how to run an application container. The
@@ -399,8 +399,8 @@ specifying a different **entry_point** in a task.
 .. code-block:: toml
 
    [defaults.data_container_description]
-   image = 'docker.io/curiouscontainers/cc-image-ubuntu:0.10'
-   entry_point = 'python3 /opt/container_worker'
+   image = 'docker.io/curiouscontainers/cc-image-fedora:0.12'
+   entry_point = 'python3 -m cc_container_worker.data_container'
    container_ram = 512
    num_workers = 4
 
@@ -421,8 +421,31 @@ by gunicorn to start multiple worker processes. If the field is not set the numb
    password = 'PASSWORD'
 
 
-If a custom data container image is specified in **data_container_description** and the access to this image in a Docker
-registry is restricted, the appropriate **username** and **password** have to specified in **registry_auth**. The
+If the access to the **image** specified in **data_container_description** is restricted by the Docker registry,
+the appropriate **username** and **password** have to specified in **registry_auth**. The
+**registry_auth** subsection should be deleted from the configuration file if not required.
+
+
+.. code-block:: toml
+
+   [defaults.inspection_container_description]
+   image = 'docker.io/curiouscontainers/cc-image-fedora:0.12'
+   entry_point = 'python3 -m cc_container_worker.inspection_container'
+
+
+Inspection containers are internally used to check the status of a compute node. Users will never notice them.
+The parameters **image** and **entry_point** must be specified.
+
+
+.. code-block:: toml
+
+   [defaults.inspection_container_description.registry_auth]
+   username = 'REGISTRY_USER'
+   password = 'PASSWORD'
+
+
+If the access to the **image** specified in **inspection_container_description** is restricted by the Docker registry,
+the appropriate **username** and **password** have to specified in **registry_auth**. The
 **registry_auth** subsection should be deleted from the configuration file if not required.
 
 

@@ -40,9 +40,9 @@ The second command takes the CLI arguments *${@}* and writes them to the *parame
 .. code-block:: bash
 
    if [[ $(($RANDOM % 2)) == 0 ]]; then
-       cp /home/ubuntu/input_files/data.txt /home/ubuntu/result_files/data.txt
+       cp /root/input_files/data.txt /root/result_files/data.txt
    fi
-   echo ${@} > /home/ubuntu/result_files/parameters.txt
+   echo ${@} > /root/result_files/parameters.txt
 
 
 The algorithm assumes to find one input file at a specific location in the local file system of the container image.
@@ -59,13 +59,13 @@ in order to avoid this behaviour.
 .. code-block:: json
 
    {
-      "application_command": "bash /home/ubuntu/algorithm.sh",
+      "application_command": "bash /root/algorithm.sh",
       "local_input_files": [
-          {"dir": "/home/ubuntu/input_files", "name": "data.txt"}
+          {"dir": "/root/input_files", "name": "data.txt"}
       ],
       "local_result_files": {
-          "file_a": {"dir": "/home/ubuntu/result_files", "name": "data.txt", "optional": true},
-          "file_b": {"dir": "/home/ubuntu/result_files", "name": "parameters.txt"}
+          "file_a": {"dir": "/root/result_files", "name": "data.txt", "optional": true},
+          "file_b": {"dir": "/root/result_files", "name": "parameters.txt"}
       }
    }
 
@@ -79,10 +79,10 @@ via **application_command**.
 
 .. code-block:: docker
 
-   FROM docker.io/curiouscontainers/cc-image-ubuntu:0.12
-   COPY config.json /opt/config.json
+   FROM docker.io/curiouscontainers/cc-image-fedora:0.12
+   COPY config.json /root/.config/cc-container-worker/config.json
 
-   COPY algorithm.sh /home/ubuntu/algorithm.sh
+   COPY algorithm.sh /root/algorithm.sh
 
 
 The image is built from the Dockerfile by running the *docker build*. The git repository of the CC-Sample-App contains a bash
@@ -94,7 +94,7 @@ CC-Sample-App for a custom image, this URL must be changed to something else. Lo
 
    REGISTRY_URL=docker.io/curiouscontainers/cc-sample-app
 
-   docker pull docker.io/curiouscontainers/cc-image-ubuntu:0.12
+   docker pull docker.io/curiouscontainers/cc-image-fedora:0.12
    docker pull ${REGISTRY_URL}
    docker build -t ${REGISTRY_URL} .
    docker push ${REGISTRY_URL}

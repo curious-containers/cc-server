@@ -574,6 +574,24 @@ cc_server_config_schema = {
                     'required': ['image', 'entry_point', 'container_ram'],
                     'additionalProperties': False
                 },
+                'inspection_container_description': {
+                    'type': 'object',
+                    'properties': {
+                        'image': {'type': 'string'},
+                        'entry_point': {'type': 'string'},
+                        'registry_auth': {
+                            'type': 'object',
+                            'properties': {
+                                'username': {'type': 'string'},
+                                'password': {'type': 'string'}
+                            },
+                            'required': ['username', 'password'],
+                            'additionalProperties': False
+                        }
+                    },
+                    'required': ['image', 'entry_point'],
+                    'additionalProperties': False
+                },
                 'scheduling_strategies': {
                     'type': 'object',
                     'properties': {
@@ -609,7 +627,16 @@ cc_server_config_schema = {
                     },
                     'required': ['num_login_attempts', 'block_for_seconds', 'tokens_valid_for_seconds']
                 }
-            }
+            },
+            'required': [
+                'application_container_description',
+                'data_container_description',
+                'inspection_container_description',
+                'scheduling_strategies',
+                'error_handling',
+                'authorization'
+            ],
+            'additionalProperties': False
         }
     },
     'required': ['server_web', 'server_master', 'server_log', 'mongo', 'docker', 'defaults'],

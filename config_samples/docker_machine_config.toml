@@ -34,12 +34,17 @@ net = 'cc-overlay-network'
 machines_dir = '~/.docker/machine/machines'
 
 [defaults.application_container_description]
-entry_point = 'python3 /opt/container_worker'
+entry_point = 'python3 -m cc_container_worker.application_container'
 
 [defaults.data_container_description]
 image = 'docker.io/curiouscontainers/cc-image-fedora'
-entry_point = 'python3 /opt/container_worker'
+entry_point = 'python3 -m cc_container_worker.data_container'
 container_ram = 512
+# num_workers = 4
+
+[defaults.inspection_container_description]
+image = 'docker.io/curiouscontainers/cc-image-fedora'
+entry_point = 'python3 -m cc_container_worker.inspection_container'
 
 # only necessary if data container image is in private registry
 # [defaults.data_container_description.registry_auth]

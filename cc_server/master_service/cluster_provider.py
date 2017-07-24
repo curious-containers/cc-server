@@ -43,8 +43,8 @@ class DockerClientProxy:
         self._tee('Inspect node {}.'.format(self.node_name))
 
         self.update_image(
-            self._config.defaults['data_container_description']['image'],
-            self._config.defaults['data_container_description'].get('registry_auth')
+            self._config.defaults['inspection_container_description']['image'],
+            self._config.defaults['inspection_container_description'].get('registry_auth')
         )
 
         container_name = 'inspect-{}'.format(self.node_name)
@@ -136,11 +136,10 @@ class DockerClientProxy:
 
     def _create_inspection_container(self, container_name):
         settings = {
-            'container_type': 'inspection',
             'inspection_url': '{}'.format(self._config.server_web['external_url'].rstrip('/'))
         }
 
-        entry_point = self._config.defaults['data_container_description']['entry_point']
+        entry_point = self._config.defaults['inspection_container_description']['entry_point']
 
         command = '{} \'{}\''.format(
             entry_point,
@@ -149,7 +148,7 @@ class DockerClientProxy:
 
         self.create_container(
             name=container_name,
-            image=self._config.defaults['data_container_description']['image'],
+            image=self._config.defaults['inspection_container_description']['image'],
             command=command
         )
 
@@ -226,7 +225,6 @@ class DockerProvider:
         task = self._mongo.db['tasks'].find_one({'_id': task_id})
 
         settings = {
-            'container_type': 'application',
             'container_id': str(application_container_id),
             'callback_key': application_container['callback_key'],
             'callback_url': '{}/application-containers/callback'.format(self._config.server_web['external_url'].rstrip('/'))
@@ -274,7 +272,6 @@ class DockerProvider:
 
         settings = {
             'container_id': str(data_container_id),
-            'container_type': 'data',
             'callback_key': data_container['callback_key'],
             'callback_url': '{}/data-containers/callback'.format(self._config.server_web['external_url'].rstrip('/')),
         }
