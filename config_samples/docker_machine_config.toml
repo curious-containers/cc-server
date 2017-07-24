@@ -42,12 +42,17 @@ entry_point = 'python3 -m cc_container_worker.data_container'
 container_ram = 512
 # num_workers = 4
 
+# Only necessary if data container image is in private registry
+# [defaults.data_container_description.registry_auth]
+# username = 'REGISTRY_USER'
+# password = 'PASSWORD'
+
 [defaults.inspection_container_description]
 image = 'docker.io/curiouscontainers/cc-image-fedora'
 entry_point = 'python3 -m cc_container_worker.inspection_container'
 
-# only necessary if data container image is in private registry
-# [defaults.data_container_description.registry_auth]
+# only necessary if inspection container image is in private registry
+# [defaults.inspection_container_description.registry_auth]
 # username = 'REGISTRY_USER'
 # password = 'PASSWORD'
 
