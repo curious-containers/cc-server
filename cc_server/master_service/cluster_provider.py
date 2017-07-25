@@ -23,7 +23,7 @@ class DockerClientProxy:
         if self.node_config.get('tls'):
             tls = docker.tls.TLSConfig(**self.node_config['tls'])
 
-        self.client = docker.Client(
+        self.client = docker.APIClient(
             base_url=self.node_config['base_url'],
             tls=tls,
             timeout=self._config.docker.get('api_timeout')

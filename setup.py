@@ -42,7 +42,7 @@ setup(
         'zmq',
         'requests',
         'pymongo',
-        'docker-py',
+        'docker',
         'flask',
         'gunicorn',
         'cryptography',
