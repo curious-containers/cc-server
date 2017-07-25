@@ -159,7 +159,7 @@ class DockerClientProxy:
 
         if self._config.docker.get('net'):
             self.connect_container_to_network(
-                container=str(container_name),
+                str(container_name),
                 net_id=self._config.docker['net']
             )
 
@@ -268,7 +268,7 @@ class DockerProvider:
 
         if self._config.docker.get('net'):
             client.connect_container_to_network(
-                container=str(application_container_id),
+                str(application_container_id),
                 net_id=self._config.docker['net']
             )
 
@@ -307,7 +307,7 @@ class DockerProvider:
 
         if self._config.docker.get('net'):
             client.connect_container_to_network(
-                container=str(data_container_id),
+                str(data_container_id),
                 net_id=self._config.docker['net']
             )
 
