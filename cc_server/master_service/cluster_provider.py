@@ -112,6 +112,11 @@ class DockerClientProxy:
             self.client.create_host_config(*args, **kwargs)
 
     def create_container(self, *args, **kwargs):
+        container_name = kwargs['name']
+        containers = self.containers()
+        if container_name in containers:
+            self.remove_container(container_name)
+
         with self._thread_limit:
             self.client.create_container(*args, **kwargs)
 
