@@ -18,4 +18,4 @@ if [ ! -z "$COMPOSE_FILE" ]; then
     command="${command} -f ${COMPOSE_FILE}"
 fi
 
-${command} up cc-server-web
+${command} up --build cc-server-web

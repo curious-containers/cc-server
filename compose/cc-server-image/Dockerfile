@@ -1,7 +1,7 @@
-FROM docker.io/ubuntu:xenial
+FROM docker.io/fedora:26
 
-RUN apt-get update \
-&& apt-get install -y python3-pip libssl-dev libffi-dev \
-&& pip3 install --no-input --upgrade toml jsonschema zmq requests pymongo docker-py flask gunicorn cryptography gevent
+RUN dnf install -y python3-devel openssl-devel libffi-devel \
+&& pip3 install --no-input --user --upgrade \
+toml jsonschema zmq requests pymongo docker-py flask gunicorn cryptography gevent
 
-ENV PYTHONPATH $PYTHONPATH:/opt
+ENV PYTHONPATH /opt:${PYTHONPATH}

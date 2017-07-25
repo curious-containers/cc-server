@@ -27,7 +27,7 @@ setup(
         'cc_server.web_service',
     ],
     entry_points={
-        'console_scripts': ['cc-server=cc_server:main']
+        'console_scripts': ['cc-server=cc_server.__main__:main']
     },
     scripts=[
         'bin/cc-create-user',
