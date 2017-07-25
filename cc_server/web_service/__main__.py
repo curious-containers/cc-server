@@ -196,7 +196,7 @@ def post_nodes():
         {}
 
     """
-    return request_handler.post_nodes(request.get_json())
+    return request_handler.post_nodes()
 
 
 @app.route('/tasks/query', methods=['POST'])
@@ -251,7 +251,7 @@ def post_tasks_query():
         }
 
     """
-    return request_handler.post_tasks_query(request.get_json())
+    return request_handler.post_tasks_query()
 
 
 @app.route('/tasks', methods=['POST'])
@@ -427,7 +427,7 @@ def post_tasks():
         }
 
     """
-    return request_handler.post_tasks(request.get_json())
+    return request_handler.post_tasks()
 
 
 @app.route('/tasks/cancel', methods=['POST'])
@@ -500,7 +500,7 @@ def post_tasks_cancel():
         }
 
     """
-    return request_handler.post_tasks_cancel(request.get_json())
+    return request_handler.post_tasks_cancel()
 
 
 @app.route('/token', methods=['GET'])
@@ -548,7 +548,7 @@ def post_task_groups_query():
 
     Works exactly like the `POST /tasks/query endpoint <#post--tasks-query>`__.
     """
-    return request_handler.post_task_groups_query(request.get_json())
+    return request_handler.post_task_groups_query()
 
 
 @app.route('/application-containers/query', methods=['POST'])
@@ -562,7 +562,7 @@ def post_application_containers_query():
 
     Works exactly like the `POST /tasks/query endpoint <#post--tasks-query>`__.
     """
-    return request_handler.post_application_containers_query(request.get_json())
+    return request_handler.post_application_containers_query()
 
 
 @app.route('/data-containers/query', methods=['POST'])
@@ -576,7 +576,7 @@ def post_data_containers_query():
 
     Works exactly like the `POST /tasks/query endpoint <#post--tasks-query>`__.
     """
-    return request_handler.post_data_containers_query(request.get_json())
+    return request_handler.post_data_containers_query()
 
 
 @app.route('/application-containers/callback', methods=['POST'])
@@ -623,7 +623,7 @@ def post_application_container_callback():
         {}
 
     """
-    return request_handler.post_application_container_callback(request.get_json())
+    return request_handler.post_application_container_callback()
 
 
 @app.route('/data-containers/callback', methods=['POST'])
@@ -670,7 +670,7 @@ def post_data_container_callback():
         {}
 
     """
-    return request_handler.post_data_container_callback(request.get_json())
+    return request_handler.post_data_container_callback()
 
 
 def at_exit(sockets):

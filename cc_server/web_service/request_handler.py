@@ -1,5 +1,6 @@
 from traceback import format_exc
 
+import json
 import jsonschema
 from cc_server.commons.authorization import Authorize
 from cc_server.commons.helper import prepare_response, prepare_input, get_ip
@@ -64,8 +65,9 @@ def auth(require_admin=True, require_credentials=True):
 def validation(schema):
     """function decorator"""
     def dec(func):
-        def wrapper(self, json_input, *args, **kwargs):
+        def wrapper(self, *args, **kwargs):
             try:
+                json_input = json.loads(request.data)
                 jsonschema.validate(json_input, schema)
                 json_input = prepare_input(json_input)
             except:
