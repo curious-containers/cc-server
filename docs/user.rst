@@ -1,5 +1,4 @@
 User Documentation
-User Documentation
 ==================
 
 This user documentation contains information about how to schedule a task with CC-Server to run the CC-Sample-App and
