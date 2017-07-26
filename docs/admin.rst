@@ -536,7 +536,7 @@ argument:
 
 .. code-block:: bash
 
-   scripts/start_cc_server --config-file /PATH/TO/my_config.toml
+   cc-server --config-file /PATH/TO/my_config.toml
 
 
 CC-Server Deployment (docker-compose)
@@ -581,7 +581,7 @@ The docker-compose deployment of CC-Server can also be registered as a system se
 
 
 If the server configuration in the *config.toml* has not been changed, the CC-Server REST interface will be available
-at *http://localhost:8000* All persitent data of the server components is stored at *~/.cc_server_compose*.
+at *http://localhost:8000* All persistent data of the server components is stored at *~/.cc_server_compose*.
 
 
 Create User Accounts
