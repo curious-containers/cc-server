@@ -6,8 +6,8 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
-      - ./config.toml:/root/.config/cc-server/config.toml:ro
-      - ../cc_server:/opt/cc_server:ro
+      - .:/root/.config/cc-server:ro,z
+      - ../cc_server:/opt/cc_server:ro,z
     links:
       - mongo
       - cc-server-master
@@ -18,9 +18,9 @@ services:
     build: ./cc-server-image
     command: "python3 -u -m cc_server.master_service"
     volumes:
-      - ./config.toml:/root/.config/cc-server/config.toml:ro
-      - ../cc_server:/opt/cc_server:ro
-      - ~/.docker/machine:/root/.docker/machine:ro
+      - .:/root/.config/cc-server:ro,z
+      - ../cc_server:/opt/cc_server:ro,z
+      - ~/.docker/machine:/root/.docker/machine:ro,z
     links:
       - mongo
       - dind
@@ -33,9 +33,9 @@ services:
     build: ./cc-server-image
     command: "python3 -u -m cc_server.log_service"
     volumes:
-      - ./config.toml:/root/.config/cc-server/config.toml:ro
-      - ../cc_server:/opt/cc_server:ro
-      - ~/.cc_server_compose/logs:/root/.cc_server/logs
+      - .:/root/.config/cc-server:ro,z
+      - ../cc_server:/opt/cc_server:ro,z
+      - ~/.cc_server_compose/logs:/root/.cc_server/logs:rw,z
     tty: true
 
   mongo:
@@ -43,14 +43,14 @@ services:
     ports:
       - "127.0.0.1:27017:27017"
     volumes:
-      - ~/.cc_server_compose/mongo/db:/data/db
+      - ~/.cc_server_compose/mongo/db:/data/db:rw,z
     tty: true
 
   mongo-seed:
     build: ./mongo-seed
     volumes:
-      - ./config.toml:/root/.config/cc-server/config.toml:ro
-      - ./mongo-seed/mongo_seed:/opt/mongo_seed
+      - .:/root/.config/cc-server:ro,z
+      - ./mongo-seed/mongo_seed:/opt/mongo_seed:rw,z
     command: "python3 -u -m mongo_seed"
     links:
       - mongo
@@ -61,7 +61,7 @@ services:
     privileged: true
     command: "dockerd --insecure-registry=registry:5000 -H tcp://0.0.0.0:2375"
     volumes:
-      - ~/.cc_server_compose/dind/docker:/var/lib/docker
+      - ~/.cc_server_compose/dind/docker:/var/lib/docker:rw,z
     links:
       - registry
       - file-server
@@ -73,9 +73,9 @@ services:
     ports:
       - "127.0.0.1:6000:6000"
     volumes:
-      - ./file_server:/opt/file_server:ro
-      - ~/.cc_server_compose/input_files:/root/input_files:ro
-      - ~/.cc_server_compose/result_files:/root/result_files
+      - ./file_server:/opt/file_server:ro,z
+      - ~/.cc_server_compose/input_files:/root/input_files:ro,z
+      - ~/.cc_server_compose/result_files:/root/result_files:rw,z
     tty: true
 
   registry:
@@ -85,4 +85,4 @@ services:
     environment:
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
     volumes:
-      - ~/.cc_server_compose/registry/data:/data
+      - ~/.cc_server_compose/registry/data:/data:rw,z
