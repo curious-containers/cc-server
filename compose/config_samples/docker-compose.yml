@@ -6,7 +6,7 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
-      - .:/root/.config/cc-server:ro,z
+      - ./config/cc-server:/root/.config/cc-server:ro,z
       - ../cc_server:/opt/cc_server:ro,z
     links:
       - mongo
@@ -18,7 +18,7 @@ services:
     build: ./cc-server-image
     command: "python3 -u -m cc_server.master_service"
     volumes:
-      - .:/root/.config/cc-server:ro,z
+      - ./config/cc-server:/root/.config/cc-server:ro,z
       - ../cc_server:/opt/cc_server:ro,z
       - ~/.docker/machine:/root/.docker/machine:ro,z
     links:
@@ -33,7 +33,7 @@ services:
     build: ./cc-server-image
     command: "python3 -u -m cc_server.log_service"
     volumes:
-      - .:/root/.config/cc-server:ro,z
+      - ./config/cc-server:/root/.config/cc-server:ro,z
       - ../cc_server:/opt/cc_server:ro,z
       - ~/.cc_server_compose/logs:/root/.cc_server/logs:rw,z
     tty: true
@@ -49,7 +49,7 @@ services:
   mongo-seed:
     build: ./mongo-seed
     volumes:
-      - .:/root/.config/cc-server:ro,z
+      - ./config/cc-server:/root/.config/cc-server:ro,z
       - ./mongo-seed/mongo_seed:/opt/mongo_seed:rw,z
     command: "python3 -u -m mongo_seed"
     links:

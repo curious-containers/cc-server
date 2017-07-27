@@ -45,7 +45,7 @@ may as well be customized, for example to prevent conflicting ports with other a
 
    git clone https://github.com/curious-containers/cc-server.git
    cd cc-server/compose
-   cp config_samples/* .
+   cp -R config_samples/* .
 
 
 In order to start CC-Server run **bin/start_cc_server**. This will create Containers for MongoDB, Docker Registry,
@@ -67,6 +67,7 @@ port forwarding configured in **docker-compose.yml**.
 .. code-block:: bash
 
    cd ..
+   pip3 install --user --upgrade -r requirements.txt
    bin/cc-create-user --config-file=compose/config.toml --mongo-host=localhost
 
 

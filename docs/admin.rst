@@ -554,7 +554,7 @@ development).
 
    git clone -b 0.12 https://github.com/curious-containers/cc-server.git
    cd cc-server/compose
-   cp config_samples/* .
+   cp -R config_samples/* .
 
 
 Make sure `docker-compose <https://github.com/docker/compose/releases>`__ is installed. Use the scripts provided in the

@@ -3,7 +3,7 @@ __pycache__
 *.pyc
 
 docs/_build
-compose/config.toml
+compose/config
 compose/docker-compose.yml
 
 MANIFEST
