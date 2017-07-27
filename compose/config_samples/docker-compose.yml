@@ -50,7 +50,7 @@ services:
     build: ./mongo-seed
     volumes:
       - ./config/cc-server:/root/.config/cc-server:ro,z
-      - ./mongo-seed/mongo_seed:/opt/mongo_seed:rw,z
+      - ./mongo-seed/mongo_seed:/opt/mongo_seed:ro,z
     command: "python3 -u -m mongo_seed"
     links:
       - mongo
