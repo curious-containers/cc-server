@@ -36,13 +36,13 @@ base_url = 'dind:2375'
 entry_point = 'python3 -m cc_container_worker.application_container'
 
 [defaults.data_container_description]
-image = 'docker.io/curiouscontainers/cc-image-fedora'
+image = 'docker.io/curiouscontainers/cc-image-fedora:0.12'
 entry_point = 'python3 -m cc_container_worker.data_container'
 container_ram = 512
 # num_workers = 4
 
 [defaults.inspection_container_description]
-image = 'docker.io/curiouscontainers/cc-image-fedora'
+image = 'docker.io/curiouscontainers/cc-image-fedora:0.12'
 entry_point = 'python3 -m cc_container_worker.inspection_container'
 
 [defaults.scheduling_strategies]
