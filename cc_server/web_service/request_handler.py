@@ -2,13 +2,14 @@ from traceback import format_exc
 
 import json
 import jsonschema
+from time import time
+from flask import request, jsonify
+from werkzeug.exceptions import BadRequest, Unauthorized
+
 from cc_server.commons.authorization import Authorize
 from cc_server.commons.helper import prepare_response, prepare_input, get_ip
 from cc_server.commons.schemas import query_schema, tasks_schema, callback_schema, tasks_cancel_schema, nodes_schema
 from cc_server.commons.states import is_state, end_states, StateHandler
-from flask import request, jsonify
-from werkzeug.exceptions import BadRequest, Unauthorized
-
 from cc_server.commons.database import Mongo
 
 
@@ -410,6 +411,8 @@ class RequestHandler:
         c = self._mongo.db[collection].find_one({'_id': json_input['container_id']})
         if is_state(c['state'], 'failed') or is_state(c['state'], 'success'):
             return
+
+        json_input['timestamp'] = time()
 
         self._mongo.db[collection].update({'_id': c['_id']}, {
             '$push': {'callbacks': json_input}
