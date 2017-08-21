@@ -1,7 +1,7 @@
 import os
 import atexit
 from multiprocessing import cpu_count
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify
 
 request_handler = None
 app = Flask('cc-server-web')
@@ -710,7 +710,7 @@ def prepare():
 
 def main():
     from cc_server.commons.configuration import Config
-    from cc_server.web_service.gunicorn_integration import WebApp
+    from cc_server.commons.gunicorn_integration import WebApp
 
     config = Config()
 
@@ -723,7 +723,7 @@ def main():
         'worker_class': 'gevent'
     }
 
-    WebApp(options).run()
+    WebApp(app_module='cc_server.web_service.wsgi', options=options).run()
 
 if __name__ == '__main__':
     main()

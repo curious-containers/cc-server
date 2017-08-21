@@ -1,7 +1,10 @@
 FROM docker.io/fedora:26
 
-RUN dnf install -y python3-devel openssl-devel libffi-devel \
-&& pip3 install --no-input --user --upgrade \
-toml jsonschema zmq requests pymongo docker flask gunicorn cryptography gevent
+RUN dnf install -y python3-toml python3-jsonschema python3-zmq python3-requests python3-pymongo python3-docker \
+python3-flask python3-gunicorn python3-cryptography python3-gevent \
+&& useradd --create-home -s /bin/bash ccuser
 
-ENV PYTHONPATH /opt:${PYTHONPATH}
+WORKDIR /home/ccuser
+USER ccuser
+
+ENV PYTHONPATH /home/ccuser:${PYTHONPATH}

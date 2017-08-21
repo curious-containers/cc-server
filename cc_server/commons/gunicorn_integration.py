@@ -3,7 +3,8 @@ from gunicorn import util
 
 
 class WebApp(BaseApplication):
-    def __init__(self, options=None):
+    def __init__(self, app_module, options=None):
+        self.app_module = app_module
         self.options = options or {}
         super(WebApp, self).__init__()
 
@@ -14,4 +15,4 @@ class WebApp(BaseApplication):
             self.cfg.set(key.lower(), value)
 
     def load(self):
-        return util.import_app("cc_server.web_service.wsgi")
+        return util.import_app(self.app_module)

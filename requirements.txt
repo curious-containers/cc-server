@@ -1,1 +1,10 @@
--e .
+toml
+jsonschema
+zmq
+requests
+pymongo
+docker
+flask
+gunicorn
+cryptography
+gevent

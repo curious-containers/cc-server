@@ -6,21 +6,22 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
-      - ./config/cc-server:/root/.config/cc-server:ro,z
-      - ../cc_server:/opt/cc_server:ro,z
+      - ./config/cc-server:/home/ccuser/.config/cc-server:ro,z
+      - ../cc_server:/home/ccuser/cc_server:ro,z
     links:
       - mongo
       - cc-server-master
       - cc-server-log
     tty: true
+    user: ccuser
 
   cc-server-master:
     build: ./cc-server-image
     command: "python3 -u -m cc_server.master_service"
     volumes:
-      - ./config/cc-server:/root/.config/cc-server:ro,z
-      - ../cc_server:/opt/cc_server:ro,z
-      - ~/.docker/machine:/root/.docker/machine:ro,z
+      - ./config/cc-server:/home/ccuser/.config/cc-server:ro,z
+      - ../cc_server:/home/ccuser/cc_server:ro,z
+      - ~/.docker/machine:/home/ccuser/.docker/machine:ro,z
     links:
       - mongo
       - dind
@@ -28,15 +29,17 @@ services:
     depends_on:
       - mongo-seed
     tty: true
+    user: ccuser
 
   cc-server-log:
     build: ./cc-server-image
     command: "python3 -u -m cc_server.log_service"
     volumes:
-      - ./config/cc-server:/root/.config/cc-server:ro,z
-      - ../cc_server:/opt/cc_server:ro,z
-      - ~/.cc_server_compose/logs:/root/.cc_server/logs:rw,z
+      - ./config/cc-server:/home/ccuser/.config/cc-server:ro,z
+      - ../cc_server:/home/ccuser/cc_server:ro,z
+      - ~/.cc_server_compose/logs:/home/ccuser/.cc_server/logs:rw,z
     tty: true
+    user: ccuser
 
   mongo:
     image: mongo
@@ -69,14 +72,16 @@ services:
 
   file-server:
     build: ./cc-server-image
-    command: "/root/.local/bin/gunicorn -w 4 -b 0.0.0.0:6000 file_server.__main__:app"
+    command: "python3 -m file_server"
     ports:
       - "127.0.0.1:6000:6000"
     volumes:
-      - ./file_server:/opt/file_server:ro,z
-      - ~/.cc_server_compose/input_files:/root/input_files:ro,z
-      - ~/.cc_server_compose/result_files:/root/result_files:rw,z
+      - ../cc_server:/home/ccuser/cc_server:ro,z
+      - ./file_server:/home/ccuser/file_server:ro,z
+      - ~/.cc_server_compose/input_files:/home/ccuser/input_files:ro,z
+      - ~/.cc_server_compose/result_files:/home/ccuser/result_files:rw,z
     tty: true
+    user: ccuser
 
   registry:
     image: registry:2
