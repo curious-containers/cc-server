@@ -29,7 +29,7 @@ username = 'ccdbAdmin'
 password = 'PASSWORD'
 host = 'mongo'
 port = 27017
-db = 'db'
+db = 'ccdb'
 
 [docker]
 thread_limit = 8
