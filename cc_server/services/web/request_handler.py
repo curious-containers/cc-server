@@ -1,6 +1,7 @@
 from traceback import format_exc
 
 import json
+import chardet
 import jsonschema
 from time import time
 from flask import request, jsonify
@@ -68,7 +69,10 @@ def validation(schema):
     def dec(func):
         def wrapper(self, *args, **kwargs):
             try:
-                json_input = json.loads(request.data)
+                rawdata = request.data
+                enc = chardet.detect(rawdata)
+                data = rawdata.decode(enc['encoding'])
+                json_input = json.loads(data)
                 jsonschema.validate(json_input, schema)
                 json_input = prepare_input(json_input)
             except:

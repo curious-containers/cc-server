@@ -49,6 +49,7 @@ setup(
         'flask',
         'gunicorn',
         'cryptography',
-        'gevent'
+        'gevent',
+        'chardet'
     ]
 )
