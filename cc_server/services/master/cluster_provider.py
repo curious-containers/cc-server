@@ -1,6 +1,5 @@
 import json
 import docker
-
 from queue import Queue
 from threading import Semaphore, Thread
 
