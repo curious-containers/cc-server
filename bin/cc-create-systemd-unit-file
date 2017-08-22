@@ -33,7 +33,7 @@ After=docker.service
 [Service]
 Restart=always
 User=${USERNAME}
-ExecStart=/usr/bin/python3 -m cc_server
+ExecStart=cc-server
 
 [Install]
 WantedBy=multi-user.target
