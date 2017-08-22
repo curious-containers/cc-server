@@ -26,6 +26,7 @@ setup(
         'cc_server.services.master',
         'cc_server.services.master.scheduling_strategies',
         'cc_server.services.web',
+        'cc_server.services.files'
     ],
     entry_points={
         'console_scripts': ['cc-server=cc_server.__main__:main']
