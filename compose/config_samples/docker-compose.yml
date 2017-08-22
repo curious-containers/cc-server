@@ -2,7 +2,7 @@ version: "2"
 services:
   cc-server-web:
     build: ./cc-server-image
-    command: "python3 -u -m cc_server.web_service"
+    command: "python3 -u -m cc_server.services.web"
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
@@ -17,7 +17,7 @@ services:
 
   cc-server-master:
     build: ./cc-server-image
-    command: "python3 -u -m cc_server.master_service"
+    command: "python3 -u -m cc_server.services.master"
     volumes:
       - ./config/cc-server:/home/ccuser/.config/cc-server:ro,z
       - ../cc_server:/home/ccuser/cc_server:ro,z
@@ -33,7 +33,7 @@ services:
 
   cc-server-log:
     build: ./cc-server-image
-    command: "python3 -u -m cc_server.log_service"
+    command: "python3 -u -m cc_server.services.log"
     volumes:
       - ./config/cc-server:/home/ccuser/.config/cc-server:ro,z
       - ../cc_server:/home/ccuser/cc_server:ro,z
@@ -72,14 +72,13 @@ services:
 
   file-server:
     build: ./cc-server-image
-    command: "python3 -m file_server"
+    command: "python3 -m cc_server.services.files"
     ports:
-      - "127.0.0.1:6000:6000"
+      - "127.0.0.1:8003:8003"
     volumes:
       - ../cc_server:/home/ccuser/cc_server:ro,z
-      - ./file_server:/home/ccuser/file_server:ro,z
-      - ~/.cc_server_compose/input_files:/home/ccuser/input_files:ro,z
-      - ~/.cc_server_compose/result_files:/home/ccuser/result_files:rw,z
+      - ~/.cc_server_compose/input_files:/home/ccuser/.cc_server/input_files:ro,z
+      - ~/.cc_server_compose/result_files:/home/ccuser/.cc_server/result_files:rw,z
     tty: true
     user: ccuser
 

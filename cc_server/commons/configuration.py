@@ -38,6 +38,7 @@ class Config:
         self.server_web = config['server_web']
         self.server_master = config['server_master']
         self.server_log = config['server_log']
+        self.server_files = config['server_files']
         self.mongo = config['mongo']
         self.docker = config['docker']
         self.defaults = config['defaults']

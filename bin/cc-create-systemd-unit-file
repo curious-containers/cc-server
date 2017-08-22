@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root" 1>&2
+    exit 1
+fi
+
+while [[ $# -gt 1 ]]; do
+    key="$1"
+    case ${key} in
+        -u|--username)
+        USERNAME="$2"
+        shift
+        ;;
+        *)
+        ;;
+    esac
+    shift
+done
+
+if [ -z ${USERNAME} ]; then
+    echo "usage: -u <username>" 1>&2
+    echo "Error: specifying the username of the system user to run the service is required." 1>&2
+    exit 1
+fi
+
+file_content="[Unit]
+Description=Curious Containers Server
+Documentation=https://www.curious-containers.cc/docs/html/index.html
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+User=${USERNAME}
+ExecStart=/usr/bin/python3 -m cc_server
+
+[Install]
+WantedBy=multi-user.target
+"
+
+echo "${file_content}" > /etc/systemd/system/cc-server.service

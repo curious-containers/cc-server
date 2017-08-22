@@ -1,5 +1,5 @@
-import os
 import atexit
+import os
 from multiprocessing import cpu_count
 from flask import Flask, jsonify
 
@@ -682,7 +682,7 @@ def prepare():
     import zmq
 
     from cc_server.commons.configuration import Config
-    from cc_server.web_service.request_handler import RequestHandler
+    from cc_server.services.web.request_handler import RequestHandler
 
     config = Config()
 
@@ -723,7 +723,7 @@ def main():
         'worker_class': 'gevent'
     }
 
-    WebApp(app_module='cc_server.web_service.wsgi', options=options).run()
+    WebApp(app_module='cc_server.services.web.wsgi', options=options).run()
 
 if __name__ == '__main__':
     main()

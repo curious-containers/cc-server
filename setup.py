@@ -21,10 +21,11 @@ setup(
     packages=[
         'cc_server',
         'cc_server.commons',
-        'cc_server.log_service',
-        'cc_server.master_service',
-        'cc_server.master_service.scheduling_strategies',
-        'cc_server.web_service',
+        'cc_server.services',
+        'cc_server.services.log',
+        'cc_server.services.master',
+        'cc_server.services.master.scheduling_strategies',
+        'cc_server.services.web',
     ],
     entry_points={
         'console_scripts': ['cc-server=cc_server.__main__:main']
@@ -32,7 +33,8 @@ setup(
     scripts=[
         'bin/cc-create-user',
         'bin/cc-create-user-non-interactive',
-        'bin/cc-drop-db'
+        'bin/cc-drop-db',
+        'bin/cc-create-systemd-unit-file'
     ],
     license='Apache-2.0',
     platforms=['any'],

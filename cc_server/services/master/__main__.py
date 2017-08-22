@@ -1,15 +1,15 @@
 import atexit
 import os
+
 import zmq
 
-from cc_server.commons.states import StateHandler
-from cc_server.commons.database import Mongo
 from cc_server.commons.configuration import Config
-
-from cc_server.master_service.cluster_provider import DockerProvider
-from cc_server.master_service.cluster import Cluster
-from cc_server.master_service.scheduling import Scheduler
-from cc_server.master_service.worker import Worker
+from cc_server.commons.database import Mongo
+from cc_server.commons.states import StateHandler
+from cc_server.services.master import Cluster
+from cc_server.services.master import DockerProvider
+from cc_server.services.master import Scheduler
+from cc_server.services.master import Worker
 
 
 def main():
