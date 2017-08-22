@@ -495,6 +495,18 @@ cc_server_config_schema = {
             'required': ['external_url', 'bind_host', 'bind_port'],
             'additionalProperties': False
         },
+        'server_files': {
+            'type': 'object',
+            'properties': {
+                'external_url': {'type': 'string'},
+                'bind_host': {'type': 'string'},
+                'bind_port': {'type': 'integer'},
+                'input_files_dir': {'type': 'string'},
+                'result_files_dir': {'type': 'string'}
+            },
+            'required': ['external_url', 'bind_host', 'bind_port', 'input_files_dir', 'result_files_dir'],
+            'additionalProperties': False
+        },
         'mongo': {
             'type': 'object',
             'properties': {
@@ -639,6 +651,6 @@ cc_server_config_schema = {
             'additionalProperties': False
         }
     },
-    'required': ['server_web', 'server_master', 'server_log', 'mongo', 'docker', 'defaults'],
-    'additionalProperties': True
+    'required': ['server_web', 'server_master', 'server_log', 'server_files', 'mongo', 'docker', 'defaults'],
+    'additionalProperties': False
 }

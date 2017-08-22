@@ -25,7 +25,8 @@ class DockerClientProxy:
         self.client = docker.APIClient(
             base_url=self.node_config['base_url'],
             tls=tls,
-            timeout=self._config.docker.get('api_timeout')
+            timeout=self._config.docker.get('api_timeout'),
+            version='auto'
         )
 
     def info(self):
