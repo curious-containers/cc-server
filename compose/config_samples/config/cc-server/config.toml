@@ -23,6 +23,7 @@ bind_host = '0.0.0.0'
 bind_port = 8003
 input_files_dir = '~/.cc_server/input_files'
 result_files_dir = '~/.cc_server/result_files'
+# num_workers = 4
 
 [mongo]
 username = 'ccdbAdmin'

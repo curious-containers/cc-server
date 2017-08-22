@@ -502,7 +502,8 @@ cc_server_config_schema = {
                 'bind_host': {'type': 'string'},
                 'bind_port': {'type': 'integer'},
                 'input_files_dir': {'type': 'string'},
-                'result_files_dir': {'type': 'string'}
+                'result_files_dir': {'type': 'string'},
+                'num_workers': {'type': 'integer'}
             },
             'required': ['external_url', 'bind_host', 'bind_port', 'input_files_dir', 'result_files_dir'],
             'additionalProperties': False
