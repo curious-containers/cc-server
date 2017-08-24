@@ -652,6 +652,6 @@ cc_server_config_schema = {
             'additionalProperties': False
         }
     },
-    'required': ['server_web', 'server_master', 'server_log', 'server_files', 'mongo', 'docker', 'defaults'],
+    'required': ['server_web', 'server_master', 'server_log', 'mongo', 'docker', 'defaults'],
     'additionalProperties': False
 }

@@ -20,14 +20,6 @@ bind_port = 8002
 log_dir = '~/.cc_server/logs/'
 suppress_stdout = false
 
-[server_files]
-external_url = 'https://domain.tld/files/'
-bind_host = '127.0.0.1'
-bind_port = 8003
-input_files_dir = '~/.cc_server/input_files'
-result_files_dir = '~/.cc_server/result_files'
-# num_workers = 4
-
 [mongo]
 username = 'ccdbAdmin'
 password = 'PASSWORD'
