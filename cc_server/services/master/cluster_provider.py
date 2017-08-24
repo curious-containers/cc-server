@@ -26,7 +26,7 @@ class DockerClientProxy:
             client_class = docker.APIClient
         except AttributeError:
             client_class = docker.Client
-            self._tee('{}: Fallback to old docker-py Client.'.format(self.node_name))
+            self._tee('Node {}: Fallback to old docker-py Client.'.format(self.node_name))
 
         self.client = client_class(
             base_url=self.node_config['base_url'],
