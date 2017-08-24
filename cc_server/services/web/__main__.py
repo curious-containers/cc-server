@@ -703,7 +703,7 @@ def prepare():
         master=master_socket
     )
 
-    tee('Started flask with pid {}'.format(os.getpid()))
+    tee('Started cc-server-web with pid {}'.format(os.getpid()))
 
     return config
 
