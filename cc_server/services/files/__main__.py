@@ -27,8 +27,6 @@ tee = logger_socket.send_string
 
 atexit.register(at_exit, [logger_socket])
 
-tee('Started cc-server-files with pid {}'.format(os.getpid()))
-
 
 @app.route('/<file_name>', methods=['GET'])
 def get_file(file_name):
@@ -56,6 +54,8 @@ def main():
         'workers': config.server_files.get('num_workers', cpu_count()),
         'worker_class': 'gevent'
     }
+
+    tee('Started cc-server-files with pid {}'.format(os.getpid()))
 
     WebApp(app_module='cc_server.services.files.wsgi', options=options).run()
 
