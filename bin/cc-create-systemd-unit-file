@@ -12,6 +12,10 @@ while [[ $# -gt 1 ]]; do
         USERNAME="$2"
         shift
         ;;
+        -d|--dir)
+        DIR="$2"
+        shift
+        ;;
         *)
         ;;
     esac
@@ -19,8 +23,18 @@ while [[ $# -gt 1 ]]; do
 done
 
 if [ -z ${USERNAME} ]; then
-    echo "usage: -u <username>" 1>&2
-    echo "Error: specifying the username of the system user to run the service is required." 1>&2
+    USERNAME=root
+fi
+
+if [ -z ${DIR} ]; then
+    echo "usage: -d </absolute/path/to/cc-server>" 1>&2
+    echo "Error: specifying the absolute path to the cc-server directory via the -d command line option is required." 1>&2
+    exit 1
+fi
+
+if [[ "$DIR" != /* ]]; then
+    echo "usage: -d </absolute/path/to/cc-server>" 1>&2
+    echo "Error: specified directory path is not absolute." 1>&2
     exit 1
 fi
 
@@ -31,6 +45,7 @@ Requires=docker.service
 After=docker.service
 
 [Service]
+Environment='PYTHONPATH=${DIR}'
 Restart=always
 User=${USERNAME}
 ExecStart=/usr/bin/python3 -m cc_server

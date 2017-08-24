@@ -8,6 +8,10 @@ fi
 while [[ $# -gt 1 ]]; do
     key="$1"
     case ${key} in
+        -u|--username)
+        USERNAME="$2"
+        shift
+        ;;
         -d|--dir)
         DIR="$2"
         shift
@@ -17,6 +21,10 @@ while [[ $# -gt 1 ]]; do
     esac
     shift
 done
+
+if [ -z ${USERNAME} ]; then
+    USERNAME=root
+fi
 
 if [ -z ${DIR} ]; then
     echo "usage: -d </absolute/path/to/cc-server/compose>" 1>&2
@@ -40,6 +48,7 @@ After=docker.service
 
 [Service]
 Restart=always
+User=${USERNAME}
 ExecStart=/bin/bash ${DIR}/bin/cc-start-compose -f ${DIR}/docker-compose.yml
 ExecStop=/bin/bash ${DIR}/bin/cc-stop-compose -f ${DIR}/docker-compose.yml
 
