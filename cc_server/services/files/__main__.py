@@ -31,7 +31,7 @@ atexit.register(at_exit, [logger_socket])
 @app.route('/<file_name>', methods=['GET'])
 def get_file(file_name):
     file_name = secure_filename(file_name)
-    tee('Sending file: {}').format(file_name)
+    tee('Sending file: {}'.format(file_name))
     return send_from_directory(INPUT_FILES_DIR, file_name, as_attachment=True)
 
 
@@ -41,7 +41,7 @@ def post_file(file_name):
     file_path = os.path.join(RESULT_FILES_DIR, file_name)
     with open(file_path, 'wb') as f:
         f.write(request.data)
-    tee('Receiving file: {}').format(file_name)
+    tee('Receiving file: {}'.format(file_name))
     return ''
 
 
