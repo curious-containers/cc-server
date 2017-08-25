@@ -1,5 +1,5 @@
-import atexit
 import os
+import atexit
 from multiprocessing import cpu_count
 from flask import Flask, jsonify
 
@@ -673,15 +673,11 @@ def post_data_container_callback():
     return request_handler.post_data_container_callback()
 
 
-def at_exit(sockets):
-    for s in sockets:
-        s.close()
-
-
 def prepare():
     import zmq
 
     from cc_server.commons.configuration import Config
+    from cc_server.commons.helper import close_sockets
     from cc_server.services.web.request_handler import RequestHandler
 
     config = Config()
@@ -694,7 +690,7 @@ def prepare():
     master_socket = context.socket(zmq.PUSH)
     master_socket.connect(config.server_master['external_url'])
 
-    atexit.register(at_exit, [logger_socket, master_socket])
+    atexit.register(close_sockets, [logger_socket, master_socket])
 
     global request_handler
     request_handler = RequestHandler(
@@ -703,7 +699,7 @@ def prepare():
         master=master_socket
     )
 
-    tee('Started cc-server-web with pid {}'.format(os.getpid()))
+    tee('Started service web with pid {}'.format(os.getpid()))
 
     return config
 

@@ -1,5 +1,4 @@
-from cc_server.services.web.__main__ import prepare
-from cc_server.services.web.__main__ import app
+from cc_server.services.web.__main__ import app, prepare
 
 application = app
 prepare()

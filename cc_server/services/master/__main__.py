@@ -66,12 +66,12 @@ def main():
 
     # inform at exit
     def at_exit():
-        tee('Stopped master with pid {}'.format(os.getpid()))
+        tee('Stopped service master with pid {}'.format(os.getpid()))
 
     atexit.register(at_exit)
 
     # log status
-    tee('Started master with pid {}'.format(os.getpid()))
+    tee('Started service master with pid {}'.format(os.getpid()))
 
     # start endless loop
     while True:

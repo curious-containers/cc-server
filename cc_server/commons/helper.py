@@ -70,3 +70,8 @@ def prepare_response(data):
 
 def remove_secrets(data):
     return _prepare(data, False, False)
+
+
+def close_sockets(sockets):
+    for s in sockets:
+        s.close()

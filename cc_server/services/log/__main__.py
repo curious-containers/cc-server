@@ -54,12 +54,12 @@ def main():
 
     # inform at exit
     def at_exit():
-        tee('Stopped logger with pid {}'.format(os.getpid()))
+        tee('Stopped service logs with pid {}'.format(os.getpid()))
 
     atexit.register(at_exit)
 
     # log status
-    tee('Started logger with pid {}'.format(os.getpid()))
+    tee('Started service logs with pid {}'.format(os.getpid()))
     tee('Loaded TOML config from {}'.format(config.config_file_path))
 
     # start endless loop
