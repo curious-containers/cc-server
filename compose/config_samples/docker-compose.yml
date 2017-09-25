@@ -31,6 +31,20 @@ services:
     tty: true
     user: ccuser
 
+  cc-server-files:
+    build: ./cc-server-image
+    command: "python3 -m cc_server.services.files"
+    ports:
+      - "127.0.0.1:8003:8003"
+    volumes:
+      - ../cc_server:/home/ccuser/cc_server:ro,z
+      - ~/.cc_server_compose/input_files:/home/ccuser/.cc_server/input_files:ro,z
+      - ~/.cc_server_compose/result_files:/home/ccuser/.cc_server/result_files:rw,z
+    links:
+      - cc-server-log
+    tty: true
+    user: ccuser
+
   cc-server-log:
     build: ./cc-server-image
     command: "python3 -u -m cc_server.services.log"
@@ -69,18 +83,6 @@ services:
       - registry
       - file-server
     tty: true
-
-  file-server:
-    build: ./cc-server-image
-    command: "python3 -m cc_server.services.files"
-    ports:
-      - "127.0.0.1:8003:8003"
-    volumes:
-      - ../cc_server:/home/ccuser/cc_server:ro,z
-      - ~/.cc_server_compose/input_files:/home/ccuser/.cc_server/input_files:ro,z
-      - ~/.cc_server_compose/result_files:/home/ccuser/.cc_server/result_files:rw,z
-    tty: true
-    user: ccuser
 
   registry:
     image: registry:2
