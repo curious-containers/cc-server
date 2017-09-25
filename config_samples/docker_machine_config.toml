@@ -31,7 +31,7 @@ db = 'ccdb'
 thread_limit = 8
 api_timeout = 30
 net = 'cc-overlay-network'
-machines_dir = '~/.docker/machine/machines'
+docker_machine_dir = '~/.docker/machine'
 
 [defaults.application_container_description]
 entry_point = 'python3 -m cc_container_worker.application_container'

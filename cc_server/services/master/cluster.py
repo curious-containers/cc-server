@@ -216,8 +216,9 @@ class Cluster:
 
     def _read_node_configs(self):
         node_configs = {}
-        if self._config.docker.get('machines_dir'):
-            machines_dir = os.path.expanduser(self._config.docker['machines_dir'])
+        if self._config.docker.get('docker_machine_dir'):
+            machine_dir = os.path.expanduser(self._config.docker['docker_machine_dir'])
+            machines_dir = os.path.join(machine_dir, 'machines')
             for machine_dir in os.listdir(machines_dir):
                 with open(os.path.join(machines_dir, machine_dir, 'config.json')) as f:
                     machine_config = json.load(f)
@@ -238,10 +239,10 @@ class Cluster:
                 node_config = {
                     'base_url': '{}:{}'.format(machine_config['Driver']['IPAddress'], port),
                     'tls': {
-                        'verify': machine_config['HostOptions']['AuthOptions']['CaCertPath'],
+                        'verify': os.path.join(machine_dir, 'certs', 'ca.pem'),
                         'client_cert': [
-                            machine_config['HostOptions']['AuthOptions']['ClientCertPath'],
-                            machine_config['HostOptions']['AuthOptions']['ClientKeyPath']
+                            os.path.join(machine_dir, 'certs', 'cert.pem'),
+                            os.path.join(machine_dir, 'certs', 'key.pem')
                         ],
                         'assert_hostname': False
                     }

@@ -526,7 +526,7 @@ cc_server_config_schema = {
                 'thread_limit': {'type': 'integer'},
                 'api_timeout': {'type': 'integer'},
                 'net': {'type': 'string'},
-                'machines_dir': {'type': 'string'},
+                'docker_machine_dir': {'type': 'string'},
                 'nodes': {
                     'type': 'object',
                     'patternProperties': {
