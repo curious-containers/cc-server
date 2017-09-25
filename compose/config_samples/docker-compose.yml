@@ -81,7 +81,6 @@ services:
       - ~/.cc_server_compose/dind/docker:/var/lib/docker:rw,z
     links:
       - registry
-      - file-server
     tty: true
 
   registry:
