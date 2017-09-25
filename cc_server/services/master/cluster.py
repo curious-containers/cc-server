@@ -219,8 +219,8 @@ class Cluster:
         if self._config.docker.get('docker_machine_dir'):
             machine_dir = os.path.expanduser(self._config.docker['docker_machine_dir'])
             machines_dir = os.path.join(machine_dir, 'machines')
-            for machine_dir in os.listdir(machines_dir):
-                with open(os.path.join(machines_dir, machine_dir, 'config.json')) as f:
+            for d in os.listdir(machines_dir):
+                with open(os.path.join(machines_dir, d, 'config.json')) as f:
                     machine_config = json.load(f)
                 node_name = machine_config['Driver']['MachineName']
                 if not machine_config['HostOptions']['EngineOptions'].get('ArbitraryFlags'):
