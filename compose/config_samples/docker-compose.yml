@@ -76,7 +76,7 @@ services:
   dind:
     image: docker:dind
     privileged: true
-    command: "dockerd --insecure-registry=registry:5000 -H tcp://0.0.0.0:2375"
+    command: "dockerd --storage-driver=overlay2 --insecure-registry=registry:5000 -H tcp://0.0.0.0:2375"
     volumes:
       - ~/.cc_server_compose/dind/docker:/var/lib/docker:rw,z
     links:

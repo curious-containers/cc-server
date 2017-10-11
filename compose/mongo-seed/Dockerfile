@@ -1,7 +1,6 @@
 FROM mongo
 
 RUN apt-get update \
-&& apt-get install -y python3-pip \
-&& pip3 install --no-input --upgrade toml
+&& apt-get install -y python3-toml
 
 ENV PYTHONPATH $PYTHONPATH:/opt
