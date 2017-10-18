@@ -16,7 +16,7 @@ data = {
     }]
 }
 
-update_command = 'mongo --host mongo --eval \'database = db.getSiblingDB("{}"); database.updateUser({}, {})\''.format(
+update_command = 'mongo --host mongo --eval \'database = db.getSiblingDB("{}"); database.updateUser("{}", {})\''.format(
     configuration['mongo']['db'],
     configuration['mongo']['username'],
     dumps(data)
