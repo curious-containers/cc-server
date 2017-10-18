@@ -9,21 +9,32 @@ with open(CONFIG) as f:
     configuration = loads(f.read())
 
 data = {
-    'user': configuration['mongo']['username'],
     'pwd': configuration['mongo']['password'],
     'roles': [{
         'role': 'readWrite',
         'db': configuration['mongo']['db']
     }]
 }
-command = 'mongo --host mongo --eval \'database = db.getSiblingDB("{}"); database.createUser({})\''.format(
+
+update_command = 'mongo --host mongo --eval \'database = db.getSiblingDB("{}"); database.createUser({}, {})\''.format(
+    configuration['mongo']['db'],
+    configuration['mongo']['username'],
+    dumps(data)
+)
+
+data['user'] = configuration['mongo']['username']
+
+create_command = 'mongo --host mongo --eval \'database = db.getSiblingDB("{}"); database.createUser({})\''.format(
     configuration['mongo']['db'],
     dumps(data)
 )
 
 for _ in range(10):
-    code = call(command, shell=True)
+    code = call(update_command, shell=True)
     if code == 0:
         break
     else:
-        sleep(1)
+        code = call(create_command, shell=True)
+        if code == 0:
+            break
+    sleep(1)
