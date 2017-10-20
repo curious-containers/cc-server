@@ -110,7 +110,7 @@ specifying **connector_type** equals the function name in a task description.
 Sample implementation of a multi-file uploader
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**custom_uploaders.py**:
+**cc_custom_uploaders.py**:
 
 .. code-block:: python
 
@@ -158,7 +158,7 @@ Sample implementation of a multi-file uploader
 
    COPY algorithm.sh /root/algorithm.sh
 
-   COPY custom_uploaders.py /app/custom_uploaders.py
+   COPY cc_custom_uploaders.py /app/cc_custom_uploaders.py
 
    ENV PYTHONPATH /app:${PYTHONPATH}
 

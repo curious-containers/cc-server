@@ -270,6 +270,7 @@ created by the data connector if it is not yet existent. Already existing files 
 .. code-block:: json
 
    {
+       "local_result_file": "file_a",
        "connector_type": "ssh",
        "connector_access": {
            "host": "my-domain.tld",
@@ -295,6 +296,7 @@ SSL/TLS certificates.
 .. code-block:: json
 
    {
+       "local_result_file": "file_a",
        "connector_type": "http",
        "connector_access": {
            "url": "https://my-domain.tld/result_files/some_data.csv",
@@ -325,6 +327,7 @@ already existing keys will be overwritten.
 .. code-block:: json
 
    {
+       "local_result_file": "file_a",
        "connector_type": "http_json",
        "connector_access": {
            "url": "https://my-domain.tld/result_json/",
@@ -350,6 +353,7 @@ in the sample data below.
 .. code-block:: json
 
    {
+       "local_result_file": "file_a",
        "connector_type": "mongodb_json",
        "connector_access": {
            "host": "my-domain.tld",
@@ -378,6 +382,7 @@ generated with the Python *uuid* module.
 .. code-block:: json
 
    {
+       "local_result_file": "file_a",
        "connector_type": "mongodb_gridfs",
        "connector_access": {
            "host": "my-domain.tld",
