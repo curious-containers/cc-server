@@ -81,6 +81,8 @@ services:
       - ~/.cc_server_compose/dind/docker:/var/lib/docker:rw,z
     links:
       - registry
+    depends_on:
+      - consul
     tty: true
 
   registry:
@@ -91,3 +93,9 @@ services:
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
     volumes:
       - ~/.cc_server_compose/registry/data:/data:rw,z
+
+  consul:
+    image: progrium/consul
+    ports:
+      - "127.0.0.1:8500:8500"
+    command: "-server -bootstrap"
