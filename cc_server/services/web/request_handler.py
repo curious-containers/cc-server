@@ -1,10 +1,9 @@
-from traceback import format_exc
-
 import json
 import chardet
 import jsonschema
 from time import time
 from flask import request, jsonify
+from traceback import format_exc
 from werkzeug.exceptions import BadRequest, Unauthorized
 
 from cc_server.commons.authorization import Authorize
@@ -76,7 +75,6 @@ def validation(schema):
                 jsonschema.validate(json_input, schema)
                 json_input = prepare_input(json_input)
             except:
-                self._tee('JSON input not valid: {}'.format(format_exc()))
                 raise BadRequest('JSON input not valid: {}'.format(format_exc()))
             return func(self, json_input, *args, **kwargs)
         return wrapper
