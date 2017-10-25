@@ -47,6 +47,7 @@ setup(
         'pymongo',
         'docker',
         'flask',
+        'werkzeug',
         'gunicorn',
         'cryptography',
         'gevent',
