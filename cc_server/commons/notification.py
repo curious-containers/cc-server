@@ -23,7 +23,8 @@ def _auth(http_auth):
 
 
 def notify(tee, servers, meta_data):
-    for connector_access in servers:
+    for server in servers:
+        connector_access = server['connector_access']
         try:
             json_data = connector_access.get('json_data')
             if connector_access.get('add_meta_data'):
