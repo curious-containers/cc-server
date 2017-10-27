@@ -37,7 +37,10 @@ def _prepare_input(data, replace):
     elif isinstance(data, list):
         return [_prepare_input(e, replace) for e in data]
     elif replace and isinstance(data, str):
-        return ObjectId(data)
+        try:
+            return ObjectId(data)
+        except:
+            return data
     return data
 
 
