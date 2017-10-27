@@ -77,7 +77,11 @@ class Scheduler:
 
         for task in self._task_selection:
             ac_ram = task['application_container_description']['container_ram']
-            if not _is_task_fitting(nodes, ac_ram, dc_ram):
+            required_dc_ram = dc_ram
+            if task.get('no_cache'):
+                required_dc_ram = 0
+
+            if not _is_task_fitting(nodes, ac_ram, required_dc_ram):
                 description = 'Task is too large for cluster.'
                 self._state_handler.transition('tasks', task['_id'], 'failed', description)
                 continue
