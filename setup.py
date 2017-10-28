@@ -14,7 +14,7 @@ setup(
                 'results have been produced. Curious Containers supports scientific use cases like biomedical analysis '
                 'and reproducible research by providing standardized methods for packaging applications and executing '
                 'them in a compute environment. Therefore application dependencies are added to a compatible Docker '
-                'container image, including all necessary bin, binaries and configurations.',
+                'container image, including all necessary scripts, binaries and configurations.',
     author='Christoph Jansen, Michael Witt, Maximilian Beier',
     author_email='Christoph.Jansen@htw-berlin.de',
     url='https://github.com/curious-containers/cc-server',
