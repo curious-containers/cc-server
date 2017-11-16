@@ -189,6 +189,7 @@ class Cluster:
                     }},
                     upsert=True
                 )
+            return
         self._update_node(node_name, node_config, False)
 
     def _update_node(self, node_name, node_config, startup):
