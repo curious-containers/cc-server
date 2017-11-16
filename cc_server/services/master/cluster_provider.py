@@ -117,6 +117,14 @@ class DockerClientProxy:
         with self._thread_limit:
             self.client.create_host_config(*args, **kwargs)
 
+    def create_network(self):
+        network_name = self._config.docker.get('net')
+        if network_name:
+            networks = self.client.networks.list(names=[network_name])
+            if not networks:
+                self._tee('Create net {} via node {}.'.format(network_name, self.node_name))
+                self.client.networks.create(network_name, driver='overlay')
+
     def create_container(self, *args, **kwargs):
         container_name = kwargs['name']
         containers = self.containers()
@@ -206,6 +214,13 @@ class DockerProvider:
 
     def get_ip(self, node_name, container_id):
         return self._clients[node_name].get_ip(container_id)
+
+    def create_network(self):
+        if not self._clients:
+            return
+        node_name = list(self._clients)[0]
+        client = self._clients[node_name]
+        client.create_network()
 
     def wait_for_container(self, node_name, container_id):
         self._clients[node_name].wait_for_container(container_id)

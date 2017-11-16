@@ -158,9 +158,15 @@ class Cluster:
     def _create_nodes_on_startup(self):
         self._mongo.db['nodes'].drop()
         node_configs = self._read_node_configs()
+        threads = []
         for node_name, node_config in node_configs.items():
             self._tee('Create node {}.'.format(node_name))
-            Thread(target=self._update_node, args=(node_name, node_config, True)).start()
+            t = Thread(target=self._update_node, args=(node_name, node_config, True))
+            t.start()
+            threads.append(t)
+        for t in threads:
+            t.join()
+        self._cluster_provider.create_network()
 
     def _update_node_and_check_if_online(self, node_name):
         self.update_node(node_name)

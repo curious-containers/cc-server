@@ -28,6 +28,7 @@ services:
       - cc-server-log
     depends_on:
       - mongo-seed
+      - consul
     tty: true
     user: ccuser
 
@@ -81,8 +82,6 @@ services:
       - ~/.cc_server_compose/dind/docker:/var/lib/docker:rw,z
     links:
       - registry
-    depends_on:
-      - consul
     tty: true
 
   registry:
