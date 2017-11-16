@@ -120,10 +120,10 @@ class DockerClientProxy:
     def create_network(self):
         network_name = self._config.docker.get('net')
         if network_name:
-            networks = self.client.networks.list(names=[network_name])
+            networks = self.client.networks(names=[network_name])
             if not networks:
                 self._tee('Create net {} via node {}.'.format(network_name, self.node_name))
-                self.client.networks.create(network_name, driver='overlay')
+                self.client.create_network(network_name, driver='overlay')
 
     def create_container(self, *args, **kwargs):
         container_name = kwargs['name']
