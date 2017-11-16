@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='cc-server',
-    version='0.12',
+    version='0.12.1',
     summary='Curious Containers is an application management service that is able to execute thousands of '
             'short-lived applications in a distributed cluster by employing Docker container engines.',
     description='Curious Containers is an application management service that is able to execute thousands of '
@@ -14,7 +14,7 @@ setup(
                 'results have been produced. Curious Containers supports scientific use cases like biomedical analysis '
                 'and reproducible research by providing standardized methods for packaging applications and executing '
                 'them in a compute environment. Therefore application dependencies are added to a compatible Docker '
-                'container image, including all necessary bin, binaries and configurations.',
+                'container image, including all necessary scripts, binaries and configurations.',
     author='Christoph Jansen, Michael Witt, Maximilian Beier',
     author_email='Christoph.Jansen@htw-berlin.de',
     url='https://github.com/curious-containers/cc-server',
