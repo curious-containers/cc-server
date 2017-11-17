@@ -62,7 +62,6 @@ container_allocation = 'spread'
 
 [defaults.error_handling]
 max_task_trials = 3
-dead_node_invalidation = false
 
 [defaults.authorization]
 num_login_attempts = 3

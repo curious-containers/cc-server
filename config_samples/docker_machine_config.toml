@@ -61,10 +61,9 @@ container_allocation = 'spread'
 
 [defaults.error_handling]
 max_task_trials = 3
-dead_node_invalidation = true
 
-# entirely optional and only applicable if dead_node_invalidation is true
-# [defaults.error_handling.dead_node_notification]
+# notify if node is offline
+# [defaults.error_handling.node_offline_notification]
 # url = 'https://my-domain.tld/cluster'
 # auth = {'auth_type' = 'basic', 'username' = 'admin', 'password' = 'PASSWORD'}
 

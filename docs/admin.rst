@@ -466,28 +466,24 @@ the container.
 
    [defaults.error_handling]
    max_task_trials = 3
-   dead_node_invalidation = true
 
 
 CC-Server is fault tolerant, in the sense that faulty tasks are automatically restarted. Sometimes a restart will not fix
 the problem, because the task configuration is wrong or a resource is not available. In order to avoid infite restart
 loops, the number of restarts must be limited by setting the **max_task_trials** value in the **error_handling** subsection.
-The **dead_node_validation** field should be set to *true* for improved error handling. If a node in the Docker cluster
-is not responding or behaving incorrect, these errors will be detected and the node will be ignored by the CC-Server
-scheduler.
 
 
 .. code-block:: toml
 
-   [defaults.error_handling.dead_node_notification]
+   [defaults.error_handling.node_offline_notification]
    url = 'https://my-domain.tld/cluster'
    auth = {'auth_type' = 'basic', 'username' = 'admin', 'password' = 'PASSWORD'}
 
 
-If **dead_node_invalidation** is set to *true*, an entirely optional notification mechanism can be activated. This
-**dead_node_notification** will send an HTTP POST request, containing a JSON object with the **name** of the
+If **node_offline_notification** is set to *true*, an entirely optional notification mechanism can be activated. This
+**node_offline_notification** will send an HTTP POST request, containing a JSON object with the **name** of the
 corresponding cluster node, to the specified **url**. Setting authentication information in the **auth** field is
-optional. Remove the complete **dead_node_invalidation** section from the config file if not required.
+optional. Remove the complete **node_offline_notification** section from the config file if not required.
 
 
 .. code-block:: toml

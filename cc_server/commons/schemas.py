@@ -617,8 +617,7 @@ cc_server_config_schema = {
                     'type': 'object',
                     'properties': {
                         'max_task_trials': {'type': 'integer'},
-                        'dead_node_invalidation': {'type': 'boolean'},
-                        'dead_node_notification': {
+                        'node_offline_notification': {
                             'type': 'object',
                             'properties': {
                                 'url': {'type': 'string'},
