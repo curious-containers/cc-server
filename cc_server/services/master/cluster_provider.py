@@ -198,13 +198,14 @@ class DockerProvider:
 
     def update_node(self, node_name, node_config, startup):
         if not node_config:
-            del self._clients[node_name]
+            if node_name in self._clients:
+                del self._clients[node_name]
             raise Exception('Could not find config for node {}.'.format(node_name))
 
         try:
             node = self._clients[node_name]
             self._inspect(node, startup)
-            info = self.node_info(node_name)
+            info = node.info(node_name)
         except:
             if node_name in self._clients:
                 del self._clients[node_name]
@@ -215,7 +216,7 @@ class DockerProvider:
                 node_config=node_config
             )
             self._inspect(node, startup)
-            info = self.node_info(node_name)
+            info = node.info()
 
         self._clients[node_name] = node
         return info
