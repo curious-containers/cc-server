@@ -34,7 +34,7 @@ class Cluster:
             self._state_handler.transition(collection, container_id, 'waiting', description)
         except:
             description = 'Container creation failed.'
-            if not self._update_node_and_check_if_online(node_name):
+            if not self.update_node(node_name):
                 description = 'Container creation failed due to node {} being offline.'.format(node_name)
             self._state_handler.transition(collection, container_id, 'failed', description, exception=format_exc())
             self._cluster_provider.remove_container(node_name, container_id)
@@ -47,7 +47,7 @@ class Cluster:
             self._mongo.db[collection].update_one({'_id': container_id}, {'$set': {'ip': ip}})
         except:
             description = 'Container start failed.'
-            if not self._update_node_and_check_if_online(node_name):
+            if not self.update_node(node_name):
                 description = 'Container start failed due to node {} being offline.'.format(node_name)
             self._state_handler.transition(collection, container_id, 'failed', description, exception=format_exc())
             self._cluster_provider.remove_container(node_name, container_id)
@@ -168,15 +168,10 @@ class Cluster:
             t.join()
         self._cluster_provider.create_network()
 
-    def _update_node_and_check_if_online(self, node_name):
-        self.update_node(node_name)
-        node = self._mongo.db['nodes'].find_one({'cluster_node': node_name}, {'is_online': 1})
-        return node['is_online']
-
     def update_node(self, node_name):
         node_configs = self._read_node_configs()
         node_config = node_configs.get(node_name)
-        self._update_node(node_name, node_config, False)
+        return self._update_node(node_name, node_config, False)
 
     def _update_node(self, node_name, node_config, startup):
         node = {
@@ -205,6 +200,8 @@ class Cluster:
             connector_access['add_meta_data'] = True
             meta_data = {'name': node_name}
             notify(self._tee, [connector_access], meta_data)
+
+        return node['is_online']
 
     def _read_node_configs(self):
         node_configs = {}
