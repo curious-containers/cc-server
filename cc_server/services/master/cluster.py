@@ -176,20 +176,6 @@ class Cluster:
     def update_node(self, node_name):
         node_configs = self._read_node_configs()
         node_config = node_configs.get(node_name)
-        if not node_config:
-            s = 'Config for node {} does not exist.'.format(node_name)
-            self._tee(s)
-            node = self._mongo.db['nodes'].find_one({'cluster_node': node_name}, {'is_online': 1})
-            if node and node.get('is_online'):
-                self._mongo.db['nodes'].update_one(
-                    {'cluster_node': node_name},
-                    {'$set': {
-                        'is_online': False,
-                        'debug_info': s
-                    }},
-                    upsert=True
-                )
-            return
         self._update_node(node_name, node_config, False)
 
     def _update_node(self, node_name, node_config, startup):
@@ -203,8 +189,7 @@ class Cluster:
         }
 
         try:
-            self._cluster_provider.update_node(node_name, node_config, startup)
-            info = self._cluster_provider.node_info(node_name)
+            info = self._cluster_provider.update_node(node_name, node_config, startup)
             node['total_ram'] = info['total_ram']
             node['total_cpus'] = info['total_cpus']
         except:
