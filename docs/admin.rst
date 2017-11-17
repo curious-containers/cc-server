@@ -626,7 +626,7 @@ Create an Apache2 site file at **/etc/apache2/sites-available/cc-server.conf** a
        SSLCertificateChainFile /PATH/TO/chain.pem
 
        ProxyRequests Off
-       ProxyPass /cc http://localhost:8000
+       ProxyPass /cc http://localhost:8000 retry=0
        ProxyPassReverse /cc http://localhost:8000
    </VirtualHost>
 
